@@ -8,6 +8,7 @@ use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * Услуга: витрина сайта + учёт (base_price).
@@ -78,17 +79,43 @@ class Service extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('card')->singleFile();   // карточка на главной
-        $this->addMediaCollection('hero')->singleFile();   // шапка страницы услуги
+        $this->addMediaCollection('card')->useDisk('public')->singleFile();   // карточка на главной
+        $this->addMediaCollection('hero')->useDisk('public')->singleFile();   // шапка страницы услуги
+    }
+
+    /**
+     * Конверсия в webp — генерируется при загрузке фото в админке.
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('webp')
+            ->format('webp')
+            ->nonQueued();
     }
 
     public function cardUrl(): string
     {
-        return $this->getFirstMediaUrl('card');
+        return $this->mediaUrl('card');
     }
 
     public function heroUrl(): string
     {
-        return $this->getFirstMediaUrl('hero');
+        return $this->mediaUrl('hero');
+    }
+
+    /**
+     * URL фото: отдаём webp-конверсию, если она сгенерирована, иначе оригинал.
+     */
+    private function mediaUrl(string $collection): string
+    {
+        $media = $this->getFirstMedia($collection);
+
+        if (! $media) {
+            return '';
+        }
+
+        return $media->hasGeneratedConversion('webp')
+            ? $media->getUrl('webp')
+            : $media->getUrl();
     }
 }

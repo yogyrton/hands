@@ -1,9 +1,7 @@
 <?php
 
-use App\Providers\AppServiceProvider;
-use App\Providers\DIServiceProvider;
-
 return [
-    AppServiceProvider::class,
-    DIServiceProvider::class,
+    App\Providers\AppServiceProvider::class,
+    App\Providers\DIServiceProvider::class,
+    App\Providers\Filament\AdminPanelProvider::class,
 ];

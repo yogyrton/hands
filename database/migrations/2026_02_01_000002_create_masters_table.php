@@ -20,7 +20,7 @@ return new class extends Migration
             $table->string('experience_label')->nullable();
             $table->text('bio1');
             $table->text('bio2');
-            $table->json('principles')->nullable();
+            $table->jsonb('principles')->nullable();
             $table->unsignedInteger('sort_order')->default(0);
             $table->boolean('is_active')->default(true);
             $table->softDeletes();

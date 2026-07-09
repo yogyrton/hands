@@ -26,3 +26,7 @@ RUN docker-php-ext-enable redis
 
 # Подготовка каталогов
 RUN mkdir -p storage bootstrap/cache && chmod -R 777 storage bootstrap/cache
+
+# Фикс прав на storage при старте контейнера (bind-mount перекрывает права образа)
+COPY docker/provision/entrypoint.d/20-storage-permissions.sh /opt/docker/provision/entrypoint.d/20-storage-permissions.sh
+RUN chmod +x /opt/docker/provision/entrypoint.d/20-storage-permissions.sh

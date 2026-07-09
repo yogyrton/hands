@@ -9,6 +9,7 @@ use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
+use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
  * Мастер: профиль сайта + сотрудник учёта. Мягкое удаление (увольнение).
@@ -68,12 +69,30 @@ class Master extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('main')->singleFile();   // главное фото (главная + шапка)
-        $this->addMediaCollection('gallery');              // до 3 фото на странице мастера
+        $this->addMediaCollection('main')->useDisk('public')->singleFile();   // главное фото (главная + шапка)
+        $this->addMediaCollection('gallery')->useDisk('public');              // до 3 фото на странице мастера
+    }
+
+    /**
+     * Конверсия в webp — генерируется при загрузке фото в админке.
+     */
+    public function registerMediaConversions(?Media $media = null): void
+    {
+        $this->addMediaConversion('webp')
+            ->format('webp')
+            ->nonQueued();
     }
 
     public function mainUrl(): string
     {
-        return $this->getFirstMediaUrl('main');
+        $media = $this->getFirstMedia('main');
+
+        if (! $media) {
+            return '';
+        }
+
+        return $media->hasGeneratedConversion('webp')
+            ? $media->getUrl('webp')
+            : $media->getUrl();
     }
 }
