@@ -1,0 +1,91 @@
+<?php
+
+declare(strict_types=1);
+
+namespace Database\Seeders;
+
+use App\Contracts\Services\MasterServiceInterface;
+use App\Data\MasterData;
+use App\Models\Master;
+use App\Models\Service;
+use Illuminate\Database\Seeder;
+
+class MasterSeeder extends Seeder
+{
+    public function run(MasterServiceInterface $masters): void
+    {
+        foreach ($this->data() as $item) {
+            $serviceSlugs = $item['services'];
+            unset($item['services']);
+
+            /** @var Master $master */
+            $master = $masters->create(MasterData::from($item));
+
+            $serviceIds = Service::query()
+                ->whereIn('slug', $serviceSlugs)
+                ->pluck('id');
+
+            $master->services()->sync($serviceIds);
+        }
+    }
+
+    /**
+     * @return array<int, array<string, mixed>>
+     */
+    private function data(): array
+    {
+        return [
+            [
+                'slug' => 'dmitriy',
+                'name' => 'Дмитрий',
+                'name_dative' => 'Дмитрию',
+                'role' => 'Массажист · спортивный и классический массаж',
+                'yclients_url' => 'https://n2124342.yclients.com',
+                'experience_label' => '8 лет',
+                'bio1' => 'Дмитрий пришёл в массаж из спорта — и до сих пор относится к телу как к инструменту, который можно и нужно настраивать. Он читает мышцы руками: где зажато, где перегружено, где осталось старое напряжение.',
+                'bio2' => 'Восемь лет практики и сотни восстановленных после нагрузок спин и плеч. Его стихия — спортивный и классический массаж: глубоко, честно и с ощутимым результатом уже после первого сеанса.',
+                'principles' => [
+                    ['title' => 'Точность', 'description' => 'Работает по анатомии и вашему запросу, без лишнего давления.'],
+                    ['title' => 'Восстановление', 'description' => 'Помогает телу быстрее приходить в форму после тренировок и стресса.'],
+                    ['title' => 'Сила и мягкость', 'description' => 'Подбирает интенсивность так, чтобы было эффективно и комфортно.'],
+                ],
+                'sort_order' => 1,
+                'services' => ['sport', 'classic', 'back'],
+            ],
+            [
+                'slug' => 'anna',
+                'name' => 'Анна',
+                'name_dative' => 'Анне',
+                'role' => 'Массажист · релакс, лицо и коррекция фигуры',
+                'yclients_url' => 'https://n2124346.yclients.com',
+                'experience_label' => '6 лет',
+                'bio1' => 'Анна работает так, что время будто замедляется. Её руки не спешат, а тело само вспоминает, как это — не держать напряжение. Она умеет создать ту самую тишину, ради которой и приходят на релакс.',
+                'bio2' => 'Шесть лет в профессии, любовь к бережным техникам и тонкое чувство состояния клиента. Релакс, массаж лица и коррекция фигуры — там, где важны мягкость, внимание и вкус к деталям.',
+                'principles' => [
+                    ['title' => 'Бережность', 'description' => 'Мягкие, обволакивающие движения и полное внимание к вам.'],
+                    ['title' => 'Забота о коже', 'description' => 'Свежесть, тонус и естественная гармония черт.'],
+                    ['title' => 'Гармония', 'description' => 'Помогает восстановить внутреннее равновесие и лёгкость.'],
+                ],
+                'sort_order' => 2,
+                'services' => ['relax', 'face', 'figure'],
+            ],
+            [
+                'slug' => 'andrey',
+                'name' => 'Андрей',
+                'name_dative' => 'Андрею',
+                'role' => 'Массажист · спина и классический массаж',
+                'yclients_url' => 'https://n2124340.yclients.com',
+                'experience_label' => '10 лет',
+                'bio1' => 'Андрей — из тех мастеров, к которым возвращаются годами. Спокойный, основательный, без суеты: он точно знает, где живёт боль в спине, и умеет её отпустить.',
+                'bio2' => 'Десять лет практики и тысячи проработанных спин. Его специализация — массаж спины и классический массаж: глубокая работа с триггерными точками, осанкой и хроническим напряжением.',
+                'principles' => [
+                    ['title' => 'Опыт', 'description' => 'Более десяти лет практики и тысячи проработанных спин.'],
+                    ['title' => 'Глубина', 'description' => 'Работает с глубокими мышечными слоями и триггерными точками.'],
+                    ['title' => 'Результат', 'description' => 'Возвращает лёгкость движений и правильную осанку.'],
+                ],
+                'sort_order' => 3,
+                'services' => ['back', 'classic', 'sport'],
+            ],
+        ];
+    }
+}

@@ -1,0 +1,26 @@
+@php($yclients = $studio['yclients_main'] ?? 'https://n1865142.yclients.com')
+@php($instagram = $studio['instagram_url'] ?? 'https://www.instagram.com/hands.mg/')
+@php($address = $studio['address'] ?? 'проезд Пожарского 3Б, Могилёв')
+<footer class="footer">
+    <div class="footer__top">
+        <div>
+            <a href="{{ route('home') }}" class="logo">HANDS</a>
+            <p class="footer__about">Массажная студия в Могилёве. В наших руках — ваше удовольствие.</p>
+        </div>
+        <div class="footer__cols">
+            <div class="footer__col">
+                <span class="h">Студия</span>
+                <a href="{{ route('home') }}#services">Услуги</a>
+                <a href="{{ route('home') }}#masters">Мастера</a>
+                <a href="{{ route('home') }}#about">О студии</a>
+            </div>
+            <div class="footer__col">
+                <span class="h">Контакты</span>
+                <span>{{ $address }}</span>
+                <a href="{{ $instagram }}" target="_blank" rel="noopener">@hands.mg</a>
+                <a href="{{ $yclients }}" target="_blank" rel="noopener" class="gold">Записаться онлайн</a>
+            </div>
+        </div>
+    </div>
+    <div class="footer__copy">© {{ date('Y') }} HANDS · Массажная студия · Приём только по предварительной записи</div>
+</footer>
