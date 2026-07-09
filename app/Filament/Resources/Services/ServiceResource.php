@@ -42,6 +42,11 @@ class ServiceResource extends Resource
         return 'услуги';
     }
 
+    public static function canAccess(): bool
+    {
+        return (bool) auth()->user()?->isAdmin();
+    }
+
     public static function form(Schema $schema): Schema
     {
         return ServiceForm::configure($schema);

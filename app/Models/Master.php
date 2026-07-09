@@ -36,6 +36,7 @@ class Master extends Model implements HasMedia
         'bio1',
         'bio2',
         'principles',
+        'salary_rate',
         'sort_order',
         'is_active',
     ];
@@ -44,6 +45,7 @@ class Master extends Model implements HasMedia
     {
         return [
             'principles' => 'array',
+            'salary_rate' => 'decimal:2',
             'sort_order' => 'integer',
             'is_active' => 'boolean',
         ];

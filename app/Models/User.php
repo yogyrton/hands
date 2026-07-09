@@ -35,12 +35,11 @@ class User extends Authenticatable implements FilamentUser
     }
 
     /**
-     * Доступ в админ-панель: в Фазе 2 — только администратор.
-     * Мастер получит доступ в Фазе 3 (учёт).
+     * Доступ в панель: администратор и мастер (мастер — только учёт).
      */
     public function canAccessPanel(Panel $panel): bool
     {
-        return $this->role === UserRole::Admin;
+        return in_array($this->role, [UserRole::Admin, UserRole::Master], true);
     }
 
     public function isAdmin(): bool
