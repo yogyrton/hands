@@ -20,6 +20,7 @@
 
     @include('partials.footer')
 </div>
+@include('partials.back-to-top')
 @stack('scripts')
 </body>
 </html>

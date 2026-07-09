@@ -33,17 +33,11 @@ class BaseQueryService implements BaseQueryServiceInterface
         return $this->repository->all($columns);
     }
 
-    /**
-     * @return Model|null
-     */
     public function find(int|string $id): ?Model
     {
         return $this->repository->find($id);
     }
 
-    /**
-     * @return Model
-     */
     public function create(Data $data): Model
     {
         return $this->repository->create($data);

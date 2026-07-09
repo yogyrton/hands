@@ -8,6 +8,7 @@ use App\Contracts\Services\FaqServiceInterface;
 use App\Contracts\Services\MasterServiceInterface;
 use App\Contracts\Services\ServiceServiceInterface;
 use App\Http\Controllers\Controller;
+use App\Models\SiteContent;
 use Illuminate\Contracts\View\View;
 
 class HomeController extends Controller
@@ -21,6 +22,7 @@ class HomeController extends Controller
             'services' => $services->activeOrdered(),
             'masters' => $masters->activeOrdered(),
             'faqs' => $faqs->activeOrdered(),
+            'site' => SiteContent::current(),
         ]);
     }
 }

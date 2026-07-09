@@ -8,6 +8,7 @@ use App\Enums\UserRole;
 use App\Models\Faq;
 use App\Models\Master;
 use App\Models\Service;
+use App\Models\SiteContent;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Tests\TestCase;
@@ -62,5 +63,10 @@ class AdminPanelSmokeTest extends TestCase
         $this->get('/admin/faqs')->assertOk();
         $this->get('/admin/faqs/create')->assertOk();
         $this->get('/admin/manage-studio-settings')->assertOk();
+
+        // Singleton «Фото главной»: индекс редиректит на редактирование записи.
+        $site = SiteContent::current();
+        $this->get('/admin/site-contents')->assertRedirect();
+        $this->get("/admin/site-contents/{$site->getKey()}/edit")->assertOk();
     }
 }

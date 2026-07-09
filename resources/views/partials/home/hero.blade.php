@@ -1,6 +1,5 @@
 @php($yclients = $studio['yclients_main'] ?? 'https://n1865142.yclients.com')
-@php($firstMaster = $masters->first())
-@php($heroImg = $firstMaster?->mainUrl())
+@php($heroImg = $site->heroUrl())
 <section class="hero">
     <div class="hero__text">
         <div class="eyebrow hero__eyebrow">Массажная студия · Могилёв</div>

@@ -79,8 +79,8 @@ class Service extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('card')->useDisk('public')->singleFile();   // карточка на главной
-        $this->addMediaCollection('hero')->useDisk('public')->singleFile();   // шапка страницы услуги
+        // Одно фото услуги: и карточка на главной, и шапка страницы услуги.
+        $this->addMediaCollection('card')->useDisk('public')->singleFile();
     }
 
     /**
@@ -100,7 +100,8 @@ class Service extends Model implements HasMedia
 
     public function heroUrl(): string
     {
-        return $this->mediaUrl('hero');
+        // Шапка страницы услуги использует то же фото, что и карточка.
+        return $this->mediaUrl('card');
     }
 
     /**
