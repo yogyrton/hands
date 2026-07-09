@@ -236,6 +236,65 @@ User (1)───(0..1) Master (N)───(M) Service
 
 ---
 
+## 2A. Архитектура: слои, DTO и DI-биндинг (конвенция проекта)
+
+Весь код следует слоёному паттерну проекта. Бизнес-логика **не** живёт в контроллерах и
+Filament-ресурсах — только в сервисах.
+
+```
+Blade-контроллер / Filament ─▶ Service (через интерфейс) ─▶ Repository (через интерфейс) ─▶ Eloquent
+                                     ▲                              ▲
+                                DTO (Spatie\LaravelData\Data)  Builder<TModel>
+```
+
+**Базовый слой (уже есть у заказчика):**
+- `App\Contracts\Repositories\BaseQueryRepositoryInterface<TModel>` / `App\Repositories\BaseQueryRepository` — generic CRUD (`all/find/create/update/delete/paginate`), абстрактный `query(): Builder<TModel>`.
+- `App\Contracts\Services\BaseQueryServiceInterface<TModel>` / `App\Services\BaseQueryService` — обёртка над репозиторием (constructor injection интерфейса).
+- DTO — классы `Spatie\LaravelData\Data`, передаются в `create/update`.
+- Биндинг интерфейс → реализация — в `App\Providers\DIServiceProvider` (`registerServices()`, `registerRepositories()`).
+- Стиль: `declare(strict_types=1)`, PHP 8.4 (`#[Override]`), Pint, дженерик-докблоки для Larastan.
+
+**Артефакты на каждую доменную модель `X`** (по образцу `User`/`UserServiceInterface`):
+1. `App\Models\X` — Eloquent (+ трейты: `SoftDeletes` где нужно, `InteractsWithMedia` для фото).
+2. `App\Data\XData` — DTO (LaravelData) для create/update.
+3. `App\Contracts\Repositories\XRepositoryInterface extends BaseQueryRepositoryInterface<X>`.
+4. `App\Repositories\XRepository extends BaseQueryRepository implements XRepositoryInterface` (реализует `query()`).
+5. `App\Contracts\Services\XServiceInterface extends BaseQueryServiceInterface<X>` (+ доменные методы).
+6. `App\Services\XService` — реализация (чистый CRUD может переиспользовать `BaseQueryService`).
+7. Регистрация обеих пар в `DIServiceProvider`.
+
+**Пример (модель `Service`):**
+```php
+// App\Contracts\Services\ServiceServiceInterface
+interface ServiceServiceInterface extends BaseQueryServiceInterface {} // @extends ...<Service>
+// App\Repositories\ServiceRepository
+public function query(): Builder { return Service::query(); }
+// DIServiceProvider::registerRepositories()
+$this->app->bind(ServiceRepositoryInterface::class, ServiceRepository::class);
+// DIServiceProvider::registerServices()
+$this->app->bind(ServiceServiceInterface::class, fn ($app) =>
+    new BaseQueryService($app->make(ServiceRepositoryInterface::class)));
+```
+
+**Доменные сервисы (не CRUD — отдельные методы-команды):**
+- `VisitServiceInterface::register(VisitData $data): Visit` — в `DB::transaction` + `lockForUpdate`
+  на сертификате: создаёт `Visit`, при сертификате пишет `CertificateOperation(usage)` и обновляет
+  остаток/статус. Вызывается из Filament (обработка формы/кастомный Action), **не** из тела ресурса.
+- `CertificateServiceInterface::issue(CertificateData $data): Certificate` — генерит номер,
+  `expires_at = sold_at + 3 мес`, `status=active`, пишет `CertificateOperation(sale)`.
+
+**Где что использует слой:**
+- Публичные контроллеры (`HomeController`/`ServiceController`/`MasterController`) — только чтение,
+  через `*ServiceInterface` (`all()`/`find()` с активными записями).
+- Filament: простой CRUD справочников — идиоматично, напрямую с Eloquent; **доменные операции**
+  (регистрация посещения, выпуск/списание сертификата) — только через доменные сервисы.
+
+**Пакеты к установке (в `composer.json` их ещё нет):**
+`spatie/laravel-data`, `spatie/laravel-medialibrary` (+ `intervention/image` для webp),
+`filament/filament`. Поднять `php` до `^8.4`, если используете `#[Override]`-стиль повсеместно.
+
+---
+
 ## 3. Роли и доступ
 
 | Возможность | Администратор | Мастер |
@@ -456,10 +515,17 @@ bio1/bio2/статы/CTA «Записаться к {name_dative}»), «Подх�
 
 ## 11. Порядок реализации
 
+**Фаза 0 — пакеты и базовый слой**
+0. Установить `spatie/laravel-data`, `spatie/laravel-medialibrary` (+ `intervention/image`),
+   `filament/filament`; поднять php до `^8.4`. Убедиться, что базовый слой (раздел 2A) на месте:
+   `BaseQueryRepository/Service` + контракты + `DIServiceProvider`.
+
 **Фаза 1 — фундамент**
 1. Layout + `site.css` (токены, шрифты, базовые компоненты: кнопка, eyebrow, карточка, секция).
-2. Модели `Service`, `Master`, `Faq`, настройки + миграции + сидеры (контент из дизайн-хэндоффа).
-3. Роуты + контроллеры. Blade: header/footer → главная → услуга → мастер.
+2. На каждую модель `Service`/`Master`/`Faq` — полный набор по разделу 2A: Model (+ MediaLibrary/
+   SoftDeletes), `Data`-DTO, Repository (+ интерфейс), Service (+ интерфейс), биндинг в
+   `DIServiceProvider`. Миграции + сидеры (контент из дизайн-хэндоффа).
+3. Роуты + контроллеры (читают через `*ServiceInterface`). Blade: header/footer → главная → услуга → мастер.
 4. Форма записи (redirect YClients), карта (настройки), FAQ (`<details>`).
 
 **Фаза 2 — админка контента**
@@ -467,8 +533,11 @@ bio1/bio2/статы/CTA «Записаться к {name_dative}»), «Подх�
 6. Ресурсы Service/Master/Faq + загрузка фото + Repeater'ы + slug/sort/active/SEO + страница Настроек.
 
 **Фаза 3 — учёт**
-7. Модели/миграции: User.role, Visit, Certificate, CertificateOperation. Policy по ролям.
-8. VisitResource + форма создания посещения (вся логика сертификатов, транзакция).
+7. Модели/миграции: User.role, Visit, Certificate, CertificateOperation + слои (2A):
+   DTO/Repository/Service на каждую. Доменные сервисы `VisitService::register()`,
+   `CertificateService::issue()`. Policy по ролям.
+8. VisitResource + форма создания посещения — вызывает `VisitServiceInterface::register()`
+   (вся логика сертификатов и транзакция внутри сервиса, не в ресурсе).
 9. CertificateResource + RelationManager «Операции».
 10. Отчёты: дашборд выручки, зарплаты по мастерам.
 
