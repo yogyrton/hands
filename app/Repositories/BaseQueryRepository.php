@@ -33,6 +33,9 @@ abstract class BaseQueryRepository implements BaseQueryRepositoryInterface
         return $this->query()->get($columns);
     }
 
+    /**
+     * @return Model
+     */
     public function create(Data $data): Model
     {
         return $this->query()->create($data->toArray());
@@ -51,6 +54,9 @@ abstract class BaseQueryRepository implements BaseQueryRepositoryInterface
         return $model->update($data->toArray());
     }
 
+    /**
+     * @return Model|null
+     */
     public function find(int|string $id, array $with = []): ?Model
     {
         return $this->query()->with($with)->find($id);
