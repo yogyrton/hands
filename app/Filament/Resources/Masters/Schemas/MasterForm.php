@@ -98,11 +98,11 @@ class MasterForm
                         ->image()
                         ->maxSize(102400),
                     SpatieMediaLibraryFileUpload::make('gallery')
-                        ->label('Галерея (до 3 фото)')
+                        ->label('Галерея (до 4 фото)')
                         ->collection('gallery')
                         ->image()
                         ->multiple()
-                        ->maxFiles(3)
+                        ->maxFiles(4)
                         ->reorderable()
                         ->maxSize(102400),
                 ]),
