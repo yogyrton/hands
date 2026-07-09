@@ -32,6 +32,9 @@ class CertificateService extends BaseQueryService implements CertificateServiceI
 
             $certificate = new Certificate;
             $certificate->type = $data->type;
+            $certificate->client_first_name = $data->client_first_name;
+            $certificate->client_last_name = $data->client_last_name;
+            $certificate->client_phone = $data->client_phone;
 
             if ($data->type === CertificateType::Visits) {
                 $certificate->initial_visits = $data->initial_visits;

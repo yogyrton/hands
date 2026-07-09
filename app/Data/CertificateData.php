@@ -13,5 +13,8 @@ class CertificateData extends Data
         public CertificateType $type,
         public ?int $initial_visits = null,
         public ?float $initial_amount = null,
+        public ?string $client_first_name = null,
+        public ?string $client_last_name = null,
+        public ?string $client_phone = null,
     ) {}
 }

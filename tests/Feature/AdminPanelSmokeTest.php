@@ -14,6 +14,7 @@ use App\Models\Master;
 use App\Models\Service;
 use App\Models\SiteContent;
 use App\Models\User;
+use App\Models\Visit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
 use Tests\TestCase;
@@ -128,5 +129,8 @@ class AdminPanelSmokeTest extends TestCase
             'service_price' => 60,
             'paid_amount' => 60,
         ]);
+
+        $visit = Visit::query()->firstOrFail();
+        $this->get("/admin/visits/{$visit->id}")->assertOk();
     }
 }

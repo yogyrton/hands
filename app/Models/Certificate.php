@@ -20,6 +20,9 @@ class Certificate extends Model
 {
     protected $fillable = [
         'number',
+        'client_first_name',
+        'client_last_name',
+        'client_phone',
         'type',
         'initial_visits',
         'initial_amount',
@@ -111,10 +114,23 @@ class Certificate extends Model
     }
 
     /**
+     * ФИО клиента (если заполнено).
+     */
+    public function clientLabel(): string
+    {
+        $name = trim(($this->client_last_name ?? '').' '.($this->client_first_name ?? ''));
+
+        return $name !== '' ? $name : '—';
+    }
+
+    /**
      * Подпись для выпадающего списка при оплате.
      */
     public function selectLabel(): string
     {
-        return '№'.$this->number.' · '.$this->type->label().' · остаток '.$this->remainingLabel().' · до '.$this->expires_at->format('d.m.Y');
+        $client = $this->clientLabel();
+        $client = $client !== '—' ? ' · '.$client : '';
+
+        return '№'.$this->number.$client.' · '.$this->type->label().' · остаток '.$this->remainingLabel().' · до '.$this->expires_at->format('d.m.Y');
     }
 }

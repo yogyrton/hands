@@ -6,6 +6,7 @@ use App\Contracts\Services\VisitServiceInterface;
 use App\Enums\PaymentType;
 use App\Models\Visit;
 use Filament\Actions\Action;
+use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -61,6 +62,7 @@ class VisitsTable
                     }),
             ])
             ->recordActions([
+                ViewAction::make(),
                 Action::make('delete')
                     ->label('Удалить')
                     ->icon('heroicon-o-trash')

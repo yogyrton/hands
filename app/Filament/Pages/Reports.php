@@ -114,6 +114,7 @@ class Reports extends Page
             'mixed' => $mixed,
             'total' => $cash + $card + $mixed,
             'visits' => $this->visitsQuery()->count(),
+            'cert_visits' => $this->visitsQuery()->whereNotNull('certificate_id')->count(),
         ];
     }
 

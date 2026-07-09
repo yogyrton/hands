@@ -32,6 +32,15 @@ class CertificateInfolist
                     TextEntry::make('sold_at')->label('Продан')->date('d.m.Y'),
                     TextEntry::make('expires_at')->label('Действует до')->date('d.m.Y'),
                 ]),
+
+            Section::make('Клиент')
+                ->columns(3)
+                ->schema([
+                    TextEntry::make('client')
+                        ->label('ФИО')
+                        ->state(fn (Certificate $record): string => $record->clientLabel()),
+                    TextEntry::make('client_phone')->label('Телефон')->placeholder('—'),
+                ]),
         ]);
     }
 }

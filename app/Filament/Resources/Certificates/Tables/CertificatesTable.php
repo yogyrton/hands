@@ -21,6 +21,10 @@ class CertificatesTable
                     ->label('№')
                     ->searchable()
                     ->sortable(),
+                TextColumn::make('client')
+                    ->label('Клиент')
+                    ->state(fn (Certificate $record): string => $record->clientLabel())
+                    ->searchable(['client_last_name', 'client_first_name']),
                 TextColumn::make('type')
                     ->label('Тип')
                     ->badge()
