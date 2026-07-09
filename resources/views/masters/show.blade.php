@@ -70,7 +70,7 @@
             <div class="rule"><h2>Фотографии</h2></div>
             <div class="gallery">
                 @foreach($gallery as $photo)
-                    <div class="cell"><img src="{{ $photo->getUrl() }}" alt="Фото — {{ $master->name }}, студия HANDS"></div>
+                    <div class="cell"><img src="{{ $photo->hasGeneratedConversion('webp') ? $photo->getUrl('webp') : $photo->getUrl() }}" alt="Фото — {{ $master->name }}, студия HANDS"></div>
                 @endforeach
             </div>
         </section>
