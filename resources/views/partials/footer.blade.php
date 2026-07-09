@@ -1,6 +1,6 @@
 @php($yclients = $studio['yclients_main'] ?? 'https://n1865142.yclients.com')
 @php($instagram = $studio['instagram_url'] ?? 'https://www.instagram.com/hands.mg/')
-@php($address = $studio['address'] ?? 'проезд Пожарского 3Б, Могилёв')
+@php($address = $studio['address'] ?? 'переулок Пожарный, 3Б, Могилёв')
 <footer class="footer">
     <div class="footer__top">
         <div>
