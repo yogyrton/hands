@@ -21,9 +21,9 @@ return new class extends Migration
             $table->text('lead');
             $table->string('ideal')->nullable();
             $table->string('request_lead')->nullable();
-            $table->json('includes')->nullable();
-            $table->json('requests')->nullable();
-            $table->json('details')->nullable();
+            $table->jsonb('includes')->nullable();
+            $table->jsonb('requests')->nullable();
+            $table->jsonb('details')->nullable();
             $table->string('seo_title')->nullable();
             $table->string('seo_description')->nullable();
             $table->unsignedInteger('sort_order')->default(0);
