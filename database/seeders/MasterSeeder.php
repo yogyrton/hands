@@ -4,22 +4,20 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Contracts\Services\MasterServiceInterface;
-use App\Data\MasterData;
 use App\Models\Master;
 use App\Models\Service;
 use Illuminate\Database\Seeder;
 
 class MasterSeeder extends Seeder
 {
-    public function run(MasterServiceInterface $masters): void
+    public function run(): void
     {
         foreach ($this->data() as $item) {
             $serviceSlugs = $item['services'];
             unset($item['services']);
 
-            /** @var Master $master */
-            $master = $masters->create(MasterData::from($item));
+            // Идемпотентно: по slug — есть обновляем, нет создаём.
+            $master = Master::updateOrCreate(['slug' => $item['slug']], $item);
 
             $serviceIds = Service::query()
                 ->whereIn('slug', $serviceSlugs)
@@ -36,8 +34,8 @@ class MasterSeeder extends Seeder
     {
         return [
             [
-                'slug' => 'dmitriy',
-                'name' => 'Дмитрий',
+                'slug' => 'dmitriy-p',
+                'name' => 'Дмитрий П.',
                 'name_dative' => 'Дмитрию',
                 'role' => 'Массажист · спортивный и классический массаж',
                 'yclients_url' => 'https://n2124342.yclients.com',
@@ -70,13 +68,13 @@ class MasterSeeder extends Seeder
                 'services' => ['relax', 'face', 'figure'],
             ],
             [
-                'slug' => 'andrey',
-                'name' => 'Андрей',
-                'name_dative' => 'Андрею',
+                'slug' => 'dmitriy-e',
+                'name' => 'Дмитрий Е.',
+                'name_dative' => 'Дмитрию',
                 'role' => 'Массажист · спина и классический массаж',
                 'yclients_url' => 'https://n2124340.yclients.com',
                 'experience_label' => '10 лет',
-                'bio1' => 'Андрей — из тех мастеров, к которым возвращаются годами. Спокойный, основательный, без суеты: он точно знает, где живёт боль в спине, и умеет её отпустить.',
+                'bio1' => 'Дмитрий — из тех мастеров, к которым возвращаются годами. Спокойный, основательный, без суеты: он точно знает, где живёт боль в спине, и умеет её отпустить.',
                 'bio2' => 'Десять лет практики и тысячи проработанных спин. Его специализация — массаж спины и классический массаж: глубокая работа с триггерными точками, осанкой и хроническим напряжением.',
                 'principles' => [
                     ['title' => 'Опыт', 'description' => 'Более десяти лет практики и тысячи проработанных спин.'],

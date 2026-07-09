@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Contracts\Services\ServiceServiceInterface;
-use App\Data\ServiceData;
+use App\Models\Service;
 use Illuminate\Database\Seeder;
 
 class ServiceSeeder extends Seeder
 {
-    public function run(ServiceServiceInterface $services): void
+    public function run(): void
     {
+        // Идемпотентно: по slug — есть обновляем, нет создаём.
         foreach ($this->data() as $item) {
-            $services->create(ServiceData::from($item));
+            Service::updateOrCreate(['slug' => $item['slug']], $item);
         }
     }
 
