@@ -12,8 +12,7 @@ class MasterController extends Controller
 {
     public function show(Master $master): View
     {
-        // Только активные услуги (чтобы не вести на 404, если услугу отключили).
-        $master->load(['services' => fn ($query) => $query->where('is_active', true)->orderBy('sort_order')]);
+        $master->load('services');
 
         return view('masters.show', [
             'master' => $master,
