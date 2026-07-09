@@ -119,11 +119,13 @@ class ServiceForm
                     SpatieMediaLibraryFileUpload::make('card')
                         ->label('Карточка (главная)')
                         ->collection('card')
-                        ->image(),
+                        ->image()
+                        ->maxSize(102400),
                     SpatieMediaLibraryFileUpload::make('hero')
                         ->label('Шапка страницы услуги')
                         ->collection('hero')
-                        ->image(),
+                        ->image()
+                        ->maxSize(102400),
                 ]),
 
             Section::make('SEO')

@@ -95,14 +95,16 @@ class MasterForm
                     SpatieMediaLibraryFileUpload::make('main')
                         ->label('Главное фото (главная + шапка)')
                         ->collection('main')
-                        ->image(),
+                        ->image()
+                        ->maxSize(102400),
                     SpatieMediaLibraryFileUpload::make('gallery')
                         ->label('Галерея (до 3 фото)')
                         ->collection('gallery')
                         ->image()
                         ->multiple()
                         ->maxFiles(3)
-                        ->reorderable(),
+                        ->reorderable()
+                        ->maxSize(102400),
                 ]),
         ]);
     }
