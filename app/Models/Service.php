@@ -79,8 +79,8 @@ class Service extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('card')->singleFile();   // карточка на главной
-        $this->addMediaCollection('hero')->singleFile();   // шапка страницы услуги
+        $this->addMediaCollection('card')->useDisk('public')->singleFile();   // карточка на главной
+        $this->addMediaCollection('hero')->useDisk('public')->singleFile();   // шапка страницы услуги
     }
 
     /**

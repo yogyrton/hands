@@ -69,8 +69,8 @@ class Master extends Model implements HasMedia
 
     public function registerMediaCollections(): void
     {
-        $this->addMediaCollection('main')->singleFile();   // главное фото (главная + шапка)
-        $this->addMediaCollection('gallery');              // до 3 фото на странице мастера
+        $this->addMediaCollection('main')->useDisk('public')->singleFile();   // главное фото (главная + шапка)
+        $this->addMediaCollection('gallery')->useDisk('public');              // до 3 фото на странице мастера
     }
 
     /**
