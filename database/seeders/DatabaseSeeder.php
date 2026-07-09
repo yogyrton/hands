@@ -22,6 +22,7 @@ class DatabaseSeeder extends Seeder
             MasterSeeder::class,
             FaqSeeder::class,
             SettingSeeder::class,
+            SiteContentSeeder::class,
         ]);
     }
 }

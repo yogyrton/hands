@@ -4,7 +4,7 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <title>@yield('title', 'HANDS — массажная студия в Могилёве · запись онлайн')</title>
-    <meta name="description" content="@yield('meta_description', 'HANDS — массажная студия в Могилёве, проезд Пожарского 3Б. Классический, спортивный, релакс, массаж спины и лица, коррекция фигуры. Только по предварительной записи через YClients.')">
+    <meta name="description" content="@yield('meta_description', 'HANDS — массажная студия в Могилёве, переулок Пожарный, 3Б. Классический, спортивный, релакс, массаж спины и лица, коррекция фигуры. Только по предварительной записи через YClients.')">
 
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
@@ -20,6 +20,7 @@
 
     @include('partials.footer')
 </div>
+@include('partials.back-to-top')
 @stack('scripts')
 </body>
 </html>

@@ -1,5 +1,10 @@
+@php($aboutImg = $site->aboutUrl())
 <section id="about" class="about">
-    <div class="about__media ph"></div>
+    <div class="about__media @if(! $aboutImg) ph @endif">
+        @if($aboutImg)
+            <img src="{{ $aboutImg }}" alt="Массажная студия HANDS в Могилёве">
+        @endif
+    </div>
     <div class="about__text">
         <span class="eyebrow">О студии</span>
         <h2>Место, где тело<br>наконец выдыхает</h2>

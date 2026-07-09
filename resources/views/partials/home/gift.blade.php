@@ -1,5 +1,5 @@
 @php($instagram = $studio['instagram_url'] ?? 'https://www.instagram.com/hands.mg/')
-@php($address = $studio['address'] ?? 'проезд Пожарского 3Б, Могилёв')
+@php($address = $studio['address'] ?? 'переулок Пожарный, 3Б, Могилёв')
 @php($giftMin = $studio['gift_min_delivery'] ?? '400 р')
 <section id="gift" class="section section--panel">
     <div class="container gift">

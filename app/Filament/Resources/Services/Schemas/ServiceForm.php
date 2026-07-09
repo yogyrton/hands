@@ -113,17 +113,12 @@ class ServiceForm
                         ->collapsible(),
                 ]),
 
-            Section::make('Фотографии')
-                ->columns(2)
+            Section::make('Фото услуги')
                 ->schema([
                     SpatieMediaLibraryFileUpload::make('card')
-                        ->label('Карточка (главная)')
+                        ->label('Фото услуги')
+                        ->helperText('Используется в карточке на главной и в шапке страницы услуги')
                         ->collection('card')
-                        ->image()
-                        ->maxSize(102400),
-                    SpatieMediaLibraryFileUpload::make('hero')
-                        ->label('Шапка страницы услуги')
-                        ->collection('hero')
                         ->image()
                         ->maxSize(102400),
                 ]),

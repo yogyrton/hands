@@ -71,6 +71,23 @@ class ManageStudioSettings extends Page
                         ->label('URL встраивания Яндекс-карты')
                         ->rows(3),
                 ]),
+
+            Section::make('Реквизиты (ИП)')
+                ->description('Показываются в футере и в политике конфиденциальности')
+                ->columns(2)
+                ->schema([
+                    TextInput::make('legal_name')
+                        ->label('Наименование / ФИО')
+                        ->placeholder('ИП Иванов Иван Иванович'),
+                    TextInput::make('legal_unp')
+                        ->label('УНП'),
+                    TextInput::make('legal_email')
+                        ->label('E-mail оператора')
+                        ->email(),
+                    TextInput::make('legal_reg')
+                        ->label('Регистрация (опционально)')
+                        ->placeholder('Зарегистрирован … №… от …'),
+                ]),
         ]);
     }
 

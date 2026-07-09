@@ -4,16 +4,16 @@ declare(strict_types=1);
 
 namespace Database\Seeders;
 
-use App\Contracts\Services\ServiceServiceInterface;
-use App\Data\ServiceData;
+use App\Models\Service;
 use Illuminate\Database\Seeder;
 
 class ServiceSeeder extends Seeder
 {
-    public function run(ServiceServiceInterface $services): void
+    public function run(): void
     {
+        // Идемпотентно: по slug — есть обновляем, нет создаём.
         foreach ($this->data() as $item) {
-            $services->create(ServiceData::from($item));
+            Service::updateOrCreate(['slug' => $item['slug']], $item);
         }
     }
 
@@ -47,7 +47,7 @@ class ServiceSeeder extends Seeder
                     ['title' => 'Что вы почувствуете после', 'body' => 'Тело становится лёгким, дыхание глубже, голова яснее. Уходит накопленное напряжение, возвращается ощущение опоры и свободы движений. Многие крепче спят и меньше устают в следующие дни.'],
                 ],
                 'seo_title' => 'Классический массаж в Могилёве — студия HANDS | запись онлайн',
-                'seo_description' => 'Классический массаж всего тела в Могилёве, студия HANDS (проезд Пожарского 3Б). Снятие напряжения и усталости, от 60 мин, от 50 р. Запись онлайн.',
+                'seo_description' => 'Классический массаж всего тела в Могилёве, студия HANDS (переулок Пожарный, 3Б). Снятие напряжения и усталости, от 60 мин, от 50 р. Запись онлайн.',
                 'sort_order' => 1,
             ],
             [
