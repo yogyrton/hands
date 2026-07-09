@@ -25,12 +25,12 @@ class VisitForm
                     Select::make('master_id')
                         ->label('Мастер')
                         ->relationship('master', 'name', fn ($query) => $query->where('is_active', true))
-                        ->searchable()
+                        ->native(false)
                         ->required(),
                     Select::make('service_id')
                         ->label('Услуга')
                         ->relationship('service', 'name', fn ($query) => $query->where('is_active', true))
-                        ->searchable()
+                        ->native(false)
                         ->required()
                         ->live()
                         ->afterStateUpdated(function (Set $set, ?string $state): void {
