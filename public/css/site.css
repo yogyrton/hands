@@ -105,12 +105,18 @@ a:hover { color: var(--bronze-hover); }
     border-bottom: 1px solid rgba(36, 28, 22, .09);
 }
 .logo {
+    display: inline-flex;
+    align-items: center;
+    gap: 12px;
+    color: var(--ink);
+}
+.logo__mark { flex: none; width: 38px; height: 38px; border-radius: 50%; display: block; }
+.logo__text {
     font-family: var(--sans);
     font-weight: 300;
     font-size: 22px;
-    letter-spacing: .5em;
-    padding-left: .5em;
-    color: var(--ink);
+    letter-spacing: .4em;
+    padding-left: .4em;
     text-transform: uppercase;
 }
 .header__nav { display: flex; gap: 40px; font-size: 15px; font-weight: 500; letter-spacing: .04em; }
@@ -169,6 +175,25 @@ a:hover { color: var(--bronze-hover); }
 .head-row p { max-width: 320px; font-size: 14px; line-height: 1.65; color: var(--muted); }
 
 .grid-3 { display: grid; grid-template-columns: repeat(3, 1fr); gap: 22px; }
+
+/* ---------- Акции (между заголовком и услугами) ---------- */
+.promos { margin-bottom: 36px; }
+.promo {
+    display: flex; align-items: center; gap: 24px; flex-wrap: wrap;
+    padding: 28px 40px; border-radius: 18px;
+    background: var(--ink); color: var(--on-dark);
+}
+.promo__badge {
+    flex: none; font-family: var(--serif); font-size: 30px; line-height: 1;
+    color: var(--gold); border: 1px solid rgba(195, 155, 108, .5);
+    border-radius: 100px; padding: 12px 20px;
+}
+.promo__eyebrow { font-size: 11px; font-weight: 700; letter-spacing: .18em; text-transform: uppercase; color: var(--gold); margin-bottom: 6px; }
+.promo__title { font-family: var(--serif); font-size: 24px; color: #F4ECDE; margin-bottom: 4px; }
+.promo__desc { font-size: 13.5px; color: var(--on-dark-2); }
+.promo__dots { display: flex; justify-content: center; gap: 7px; margin-top: 16px; }
+.promo__dot { width: 9px; height: 9px; padding: 0; border: none; border-radius: 50%; background: rgba(36, 28, 22, .18); cursor: pointer; }
+.promo__dot.is-active { background: var(--gold); }
 
 .card-service {
     position: relative;
@@ -284,7 +309,8 @@ details p { padding: 0 4px 26px; font-size: 15px; line-height: 1.7; color: var(-
 /* ---------- Footer ---------- */
 .footer { background: var(--ink); color: var(--on-dark-3); padding: 56px 56px 44px; }
 .footer__top { display: flex; align-items: flex-start; justify-content: space-between; gap: 40px; flex-wrap: wrap; border-bottom: 1px solid rgba(183, 169, 145, .2); padding-bottom: 36px; }
-.footer .logo { color: #F1EADD; font-size: 24px; display: inline-block; margin-bottom: 12px; }
+.footer .logo { margin-bottom: 12px; }
+.footer .logo__text { color: #F1EADD; }
 .footer__about { font-size: 13px; line-height: 1.6; max-width: 260px; color: #9C8E76; }
 .footer__cols { display: flex; gap: 56px; flex-wrap: wrap; }
 .footer__col { display: flex; flex-direction: column; gap: 10px; font-size: 13.5px; }
