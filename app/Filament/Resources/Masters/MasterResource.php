@@ -20,6 +20,8 @@ class MasterResource extends Resource
 {
     protected static ?string $model = Master::class;
 
+    protected static ?string $recordTitleAttribute = 'name';
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
 
     protected static ?int $navigationSort = 2;

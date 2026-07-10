@@ -12,6 +12,11 @@ class EditMaster extends EditRecord
 {
     protected static string $resource = MasterResource::class;
 
+    public function getTitle(): string
+    {
+        return (string) $this->record->name;
+    }
+
     protected function getHeaderActions(): array
     {
         return [
