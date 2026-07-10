@@ -60,7 +60,7 @@ class VisitService extends BaseQueryService implements VisitServiceInterface
                         $certificate->remaining_amount = 0;
                         $operationAmount = -$remaining;
                         $paid = round($servicePrice - $remaining, 2);
-                        // $paymentType остаётся тем, что выбрал мастер (нал/карта/смешанно)
+                        // $paymentType остаётся тем, что выбрал мастер (нал/карта)
                     }
                 }
 
@@ -80,6 +80,7 @@ class VisitService extends BaseQueryService implements VisitServiceInterface
                 'payment_type' => $paymentType,
                 'discount_reason' => $data->discount_reason,
                 'certificate_id' => $certificate?->id,
+                'promotion_id' => $data->promotion_id,
                 'comment' => $data->comment,
                 'performed_at' => now(),
             ]);

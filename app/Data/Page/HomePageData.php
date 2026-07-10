@@ -6,6 +6,7 @@ namespace App\Data\Page;
 
 use App\Models\Faq;
 use App\Models\Master;
+use App\Models\Promotion;
 use App\Models\Service;
 use App\Models\SiteContent;
 use Illuminate\Database\Eloquent\Collection;
@@ -21,11 +22,13 @@ class HomePageData extends Data
      * @param  Collection<int, Service>  $services
      * @param  Collection<int, Master>  $masters
      * @param  Collection<int, Faq>  $faqs
+     * @param  Collection<int, Promotion>  $promotions
      */
     public function __construct(
         public Collection $services,
         public Collection $masters,
         public Collection $faqs,
+        public Collection $promotions,
         public SiteContent $site,
     ) {}
 }

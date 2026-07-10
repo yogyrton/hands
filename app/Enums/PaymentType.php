@@ -8,7 +8,6 @@ enum PaymentType: string
 {
     case Cash = 'cash';
     case Card = 'card';
-    case Mixed = 'mixed';
     case Certificate = 'certificate';
 
     public function label(): string
@@ -16,7 +15,6 @@ enum PaymentType: string
         return match ($this) {
             self::Cash => 'Наличные',
             self::Card => 'Карта',
-            self::Mixed => 'Смешанно',
             self::Certificate => 'Сертификат',
         };
     }
@@ -30,7 +28,7 @@ enum PaymentType: string
     }
 
     /**
-     * Способы оплаты живыми деньгами (для доплаты/обычной оплаты).
+     * Способы оплаты живыми деньгами (обычная оплата и доплата): только нал/карта.
      *
      * @return array<string, string>
      */
@@ -39,7 +37,6 @@ enum PaymentType: string
         return [
             self::Cash->value => self::Cash->label(),
             self::Card->value => self::Card->label(),
-            self::Mixed->value => self::Mixed->label(),
         ];
     }
 }

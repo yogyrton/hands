@@ -27,6 +27,7 @@ class CreateVisit extends CreateRecord
             'payment_type' => $data['payment_type'] ?? 'cash',
             'discount_reason' => $data['discount_reason'] ?? null,
             'certificate_id' => $data['certificate_id'] ?? null,
+            'promotion_id' => $data['promotion_id'] ?? null,
             'comment' => $data['comment'] ?? null,
         ]));
     }

@@ -26,7 +26,8 @@ class VisitInfolist
                         ->badge()
                         ->formatStateUsing(fn (PaymentType $state): string => $state->label()),
                     TextEntry::make('certificate.number')->label('Сертификат')->prefix('№')->placeholder('—'),
-                    TextEntry::make('discount_reason')->label('Скидка / условия')->placeholder('—'),
+                    TextEntry::make('promotion.title')->label('Акция')->badge()->color('warning')->placeholder('—'),
+                    TextEntry::make('discount_reason')->label('Особые условия')->placeholder('—'),
                 ]),
 
             Section::make('Комментарий')

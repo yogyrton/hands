@@ -45,6 +45,11 @@ class VisitsTable
                     ->label('Сертификат')
                     ->prefix('№')
                     ->placeholder('—'),
+                TextColumn::make('promotion.title')
+                    ->label('Акция')
+                    ->badge()
+                    ->color('warning')
+                    ->placeholder('—'),
             ])
             ->filters([
                 SelectFilter::make('master')

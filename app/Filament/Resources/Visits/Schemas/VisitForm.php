@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Visits\Schemas;
 
 use App\Enums\PaymentType;
 use App\Models\Certificate;
+use App\Models\Promotion;
 use App\Models\Service;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -47,14 +48,52 @@ class VisitForm
                         ->suffix('р'),
                     TextInput::make('service_price')
                         ->label('Итоговая стоимость')
-                        ->helperText('От неё считается зарплата мастера')
+                        ->helperText('От неё считается зарплата мастера и списание с сертификата')
                         ->numeric()
                         ->default(0)
                         ->required()
                         ->suffix('р'),
-                    TextInput::make('discount_reason')
-                        ->label('Скидка / особые условия')
-                        ->placeholder('Напр.: ранняя пташка −10%')
+                ]),
+
+            Section::make('Скидка / особые условия')
+                ->description('Необязательно. Для обычного заказа оставьте выключенными.')
+                ->columns(2)
+                ->schema([
+                    Toggle::make('use_promotion')
+                        ->label('Акция')
+                        ->live()
+                        ->dehydrated(false)
+                        ->afterStateUpdated(function (bool $state, Get $get, Set $set): void {
+                            // Выключили акцию — сбрасываем выбор и возвращаем базовую цену.
+                            if (! $state) {
+                                $set('promotion_id', null);
+                                $set('service_price', (float) $get('base_price'));
+                            }
+                        }),
+                    Toggle::make('use_special')
+                        ->label('Особые условия')
+                        ->helperText('Бартер, себестоимость и т.п.')
+                        ->live()
+                        ->dehydrated(false),
+                    Select::make('promotion_id')
+                        ->label('Акция')
+                        ->options(fn () => Promotion::query()
+                            ->where('is_active', true)
+                            ->orderBy('sort_order')
+                            ->get()
+                            ->mapWithKeys(fn (Promotion $p) => [$p->id => $p->selectLabel()]))
+                        ->native(false)
+                        ->live()
+                        ->visible(fn (Get $get): bool => (bool) $get('use_promotion'))
+                        ->afterStateUpdated(function (?string $state, Get $get, Set $set): void {
+                            $promotion = $state ? Promotion::find($state) : null;
+                            $base = (float) $get('base_price');
+                            $set('service_price', $promotion ? $promotion->applyTo($base) : $base);
+                        }),
+                    Textarea::make('discount_reason')
+                        ->label('Особые условия / причина')
+                        ->rows(2)
+                        ->visible(fn (Get $get): bool => (bool) $get('use_special'))
                         ->columnSpanFull(),
                 ]),
 
@@ -77,6 +116,7 @@ class VisitForm
                     Select::make('payment_type')
                         ->label('Тип оплаты (деньгами)')
                         ->options(PaymentType::moneyOptions())
+                        ->native(false)
                         ->default(PaymentType::Cash->value)
                         ->helperText('Для обычной оплаты и доплаты, если сертификата не хватает'),
                     Textarea::make('comment')
