@@ -22,7 +22,8 @@ class ViewCertificate extends ViewRecord
             // Изменять сертификат нельзя. Удалить можно, только если по нему ещё не было посещений.
             DeleteAction::make()
                 ->label('Удалить')
-                ->visible(fn (Certificate $record): bool => ! $record->visits()->exists())
+                ->visible(fn (Certificate $record): bool => (bool) auth()->user()?->isAdmin()
+                    && ! $record->visits()->exists())
                 ->modalDescription('Сертификат ещё не использован — его можно удалить.'),
         ];
     }

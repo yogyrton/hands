@@ -136,4 +136,35 @@ class AdminPanelSmokeTest extends TestCase
         $visit = Visit::query()->firstOrFail();
         $this->get("/admin/visits/{$visit->id}")->assertOk();
     }
+
+    public function test_visit_form_blocks_money_certificate_without_surcharge(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+
+        $service = Service::create([
+            'slug' => 's2', 'name' => 'Услуга', 'level' => 4, 'base_price' => 60, 'lead' => 'l',
+        ]);
+        $master = Master::create([
+            'slug' => 'm2', 'name' => 'Мастер', 'name_dative' => 'Мастеру', 'role' => 'r',
+            'yclients_url' => 'https://e.com', 'bio1' => 'a', 'bio2' => 'b', 'salary_rate' => 35,
+        ]);
+        $cert = app(CertificateServiceInterface::class)->issue(
+            CertificateData::from(['type' => CertificateType::Money, 'initial_amount' => 20]),
+        );
+
+        // Услуга 60, остаток 20, доплата не включена — сохранить нельзя.
+        Livewire::test(CreateVisit::class)
+            ->fillForm([
+                'master_id' => $master->id,
+                'service_id' => $service->id,
+                'base_price' => 60,
+                'service_price' => 60,
+                'use_certificate' => true,
+                'certificate_id' => $cert->id,
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['certificate_id']);
+
+        $this->assertDatabaseCount('visits', 0);
+    }
 }

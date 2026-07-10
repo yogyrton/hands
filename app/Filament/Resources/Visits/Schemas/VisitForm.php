@@ -7,6 +7,7 @@ use App\Enums\PaymentType;
 use App\Models\Certificate;
 use App\Models\Promotion;
 use App\Models\Service;
+use Closure;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
@@ -121,6 +122,19 @@ class VisitForm
                             }
 
                             return 'В списке только активные и не истёкшие с остатком';
+                        })
+                        ->rule(function (Get $get): Closure {
+                            // Денежный серт не покрывает услугу, а доплата не включена — не даём сохранить.
+                            return function (string $attribute, $value, Closure $fail) use ($get): void {
+                                if (! $value || ! $get('use_certificate') || $get('use_surcharge')) {
+                                    return;
+                                }
+                                $cert = Certificate::find($value);
+                                if ($cert?->type === CertificateType::Money
+                                    && (float) $get('service_price') > (float) $cert->remaining_amount) {
+                                    $fail('Итоговая больше остатка по сертификату ('.number_format((float) $cert->remaining_amount, 2, '.', ' ').' р). Включите «Доплатить деньгами».');
+                                }
+                            };
                         })
                         ->columnSpanFull(),
                     Toggle::make('use_surcharge')
