@@ -4,25 +4,18 @@ declare(strict_types=1);
 
 namespace App\Http\Controllers\Site;
 
-use App\Contracts\Services\FaqServiceInterface;
-use App\Contracts\Services\MasterServiceInterface;
-use App\Contracts\Services\ServiceServiceInterface;
+use App\Contracts\Services\HomePageServiceInterface;
 use App\Http\Controllers\Controller;
-use App\Models\SiteContent;
 use Illuminate\Contracts\View\View;
 
 class HomeController extends Controller
 {
-    public function index(
-        ServiceServiceInterface $services,
-        MasterServiceInterface $masters,
-        FaqServiceInterface $faqs,
-    ): View {
-        return view('home', [
-            'services' => $services->activeOrdered(),
-            'masters' => $masters->activeOrdered(),
-            'faqs' => $faqs->activeOrdered(),
-            'site' => SiteContent::current(),
-        ]);
+    public function __construct(
+        protected HomePageServiceInterface $homePage,
+    ) {}
+
+    public function index(): View
+    {
+        return view('home', $this->homePage->pageData()->all());
     }
 }

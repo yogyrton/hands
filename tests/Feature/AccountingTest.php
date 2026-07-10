@@ -8,6 +8,7 @@ use App\Contracts\Services\CertificateServiceInterface;
 use App\Contracts\Services\VisitServiceInterface;
 use App\Data\CertificateData;
 use App\Data\VisitData;
+use App\Enums\CertificateOperationType;
 use App\Enums\CertificateStatus;
 use App\Enums\CertificateType;
 use App\Enums\PaymentType;
@@ -91,6 +92,14 @@ class AccountingTest extends TestCase
         $this->assertSame(PaymentType::Certificate, $visit->payment_type);
         $this->assertEquals(21, $visit->salaryAmount());   // зарплата от service_price даже при 0 оплаты
         $this->assertEquals(-1, $visit->operation->amount);
+
+        // В историю сертификата добавилась запись списания на −1 посещение.
+        $this->assertDatabaseHas('certificate_operations', [
+            'certificate_id' => $cert->id,
+            'visit_id' => $visit->id,
+            'type' => CertificateOperationType::Usage->value,
+        ]);
+        $this->assertSame(2, $cert->operations()->count()); // продажа + списание
     }
 
     public function test_money_certificate_sufficient(): void
@@ -108,6 +117,15 @@ class AccountingTest extends TestCase
         $this->assertEquals(40, $cert->remaining_amount);
         $this->assertEquals(0, $visit->paid_amount);
         $this->assertSame(PaymentType::Certificate, $visit->payment_type);
+        $this->assertEquals(-60, $visit->operation->amount);    // списано 60 р с сертификата
+
+        // В историю сертификата добавилась запись списания.
+        $this->assertDatabaseHas('certificate_operations', [
+            'certificate_id' => $cert->id,
+            'visit_id' => $visit->id,
+            'type' => CertificateOperationType::Usage->value,
+        ]);
+        $this->assertSame(2, $cert->operations()->count()); // продажа + списание
     }
 
     public function test_money_certificate_insufficient_requires_surcharge(): void

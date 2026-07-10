@@ -20,9 +20,9 @@ use Illuminate\Support\Facades\DB;
 class CertificateService extends BaseQueryService implements CertificateServiceInterface
 {
     public function __construct(
-        protected CertificateRepositoryInterface $certificates,
+        protected CertificateRepositoryInterface $certificateRepository,
     ) {
-        parent::__construct($certificates);
+        parent::__construct($certificateRepository);
     }
 
     public function issue(CertificateData $data): Certificate

@@ -11,6 +11,7 @@ use App\Contracts\Repositories\ServiceRepositoryInterface;
 use App\Contracts\Repositories\VisitRepositoryInterface;
 use App\Contracts\Services\CertificateServiceInterface;
 use App\Contracts\Services\FaqServiceInterface;
+use App\Contracts\Services\HomePageServiceInterface;
 use App\Contracts\Services\MasterServiceInterface;
 use App\Contracts\Services\ServiceServiceInterface;
 use App\Contracts\Services\VisitServiceInterface;
@@ -22,6 +23,7 @@ use App\Repositories\ServiceRepository;
 use App\Repositories\VisitRepository;
 use App\Services\CertificateService;
 use App\Services\FaqService;
+use App\Services\HomePageService;
 use App\Services\MasterService;
 use App\Services\ServiceService;
 use App\Services\VisitService;
@@ -65,6 +67,7 @@ class DIServiceProvider extends ServiceProvider
         $this->app->bind(ServiceServiceInterface::class, ServiceService::class);
         $this->app->bind(MasterServiceInterface::class, MasterService::class);
         $this->app->bind(FaqServiceInterface::class, FaqService::class);
+        $this->app->bind(HomePageServiceInterface::class, HomePageService::class);
         $this->app->bind(CertificateServiceInterface::class, CertificateService::class);
         $this->app->bind(VisitServiceInterface::class, VisitService::class);
     }

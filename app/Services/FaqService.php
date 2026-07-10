@@ -15,9 +15,9 @@ use Illuminate\Database\Eloquent\Collection;
 class FaqService extends BaseQueryService implements FaqServiceInterface
 {
     public function __construct(
-        protected FaqRepositoryInterface $faqs,
+        protected FaqRepositoryInterface $faqRepository,
     ) {
-        parent::__construct($faqs);
+        parent::__construct($faqRepository);
     }
 
     /**
@@ -25,6 +25,6 @@ class FaqService extends BaseQueryService implements FaqServiceInterface
      */
     public function activeOrdered(): Collection
     {
-        return $this->faqs->activeOrdered();
+        return $this->faqRepository->activeOrdered();
     }
 }

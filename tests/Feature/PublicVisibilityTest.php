@@ -82,4 +82,20 @@ class PublicVisibilityTest extends TestCase
             ->assertSee('АктивУслуга')
             ->assertDontSee('СкрытаяУслуга');
     }
+
+    public function test_active_services_relation_returns_only_active(): void
+    {
+        // Мастер оказывает активную И скрытую услугу — связь отдаёт только активную.
+        $ids = $this->activeMaster->activeServices->pluck('id')->all();
+
+        $this->assertSame([$this->activeService->id], $ids);
+    }
+
+    public function test_active_masters_relation_returns_only_active(): void
+    {
+        // Услуга привязана к активному И скрытому мастеру — связь отдаёт только активного.
+        $ids = $this->activeService->activeMasters->pluck('id')->all();
+
+        $this->assertSame([$this->activeMaster->id], $ids);
+    }
 }

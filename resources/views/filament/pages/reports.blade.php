@@ -5,23 +5,23 @@
     @php($rows = $this->byMaster())
     @php($certs = $this->certsSold())
 
-    <div class="grid grid-cols-2 gap-4 md:grid-cols-4">
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
         <x-filament::section>
-            <div class="text-sm text-gray-500">Выручка (деньгами)</div>
-            <div class="text-2xl font-semibold">{{ number_format($rev['total'], 2, '.', ' ') }} р</div>
+            <div style="font-size: 0.875rem; color: rgb(113 113 122);">Выручка (деньгами)</div>
+            <div style="font-size: 1.5rem; font-weight: 600;">{{ number_format($rev['total'], 2, '.', ' ') }} р</div>
         </x-filament::section>
         <x-filament::section>
-            <div class="text-sm text-gray-500">Наличные</div>
-            <div class="text-2xl font-semibold">{{ number_format($rev['cash'], 2, '.', ' ') }} р</div>
+            <div style="font-size: 0.875rem; color: rgb(113 113 122);">Наличные</div>
+            <div style="font-size: 1.5rem; font-weight: 600;">{{ number_format($rev['cash'], 2, '.', ' ') }} р</div>
         </x-filament::section>
         <x-filament::section>
-            <div class="text-sm text-gray-500">Карта</div>
-            <div class="text-2xl font-semibold">{{ number_format($rev['card'], 2, '.', ' ') }} р</div>
+            <div style="font-size: 0.875rem; color: rgb(113 113 122);">Карта</div>
+            <div style="font-size: 1.5rem; font-weight: 600;">{{ number_format($rev['card'], 2, '.', ' ') }} р</div>
         </x-filament::section>
         <x-filament::section>
-            <div class="text-sm text-gray-500">Посещений</div>
-            <div class="text-2xl font-semibold">{{ $rev['visits'] }}</div>
-            <div class="mt-1 text-xs text-gray-400">из них по сертификату: {{ $rev['cert_visits'] }}</div>
+            <div style="font-size: 0.875rem; color: rgb(113 113 122);">Посещений</div>
+            <div style="font-size: 1.5rem; font-weight: 600;">{{ $rev['visits'] }}</div>
+            <div style="margin-top: 0.25rem; font-size: 0.75rem; color: rgb(113 113 122);">из них по сертификату: {{ $rev['cert_visits'] }}</div>
         </x-filament::section>
     </div>
 
@@ -29,28 +29,28 @@
         <x-slot name="heading">Зарплаты по мастерам</x-slot>
         <x-slot name="description">Суммы грязными — до вычета подоходного и прочих налогов. Зарплата = ставка % × сумма оказанных услуг.</x-slot>
 
-        <div class="overflow-x-auto">
-            <table class="w-full text-sm">
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
                 <thead>
-                    <tr class="text-left text-gray-500">
-                        <th class="py-2 pr-8">Мастер</th>
-                        <th class="py-2 pr-8 text-right">Посещений</th>
-                        <th class="py-2 pr-8 text-right">Сумма услуг</th>
-                        <th class="py-2 pr-8 text-right">Ставка</th>
-                        <th class="py-2 text-right">Зарплата (грязными)</th>
+                    <tr style="text-align: left; color: rgb(113 113 122);">
+                        <th style="padding: 0.5rem 2rem 0.5rem 0; white-space: nowrap;">Мастер</th>
+                        <th style="padding: 0.5rem 2rem 0.5rem 0; text-align: right; white-space: nowrap;">Посещений</th>
+                        <th style="padding: 0.5rem 2rem 0.5rem 0; text-align: right; white-space: nowrap;">Сумма услуг</th>
+                        <th style="padding: 0.5rem 2rem 0.5rem 0; text-align: right; white-space: nowrap;">Ставка</th>
+                        <th style="padding: 0.5rem 0; text-align: right; white-space: nowrap;">Зарплата (грязными)</th>
                     </tr>
                 </thead>
                 <tbody>
                     @forelse($rows as $row)
-                        <tr class="border-t border-gray-100 dark:border-white/10">
-                            <td class="py-2 pr-8 font-medium">{{ $row['name'] }}</td>
-                            <td class="py-2 pr-8 text-right">{{ $row['count'] }}</td>
-                            <td class="py-2 pr-8 text-right">{{ number_format($row['sum'], 2, '.', ' ') }} р</td>
-                            <td class="py-2 pr-8 text-right">{{ rtrim(rtrim(number_format($row['rate'], 2, '.', ''), '0'), '.') }}%</td>
-                            <td class="py-2 text-right font-semibold">{{ number_format($row['salary'], 2, '.', ' ') }} р</td>
+                        <tr style="border-top: 1px solid rgba(113, 113, 122, 0.25);">
+                            <td style="padding: 0.5rem 2rem 0.5rem 0; font-weight: 500; white-space: nowrap;">{{ $row['name'] }}</td>
+                            <td style="padding: 0.5rem 2rem 0.5rem 0; text-align: right;">{{ $row['count'] }}</td>
+                            <td style="padding: 0.5rem 2rem 0.5rem 0; text-align: right; white-space: nowrap;">{{ number_format($row['sum'], 2, '.', ' ') }} р</td>
+                            <td style="padding: 0.5rem 2rem 0.5rem 0; text-align: right;">{{ rtrim(rtrim(number_format($row['rate'], 2, '.', ''), '0'), '.') }}%</td>
+                            <td style="padding: 0.5rem 0; text-align: right; font-weight: 600; white-space: nowrap;">{{ number_format($row['salary'], 2, '.', ' ') }} р</td>
                         </tr>
                     @empty
-                        <tr><td colspan="5" class="py-3 text-gray-500">Нет посещений за период.</td></tr>
+                        <tr><td colspan="5" style="padding: 0.75rem 0; color: rgb(113 113 122);">Нет посещений за период.</td></tr>
                     @endforelse
                 </tbody>
             </table>
@@ -59,8 +59,8 @@
 
     <x-filament::section>
         <x-slot name="heading">Сертификаты</x-slot>
-        <div class="text-sm text-gray-500">Продано за период</div>
-        <div class="text-2xl font-semibold">{{ $certs['count'] }} шт · на сумму {{ number_format($certs['amount'], 2, '.', ' ') }} р</div>
-        <div class="mt-1 text-xs text-gray-400">Сумма — по денежным сертификатам (номинал).</div>
+        <div style="font-size: 0.875rem; color: rgb(113 113 122);">Продано за период</div>
+        <div style="font-size: 1.5rem; font-weight: 600;">{{ $certs['count'] }} шт · на сумму {{ number_format($certs['amount'], 2, '.', ' ') }} р</div>
+        <div style="margin-top: 0.25rem; font-size: 0.75rem; color: rgb(113 113 122);">Сумма — по денежным сертификатам (номинал).</div>
     </x-filament::section>
 </x-filament-panels::page>

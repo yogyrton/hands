@@ -1,0 +1,31 @@
+<?php
+
+declare(strict_types=1);
+
+namespace App\Data\Page;
+
+use App\Models\Faq;
+use App\Models\Master;
+use App\Models\Service;
+use App\Models\SiteContent;
+use Illuminate\Database\Eloquent\Collection;
+use Spatie\LaravelData\Data;
+
+/**
+ * Данные для главной страницы. Разворачивается во вью через ->all()
+ * (модели остаются моделями — в Blade нужны media-хелперы и связи).
+ */
+class HomePageData extends Data
+{
+    /**
+     * @param  Collection<int, Service>  $services
+     * @param  Collection<int, Master>  $masters
+     * @param  Collection<int, Faq>  $faqs
+     */
+    public function __construct(
+        public Collection $services,
+        public Collection $masters,
+        public Collection $faqs,
+        public SiteContent $site,
+    ) {}
+}

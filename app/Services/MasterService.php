@@ -6,6 +6,7 @@ namespace App\Services;
 
 use App\Contracts\Repositories\MasterRepositoryInterface;
 use App\Contracts\Services\MasterServiceInterface;
+use App\Data\Page\MasterPageData;
 use App\Models\Master;
 use Illuminate\Database\Eloquent\Collection;
 
@@ -15,9 +16,9 @@ use Illuminate\Database\Eloquent\Collection;
 class MasterService extends BaseQueryService implements MasterServiceInterface
 {
     public function __construct(
-        protected MasterRepositoryInterface $masters,
+        protected MasterRepositoryInterface $masterRepository,
     ) {
-        parent::__construct($masters);
+        parent::__construct($masterRepository);
     }
 
     /**
@@ -25,6 +26,16 @@ class MasterService extends BaseQueryService implements MasterServiceInterface
      */
     public function activeOrdered(): Collection
     {
-        return $this->masters->activeOrdered();
+        return $this->masterRepository->activeOrdered();
+    }
+
+    /**
+     * Данные для публичной страницы мастера: мастер с активными услугами.
+     */
+    public function showPageData(Master $master): MasterPageData
+    {
+        $master->load('activeServices');
+
+        return new MasterPageData($master);
     }
 }
