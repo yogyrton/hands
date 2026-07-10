@@ -14,17 +14,17 @@ use App\Models\SiteContent;
 class HomePageService implements HomePageServiceInterface
 {
     public function __construct(
-        protected ServiceServiceInterface $services,
-        protected MasterServiceInterface $masters,
-        protected FaqServiceInterface $faqs,
+        protected ServiceServiceInterface $serviceService,
+        protected MasterServiceInterface $masterService,
+        protected FaqServiceInterface $faqService,
     ) {}
 
     public function pageData(): HomePageData
     {
         return new HomePageData(
-            services: $this->services->activeOrdered(),
-            masters: $this->masters->activeOrdered(),
-            faqs: $this->faqs->activeOrdered(),
+            services: $this->serviceService->activeOrdered(),
+            masters: $this->masterService->activeOrdered(),
+            faqs: $this->faqService->activeOrdered(),
             site: SiteContent::current(),
         );
     }

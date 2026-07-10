@@ -16,9 +16,9 @@ use Illuminate\Database\Eloquent\Collection;
 class ServiceService extends BaseQueryService implements ServiceServiceInterface
 {
     public function __construct(
-        protected ServiceRepositoryInterface $services,
+        protected ServiceRepositoryInterface $serviceRepository,
     ) {
-        parent::__construct($services);
+        parent::__construct($serviceRepository);
     }
 
     /**
@@ -26,7 +26,7 @@ class ServiceService extends BaseQueryService implements ServiceServiceInterface
      */
     public function activeOrdered(): Collection
     {
-        return $this->services->activeOrdered();
+        return $this->serviceRepository->activeOrdered();
     }
 
     /**

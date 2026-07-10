@@ -16,9 +16,9 @@ use Illuminate\Database\Eloquent\Collection;
 class MasterService extends BaseQueryService implements MasterServiceInterface
 {
     public function __construct(
-        protected MasterRepositoryInterface $masters,
+        protected MasterRepositoryInterface $masterRepository,
     ) {
-        parent::__construct($masters);
+        parent::__construct($masterRepository);
     }
 
     /**
@@ -26,7 +26,7 @@ class MasterService extends BaseQueryService implements MasterServiceInterface
      */
     public function activeOrdered(): Collection
     {
-        return $this->masters->activeOrdered();
+        return $this->masterRepository->activeOrdered();
     }
 
     /**

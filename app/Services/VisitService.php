@@ -21,9 +21,9 @@ use Illuminate\Support\Facades\DB;
 class VisitService extends BaseQueryService implements VisitServiceInterface
 {
     public function __construct(
-        protected VisitRepositoryInterface $visits,
+        protected VisitRepositoryInterface $visitRepository,
     ) {
-        parent::__construct($visits);
+        parent::__construct($visitRepository);
     }
 
     public function register(VisitData $data): Visit
