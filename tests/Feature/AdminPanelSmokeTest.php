@@ -64,6 +64,8 @@ class AdminPanelSmokeTest extends TestCase
         $this->get('/admin/masters')->assertOk();
         $this->get("/admin/masters/{$master->id}/edit")->assertOk();
         $this->get('/admin/faqs')->assertOk();
+        $this->get('/admin/promotions')->assertOk();
+        $this->get('/admin/promotions/create')->assertOk();
         $this->get('/admin/manage-studio-settings')->assertOk();
 
         $site = SiteContent::current();
@@ -96,6 +98,7 @@ class AdminPanelSmokeTest extends TestCase
         // контент сайта — запрещён
         $this->get('/admin/services')->assertForbidden();
         $this->get('/admin/masters')->assertForbidden();
+        $this->get('/admin/promotions')->assertForbidden();
         $this->get('/admin/manage-studio-settings')->assertForbidden();
     }
 

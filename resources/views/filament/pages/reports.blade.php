@@ -3,6 +3,7 @@
 
     @php($rev = $this->revenue())
     @php($rows = $this->byMaster())
+    @php($promos = $this->byPromotion())
     @php($certs = $this->certsSold())
 
     <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
@@ -62,5 +63,35 @@
         <div style="font-size: 0.875rem; color: rgb(113 113 122);">Продано за период</div>
         <div style="font-size: 1.5rem; font-weight: 600;">{{ $certs['count'] }} шт · на сумму {{ number_format($certs['amount'], 2, '.', ' ') }} р</div>
         <div style="margin-top: 0.25rem; font-size: 0.75rem; color: rgb(113 113 122);">Сумма — по денежным сертификатам (номинал).</div>
+    </x-filament::section>
+
+    <x-filament::section>
+        <x-slot name="heading">Акции</x-slot>
+        <x-slot name="description">Сколько посещений пришло по каждой акции за период, деньгами и на какую сумму предоставлена скидка.</x-slot>
+
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                <thead>
+                    <tr style="text-align: left; color: rgb(113 113 122);">
+                        <th style="padding: 0.5rem 2rem 0.5rem 0; white-space: nowrap;">Акция</th>
+                        <th style="padding: 0.5rem 2rem 0.5rem 0; text-align: right; white-space: nowrap;">Посещений</th>
+                        <th style="padding: 0.5rem 2rem 0.5rem 0; text-align: right; white-space: nowrap;">Сумма деньгами</th>
+                        <th style="padding: 0.5rem 0; text-align: right; white-space: nowrap;">Сумма предоставленной скидки</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($promos as $promo)
+                        <tr style="border-top: 1px solid rgba(113, 113, 122, 0.25);">
+                            <td style="padding: 0.5rem 2rem 0.5rem 0; font-weight: 500; white-space: nowrap;">{{ $promo['title'] }} · −{{ $promo['percent'] }}%</td>
+                            <td style="padding: 0.5rem 2rem 0.5rem 0; text-align: right;">{{ $promo['count'] }}</td>
+                            <td style="padding: 0.5rem 2rem 0.5rem 0; text-align: right; white-space: nowrap;">{{ number_format($promo['paid'], 2, '.', ' ') }} р</td>
+                            <td style="padding: 0.5rem 0; text-align: right; font-weight: 600; white-space: nowrap;">{{ number_format($promo['discount'], 2, '.', ' ') }} р</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="4" style="padding: 0.75rem 0; color: rgb(113 113 122);">За период по акциям посещений не было.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
     </x-filament::section>
 </x-filament-panels::page>

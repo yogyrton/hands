@@ -1,6 +1,9 @@
 @php($yclients = $studio['yclients_main'] ?? 'https://n1865142.yclients.com')
 <header class="header">
-    <a href="{{ route('home') }}" class="logo">HANDS</a>
+    <a href="{{ route('home') }}" class="logo">
+        <img src="{{ asset('images/hands-logo.svg') }}" alt="" class="logo__mark" width="38" height="38">
+        <span class="logo__text">HANDS</span>
+    </a>
     <nav class="header__nav">
         <a href="{{ route('home') }}#services">Услуги</a>
         <a href="{{ route('home') }}#masters">Мастера</a>
