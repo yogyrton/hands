@@ -18,6 +18,8 @@ class ServiceResource extends Resource
 {
     protected static ?string $model = Service::class;
 
+    protected static ?string $recordTitleAttribute = 'name';
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedRectangleStack;
 
     protected static ?int $navigationSort = 1;
@@ -40,6 +42,11 @@ class ServiceResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return 'услуги';
+    }
+
+    public static function canAccess(): bool
+    {
+        return (bool) auth()->user()?->isAdmin();
     }
 
     public static function form(Schema $schema): Schema

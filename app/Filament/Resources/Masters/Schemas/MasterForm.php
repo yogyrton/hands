@@ -48,6 +48,13 @@ class MasterForm
                     TextInput::make('experience_label')
                         ->label('Опыт')
                         ->helperText('Например: 8 лет'),
+                    TextInput::make('salary_rate')
+                        ->label('Ставка зарплаты')
+                        ->helperText('% от стоимости услуг (грязными)')
+                        ->numeric()
+                        ->default(35)
+                        ->suffix('%')
+                        ->required(),
                     TextInput::make('yclients_url')
                         ->label('Ссылка записи (YClients)')
                         ->url()

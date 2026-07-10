@@ -20,6 +20,8 @@ class MasterResource extends Resource
 {
     protected static ?string $model = Master::class;
 
+    protected static ?string $recordTitleAttribute = 'name';
+
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedUserGroup;
 
     protected static ?int $navigationSort = 2;
@@ -42,6 +44,11 @@ class MasterResource extends Resource
     public static function getPluralModelLabel(): string
     {
         return 'мастера';
+    }
+
+    public static function canAccess(): bool
+    {
+        return (bool) auth()->user()?->isAdmin();
     }
 
     public static function form(Schema $schema): Schema
