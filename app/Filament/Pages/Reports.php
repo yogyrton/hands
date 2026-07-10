@@ -100,13 +100,19 @@ class Reports extends Page
      */
     public function revenue(): array
     {
-        $rows = $this->visitsQuery()
-            ->selectRaw('payment_type, SUM(paid_amount) as total')
-            ->groupBy('payment_type')
-            ->pluck('total', 'payment_type');
+        // Прямая оплата нал/картой.
+        $cash = (float) $this->visitsQuery()->where('payment_type', 'cash')->sum('paid_amount');
+        $card = (float) $this->visitsQuery()->where('payment_type', 'card')->sum('paid_amount');
 
-        $cash = (float) ($rows['cash'] ?? 0);
-        $card = (float) ($rows['card'] ?? 0);
+        // Доплата по «сертификат с доплатой» — тоже живые деньги, падает в нал/карту по методу доплаты.
+        $cash += (float) $this->visitsQuery()
+            ->where('payment_type', 'certificate_surcharge')
+            ->where('surcharge_payment_type', 'cash')
+            ->sum('paid_amount');
+        $card += (float) $this->visitsQuery()
+            ->where('payment_type', 'certificate_surcharge')
+            ->where('surcharge_payment_type', 'card')
+            ->sum('paid_amount');
 
         return [
             'cash' => $cash,

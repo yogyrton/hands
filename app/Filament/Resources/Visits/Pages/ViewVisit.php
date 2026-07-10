@@ -10,6 +10,11 @@ class ViewVisit extends ViewRecord
 {
     protected static string $resource = VisitResource::class;
 
+    public function getTitle(): string
+    {
+        return 'Посещение — '.$this->record->master?->name.' · '.$this->record->performed_at->format('d.m.Y');
+    }
+
     protected function getHeaderActions(): array
     {
         return [

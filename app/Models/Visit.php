@@ -25,6 +25,7 @@ class Visit extends Model
         'service_price',
         'paid_amount',
         'payment_type',
+        'surcharge_payment_type',
         'discount_reason',
         'certificate_id',
         'promotion_id',
@@ -39,6 +40,7 @@ class Visit extends Model
             'service_price' => 'decimal:2',
             'paid_amount' => 'decimal:2',
             'payment_type' => PaymentType::class,
+            'surcharge_payment_type' => PaymentType::class,
             'performed_at' => 'datetime',
         ];
     }

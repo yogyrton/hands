@@ -23,6 +23,7 @@ class Certificate extends Model
         'client_first_name',
         'client_last_name',
         'client_phone',
+        'comment',
         'type',
         'initial_visits',
         'initial_amount',

@@ -183,6 +183,8 @@ a:hover { color: var(--bronze-hover); }
     padding: 28px 40px; border-radius: 18px;
     background: var(--ink); color: var(--on-dark);
 }
+/* Скрытые слайды карусели: display:none у .promo перебивает [hidden], поэтому явно. */
+.promo[hidden] { display: none; }
 .promo__badge {
     flex: none; font-family: var(--serif); font-size: 30px; line-height: 1;
     color: var(--gold); border: 1px solid rgba(195, 155, 108, .5);

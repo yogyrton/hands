@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Visits\Schemas;
 
+use App\Enums\CertificateType;
 use App\Enums\PaymentType;
 use App\Models\Certificate;
 use App\Models\Promotion;
@@ -111,14 +112,54 @@ class VisitForm
                             fn (Certificate $c) => [$c->id => $c->selectLabel()]
                         ))
                         ->searchable()
+                        ->live()
                         ->visible(fn (Get $get): bool => (bool) $get('use_certificate'))
-                        ->helperText('В списке только активные и не истёкшие с остатком'),
+                        ->helperText(function (Get $get): string {
+                            $cert = ($id = $get('certificate_id')) ? Certificate::find($id) : null;
+                            if ($cert?->comment) {
+                                return 'Описание: '.$cert->comment.'. Для серта на посещения впишите цену этого сеанса в «Итоговую стоимость».';
+                            }
+
+                            return 'В списке только активные и не истёкшие с остатком';
+                        })
+                        ->columnSpanFull(),
+                    Toggle::make('use_surcharge')
+                        ->label('Доплатить деньгами')
+                        ->live()
+                        ->dehydrated(false)
+                        ->columnSpanFull()
+                        ->visible(fn (Get $get): bool => (bool) $get('use_certificate')
+                            && Certificate::find($get('certificate_id'))?->type === CertificateType::Money)
+                        ->afterStateUpdated(function (bool $state, Get $get, Set $set): void {
+                            if (! $state) {
+                                $set('surcharge_amount', 0);
+
+                                return;
+                            }
+                            // Подсказка: доплата = итоговая − остаток сертификата.
+                            $remaining = (float) (Certificate::find($get('certificate_id'))?->remaining_amount ?? 0);
+                            $set('surcharge_amount', max(0, round((float) $get('service_price') - $remaining, 2)));
+                        }),
+                    Select::make('surcharge_payment_type')
+                        ->label('Доплата — тип оплаты')
+                        ->options(PaymentType::moneyOptions())
+                        ->native(false)
+                        ->default(PaymentType::Cash->value)
+                        ->visible(fn (Get $get): bool => (bool) $get('use_certificate') && (bool) $get('use_surcharge')),
+                    TextInput::make('surcharge_amount')
+                        ->label('Сумма доплаты')
+                        ->numeric()
+                        ->minValue(0)
+                        ->default(0)
+                        ->suffix('р')
+                        ->visible(fn (Get $get): bool => (bool) $get('use_certificate') && (bool) $get('use_surcharge')),
                     Select::make('payment_type')
                         ->label('Тип оплаты (деньгами)')
                         ->options(PaymentType::moneyOptions())
                         ->native(false)
                         ->default(PaymentType::Cash->value)
-                        ->helperText('Для обычной оплаты и доплаты, если сертификата не хватает'),
+                        ->visible(fn (Get $get): bool => ! (bool) $get('use_certificate'))
+                        ->helperText('Обычная оплата без сертификата'),
                     Textarea::make('comment')
                         ->label('Комментарий')
                         ->rows(2)
