@@ -124,14 +124,13 @@ class Certificate extends Model
     }
 
     /**
-     * Короткая подпись для выпадающего списка при оплате (помещается на мобилке).
+     * Подпись для выпадающего списка при оплате.
      */
     public function selectLabel(): string
     {
-        $remaining = $this->type === CertificateType::Visits
-            ? 'ост. '.$this->remaining_visits.'/'.$this->initial_visits
-            : 'ост. '.rtrim(rtrim(number_format((float) $this->remaining_amount, 2, '.', ''), '0'), '.').' р';
+        $client = $this->clientLabel();
+        $client = $client !== '—' ? ' · '.$client : '';
 
-        return '№'.$this->number.' · '.$remaining.' · до '.$this->expires_at->format('d.m.y');
+        return '№'.$this->number.$client.' · '.$this->type->label().' · остаток '.$this->remainingLabel().' · до '.$this->expires_at->format('d.m.Y');
     }
 }

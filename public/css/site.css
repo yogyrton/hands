@@ -430,4 +430,7 @@ details p { padding: 0 4px 26px; font-size: 15px; line-height: 1.7; color: var(-
     .hero h1 { font-size: 44px; }
     .svc-hero h1 { font-size: 44px; }
     .mst-hero h1 { font-size: 52px; }
+    .giftcard { aspect-ratio: auto; }
+    .giftcard .inner { position: relative; inset: auto; padding: 28px; gap: 24px; }
+    .giftcard .title { font-size: 30px; }
 }
