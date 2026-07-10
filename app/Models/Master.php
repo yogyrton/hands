@@ -69,6 +69,16 @@ class Master extends Model implements HasMedia
         return $this->belongsToMany(Service::class)->orderBy('sort_order');
     }
 
+    /**
+     * Только активные услуги мастера (для публичных страниц).
+     *
+     * @return BelongsToMany<Service>
+     */
+    public function activeServices(): BelongsToMany
+    {
+        return $this->services()->where('services.is_active', true);
+    }
+
     public function registerMediaCollections(): void
     {
         $this->addMediaCollection('main')->useDisk('public')->singleFile();   // главное фото (главная + шапка)

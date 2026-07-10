@@ -28,7 +28,7 @@
             <p style="margin-bottom:34px">{{ $master->bio2 }}</p>
             <div class="stats" style="margin-bottom:36px">
                 <div><div class="stat__num">{{ $master->experience_label }}</div><div class="stat__label">практики</div></div>
-                <div><div class="stat__num">{{ $master->services->count() }}</div><div class="stat__label">направления массажа</div></div>
+                <div><div class="stat__num">{{ $master->activeServices->count() }}</div><div class="stat__label">направления массажа</div></div>
             </div>
             <a href="{{ $book }}" target="_blank" rel="noopener" class="btn btn-primary" style="align-self:flex-start">Записаться к {{ $master->name_dative }} →</a>
         </div>
@@ -50,11 +50,11 @@
         </section>
     @endif
 
-    @if($master->services->isNotEmpty())
+    @if($master->activeServices->isNotEmpty())
         <section class="section section--tight">
             <div class="rule"><h2>Услуги мастера</h2></div>
             <div class="mst-services">
-                @foreach($master->services as $service)
+                @foreach($master->activeServices as $service)
                     <a href="{{ route('services.show', $service->slug) }}" class="mst-service">
                         <span class="lvl">Проработка {{ $service->level }}/5</span>
                         <span class="nm">{{ $service->name }}</span>

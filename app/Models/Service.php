@@ -77,6 +77,16 @@ class Service extends Model implements HasMedia
         return $this->belongsToMany(Master::class)->orderBy('sort_order');
     }
 
+    /**
+     * Только активные мастера, оказывающие услугу (для публичных страниц).
+     *
+     * @return BelongsToMany<Master>
+     */
+    public function activeMasters(): BelongsToMany
+    {
+        return $this->masters()->where('masters.is_active', true);
+    }
+
     public function registerMediaCollections(): void
     {
         // Одно фото услуги: и карточка на главной, и шапка страницы услуги.

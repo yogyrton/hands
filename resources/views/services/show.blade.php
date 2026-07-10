@@ -90,11 +90,11 @@
         </div>
     </section>
 
-    @if($service->masters->isNotEmpty())
+    @if($service->activeMasters->isNotEmpty())
         <section class="section section--tight">
             <div class="rule"><h2>Мастера этой услуги</h2></div>
             <div class="grid-masters">
-                @foreach($service->masters as $master)
+                @foreach($service->activeMasters as $master)
                     @php($img = $master->mainUrl())
                     <a href="{{ route('masters.show', $master->slug) }}" class="card-master">
                         <div class="card-master__photo @if(! $img) ph @endif">
