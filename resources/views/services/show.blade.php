@@ -27,7 +27,10 @@
             </div>
             <div class="hero__cta">
                 <a href="{{ $yclients }}" target="_blank" rel="noopener" class="btn btn-primary">Записаться онлайн →</a>
-                <a href="{{ route('home') }}#masters" class="btn btn-outline">Выбрать мастера</a>
+                {{-- Скроллим к мастерам ЭТОЙ услуги на этой же странице, а не на главную --}}
+                @if($service->activeMasters->isNotEmpty())
+                    <a href="#masters" class="btn btn-outline">Выбрать мастера</a>
+                @endif
             </div>
         </div>
         <div class="svc-hero__media @if(! $heroImg) ph @endif">
@@ -91,7 +94,7 @@
     </section>
 
     @if($service->activeMasters->isNotEmpty())
-        <section class="section section--tight">
+        <section id="masters" class="section section--tight" style="scroll-margin-top:110px">
             <div class="rule"><h2>Мастера этой услуги</h2></div>
             <div class="grid-masters">
                 @foreach($service->activeMasters as $master)

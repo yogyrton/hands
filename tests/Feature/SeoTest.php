@@ -40,6 +40,23 @@ class SeoTest extends TestCase
             ->assertSee('наконец выдыхает', false);
     }
 
+    public function test_home_has_main_landmark_and_deferred_map(): void
+    {
+        Setting::query()->updateOrCreate(
+            ['key' => 'yandex_map_embed'],
+            ['value' => 'https://yandex.ru/map-widget/v1/?ll=30.33%2C53.89&z=17'],
+        );
+
+        $response = $this->get('/')->assertOk();
+
+        // Ориентир <main> для доступности
+        $response->assertSee('<main>', false);
+        // Карту грузим по клику: в исходном HTML есть фасад, но НЕ сам iframe
+        $response->assertSee('class="map-facade"', false);
+        $response->assertSee('data-map-embed', false);
+        $response->assertDontSee('<iframe', false);
+    }
+
     public function test_service_page_h1_contains_city(): void
     {
         Service::create([

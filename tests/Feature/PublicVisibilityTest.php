@@ -75,6 +75,16 @@ class PublicVisibilityTest extends TestCase
             ->assertDontSee('СкрытыйМастер');
     }
 
+    public function test_service_page_choose_master_scrolls_to_its_own_masters(): void
+    {
+        $response = $this->get('/services/'.$this->activeService->slug)->assertOk();
+
+        // Кнопка «Выбрать мастера» ведёт к блоку мастеров ЭТОЙ услуги на этой же
+        // странице (относительный #masters), а не на главную ко всем мастерам.
+        $response->assertSee('<a href="#masters" class="btn btn-outline">Выбрать мастера</a>', false);
+        $response->assertSee('id="masters"', false);
+    }
+
     public function test_master_page_lists_only_active_services(): void
     {
         $this->get('/masters/'.$this->activeMaster->slug)
