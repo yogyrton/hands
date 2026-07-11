@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\Setting;
 use BackedEnum;
+use Filament\Forms\Components\FileUpload;
 use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Notifications\Notification;
@@ -78,7 +79,7 @@ class ManageStudioSettings extends Page
                 ]),
 
             Section::make('Реквизиты (ИП)')
-                ->description('Показываются в футере и в политике конфиденциальности')
+                ->description('Показываются в футере (требование законодательства РБ)')
                 ->columns(2)
                 ->schema([
                     TextInput::make('legal_name')
@@ -86,12 +87,35 @@ class ManageStudioSettings extends Page
                         ->placeholder('ИП Иванов Иван Иванович'),
                     TextInput::make('legal_unp')
                         ->label('УНП'),
+                    TextInput::make('legal_reg_authority')
+                        ->label('Орган регистрации')
+                        ->placeholder('Оршанский райисполком'),
+                    TextInput::make('legal_reg_date')
+                        ->label('Дата регистрации')
+                        ->placeholder('17.06.2026'),
+                    TextInput::make('legal_address')
+                        ->label('Юридический адрес')
+                        ->placeholder('Витебская обл., г. Орша, ул. …')
+                        ->columnSpanFull(),
+                    TextInput::make('work_hours')
+                        ->label('Режим работы')
+                        ->placeholder('Ежедневно с 9:00 до 21:00'),
                     TextInput::make('legal_email')
                         ->label('E-mail оператора')
                         ->email(),
-                    TextInput::make('legal_reg')
-                        ->label('Регистрация (опционально)')
-                        ->placeholder('Зарегистрирован … №… от …'),
+                ]),
+
+            Section::make('Оплата')
+                ->description('Образец документа об оплате — ссылка появится в футере в разделе «Документы»')
+                ->schema([
+                    FileUpload::make('payment_receipt')
+                        ->label('Образец документа об оплате (чек)')
+                        ->disk('public')
+                        ->directory('legal')
+                        ->acceptedFileTypes(['image/jpeg', 'image/png', 'image/webp', 'application/pdf'])
+                        ->maxSize(10240)
+                        ->downloadable()
+                        ->openable(),
                 ]),
         ]);
     }
@@ -104,6 +128,11 @@ class ManageStudioSettings extends Page
     public function save(): void
     {
         foreach ($this->form->getState() as $key => $value) {
+            // FileUpload может отдать массив [uuid => path] — берём путь.
+            if (is_array($value)) {
+                $value = reset($value) ?: '';
+            }
+
             Setting::query()->updateOrCreate(['key' => $key], ['value' => (string) $value]);
         }
 

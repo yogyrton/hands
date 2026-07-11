@@ -3,6 +3,11 @@
 @php($address = $studio['address'] ?? 'переулок Пожарный, 3Б, Могилёв')
 @php($legalName = $studio['legal_name'] ?? '')
 @php($legalUnp = $studio['legal_unp'] ?? '')
+@php($legalAuthority = $studio['legal_reg_authority'] ?? '')
+@php($legalRegDate = $studio['legal_reg_date'] ?? '')
+@php($legalAddress = $studio['legal_address'] ?? '')
+@php($workHours = $studio['work_hours'] ?? '')
+@php($paymentReceipt = $studio['payment_receipt'] ?? '')
 <footer class="footer">
     <div class="footer__top">
         <div>
@@ -13,6 +18,18 @@
             <p class="footer__about">Массажная студия в Могилёве. В наших руках — ваше удовольствие.</p>
         </div>
         <div class="footer__cols">
+            <div class="footer__col">
+                <span class="h">Контакты</span>
+                @if($legalName)
+                    <span>{{ $legalName }}@if($legalUnp) · УНП {{ $legalUnp }}@endif</span>
+                @endif
+                @if($legalAuthority || $legalRegDate)
+                    <span>Свидетельство о госрегистрации@if($legalAuthority): выдано {{ $legalAuthority }}@endif@if($legalRegDate) от {{ $legalRegDate }}@endif</span>
+                @endif
+                @if($legalAddress)
+                    <span>Юридический адрес: {{ $legalAddress }}</span>
+                @endif
+            </div>
             <div class="footer__col">
                 <span class="h">Студия</span>
                 <a href="{{ route('home') }}#services">Услуги</a>
@@ -29,13 +46,14 @@
                 <span class="h">Документы</span>
                 <a href="{{ route('privacy') }}">Политика конфиденциальности</a>
                 <a href="{{ route('cookie') }}">Политика cookie</a>
+                @if($paymentReceipt)
+                    <a href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($paymentReceipt) }}" target="_blank" rel="noopener">Образец документа об оплате</a>
+                @endif
             </div>
         </div>
     </div>
     <div class="footer__legal">
-        @if($legalName)
-            <span>{{ $legalName }}@if($legalUnp) · УНП {{ $legalUnp }}@endif</span>
-        @endif
+        <span>Адрес студии: {{ $address }}@if($workHours) · Режим работы: {{ $workHours }}@endif</span>
         <span>© {{ date('Y') }} HANDS · Массажная студия · Приём только по предварительной записи</span>
     </div>
 </footer>
