@@ -34,7 +34,10 @@ class SeoTest extends TestCase
             ->assertSee('property="og:image"', false)
             ->assertSee('name="google-site-verification" content="GVERIFY123"', false)
             ->assertSee('application/ld+json', false)
-            ->assertSee('HealthAndBeautyBusiness', false);
+            ->assertSee('HealthAndBeautyBusiness', false)
+            // H1 сохраняет ключ «в Могилёве» и эмоциональный якорь
+            ->assertSee('Массажная студия в Могилёве', false)
+            ->assertSee('наконец выдыхает', false);
     }
 
     public function test_service_page_h1_contains_city(): void
@@ -49,7 +52,7 @@ class SeoTest extends TestCase
             ->assertSee('Классический массаж в Могилёве', false);
     }
 
-    public function test_sitemap_command_generates_file_with_pages(): void
+    public function test_sitemap_route_returns_xml_with_pages(): void
     {
         Service::create([
             'slug' => 'classic', 'name' => 'Классический массаж', 'level' => 4,
@@ -60,12 +63,13 @@ class SeoTest extends TestCase
             'yclients_url' => 'https://e.com', 'bio1' => 'a', 'bio2' => 'b', 'is_active' => true,
         ]);
 
-        $this->artisan('sitemap:generate')->assertSuccessful();
+        $response = $this->get('/sitemap.xml');
 
-        $path = public_path('sitemap.xml');
-        $this->assertFileExists($path);
-        $xml = file_get_contents($path);
+        $response->assertOk();
+        $response->assertHeader('Content-Type', 'text/xml; charset=UTF-8');
+        $xml = $response->getContent();
         $this->assertStringContainsString('/services/classic', $xml);
         $this->assertStringContainsString('/masters/anna', $xml);
+        $this->assertStringContainsString(route('home'), $xml);
     }
 }
