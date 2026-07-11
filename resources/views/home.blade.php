@@ -4,8 +4,11 @@
 @section('meta_description', $site->seo_description ?: 'Массажная студия HANDS в Могилёве, переулок Пожарный, 3Б. Классический, спортивный, релакс, массаж спины и лица, коррекция фигуры. От 50 р. Запись онлайн.')
 
 @push('head')
+    {{-- Предзагружаем hero только на мобильных/планшетах (≤980px), где он
+         действительно LCP. На десктопе hero — боковая колонка, а LCP — текст H1,
+         поэтому там preload только тормозил бы CSS/шрифт. --}}
     @if($heroImg = $site->heroUrl())
-        <link rel="preload" as="image" href="{{ $heroImg }}" fetchpriority="high">
+        <link rel="preload" as="image" href="{{ $heroImg }}" media="(max-width: 980px)" fetchpriority="high">
     @endif
 @endpush
 
