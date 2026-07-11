@@ -20,6 +20,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
 class Promotion extends Model
 {
     protected $fillable = [
+        'slug',
         'title',
         'description',
         'discount_percent',

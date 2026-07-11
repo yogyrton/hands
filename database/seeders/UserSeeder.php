@@ -13,7 +13,10 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        User::query()->updateOrCreate(
+        // Создаём только если пользователя ещё нет — чтобы повторный запуск
+        // НЕ сбрасывал пароль и не разлогинивал (токены остаются валидными).
+        // Запускать точечно: php artisan db:seed --class=UserSeeder
+        User::query()->firstOrCreate(
             ['email' => env('ADMIN_EMAIL', 'admin@hands.local')],
             [
                 'name' => 'Администратор',
@@ -22,7 +25,7 @@ class UserSeeder extends Seeder
             ],
         );
 
-        User::query()->updateOrCreate(
+        User::query()->firstOrCreate(
             ['email' => env('MASTER_EMAIL', 'master@hands.local')],
             [
                 'name' => 'Мастер',

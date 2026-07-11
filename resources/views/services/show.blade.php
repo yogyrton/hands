@@ -19,7 +19,7 @@
                 <span class="eyebrow">Массаж</span>
                 <span class="tag-pill">Проработка {{ $service->level }}/5</span>
             </div>
-            <h1>{{ $service->name }}</h1>
+            <h1>{{ $service->name }} в Могилёве</h1>
             <p class="lead" style="margin-bottom:30px">{{ $service->lead }}</p>
             <div class="stats" style="margin-bottom:36px">
                 <div><div class="stat__num">{{ $service->duration_label }}</div><div class="stat__label">длительность</div></div>

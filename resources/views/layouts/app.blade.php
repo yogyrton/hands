@@ -7,10 +7,28 @@
     <title>@yield('title', 'HANDS — массажная студия в Могилёве · запись онлайн')</title>
     <meta name="description" content="@yield('meta_description', 'HANDS — массажная студия в Могилёве, переулок Пожарный, 3Б. Классический, спортивный, релакс, массаж спины и лица, коррекция фигуры. Только по предварительной записи через YClients.')">
 
+    <link rel="canonical" href="{{ url()->current() }}">
+
+    @php($seoOg = ($studio['og_image'] ?? '') ?: asset('images/og-image.png'))
+    <meta property="og:type" content="website">
+    <meta property="og:site_name" content="HANDS">
+    <meta property="og:locale" content="ru_RU">
+    <meta property="og:url" content="{{ url()->current() }}">
+    <meta property="og:title" content="@yield('title', 'HANDS — массажная студия в Могилёве · запись онлайн')">
+    <meta property="og:description" content="@yield('meta_description', 'HANDS — массажная студия в Могилёве. Классический, спортивный, релакс, массаж спины и лица, коррекция фигуры. Запись онлайн.')">
+    <meta property="og:image" content="{{ $seoOg }}">
+    <meta name="twitter:card" content="summary_large_image">
+    @if(! empty($studio['google_verification']))
+        <meta name="google-site-verification" content="{{ $studio['google_verification'] }}">
+    @endif
+    @if(! empty($studio['yandex_verification']))
+        <meta name="yandex-verification" content="{{ $studio['yandex_verification'] }}">
+    @endif
+
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Cormorant+Garamond:ital,wght@0,400;0,500;0,600;1,400;1,500&family=Manrope:wght@300;400;500;600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="{{ asset('css/site.css') }}">
+    <link rel="stylesheet" href="{{ asset('css/site.css') }}?v={{ @filemtime(public_path('css/site.css')) }}">
     @stack('head')
 </head>
 <body>
