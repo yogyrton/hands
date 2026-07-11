@@ -113,6 +113,15 @@ class VisitForm
                             fn (Certificate $c) => [$c->id => $c->selectLabel()]
                         ))
                         ->searchable()
+                        // Поиск только по номеру сертификата.
+                        ->getSearchResultsUsing(fn (string $search) => Certificate::usable()
+                            ->where('number', 'like', '%'.$search.'%')
+                            ->orderByDesc('id')
+                            ->limit(50)
+                            ->get()
+                            ->mapWithKeys(fn (Certificate $c) => [$c->id => $c->selectLabel()])
+                            ->all())
+                        ->getOptionLabelUsing(fn ($value): ?string => Certificate::find($value)?->selectLabel())
                         ->live()
                         ->visible(fn (Get $get): bool => (bool) $get('use_certificate'))
                         ->helperText(function (Get $get): string {
@@ -166,7 +175,30 @@ class VisitForm
                         ->minValue(0)
                         ->default(0)
                         ->suffix('р')
-                        ->visible(fn (Get $get): bool => (bool) $get('use_certificate') && (bool) $get('use_surcharge')),
+                        ->visible(fn (Get $get): bool => (bool) $get('use_certificate') && (bool) $get('use_surcharge'))
+                        ->rule(function (Get $get): Closure {
+                            // Сертификат + доплата обязаны в сумме закрыть итоговую (не меньше и не больше).
+                            return function (string $attribute, $value, Closure $fail) use ($get): void {
+                                if (! $get('use_certificate') || ! $get('use_surcharge')) {
+                                    return;
+                                }
+                                $cert = Certificate::find($get('certificate_id'));
+                                if ($cert?->type !== CertificateType::Money) {
+                                    return;
+                                }
+                                $price = round((float) $get('service_price'), 2);
+                                $surcharge = round((float) $value, 2);
+                                $remaining = round((float) $cert->remaining_amount, 2);
+
+                                if ($surcharge > $price) {
+                                    $fail('Доплата больше итоговой стоимости.');
+                                } elseif (round($price - $surcharge, 2) > $remaining) {
+                                    // Сертификатом нельзя списать больше остатка — доплаты не хватает.
+                                    $need = round($price - $remaining, 2);
+                                    $fail('Доплаты мало: сертификат покроет только '.number_format($remaining, 2, '.', ' ').' р. Доплатите минимум '.number_format($need, 2, '.', ' ').' р.');
+                                }
+                            };
+                        }),
                     Select::make('payment_type')
                         ->label('Тип оплаты (деньгами)')
                         ->options(PaymentType::moneyOptions())

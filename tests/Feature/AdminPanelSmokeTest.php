@@ -167,4 +167,38 @@ class AdminPanelSmokeTest extends TestCase
 
         $this->assertDatabaseCount('visits', 0);
     }
+
+    public function test_visit_form_blocks_insufficient_surcharge(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+
+        $service = Service::create([
+            'slug' => 's3', 'name' => 'Услуга', 'level' => 4, 'base_price' => 200, 'lead' => 'l',
+        ]);
+        $master = Master::create([
+            'slug' => 'm3', 'name' => 'Мастер', 'name_dative' => 'Мастеру', 'role' => 'r',
+            'yclients_url' => 'https://e.com', 'bio1' => 'a', 'bio2' => 'b', 'salary_rate' => 35,
+        ]);
+        $cert = app(CertificateServiceInterface::class)->issue(
+            CertificateData::from(['type' => CertificateType::Money, 'initial_amount' => 100]),
+        );
+
+        // Услуга 200, серт покроет 100, доплата всего 50 → не хватает 50, сохранять нельзя.
+        Livewire::test(CreateVisit::class)
+            ->fillForm([
+                'master_id' => $master->id,
+                'service_id' => $service->id,
+                'base_price' => 200,
+                'service_price' => 200,
+                'use_certificate' => true,
+                'certificate_id' => $cert->id,
+                'use_surcharge' => true,
+                'surcharge_amount' => 50,
+                'surcharge_payment_type' => 'cash',
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['surcharge_amount']);
+
+        $this->assertDatabaseCount('visits', 0);
+    }
 }
