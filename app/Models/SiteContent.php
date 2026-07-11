@@ -17,7 +17,10 @@ class SiteContent extends Model implements HasMedia
 {
     use InteractsWithMedia;
 
-    protected $fillable = [];
+    protected $fillable = [
+        'seo_title',
+        'seo_description',
+    ];
 
     /**
      * Единственная запись контента главной.

@@ -126,7 +126,7 @@ class ServiceForm
             Section::make('SEO')
                 ->schema([
                     TextInput::make('seo_title')->label('SEO title')->maxLength(255),
-                    Textarea::make('seo_description')->label('SEO description')->rows(2),
+                    Textarea::make('seo_description')->label('SEO description')->rows(10),
                 ]),
         ]);
     }
