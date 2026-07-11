@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Data\Page;
 
+use App\Models\Cabinet;
 use App\Models\Faq;
 use App\Models\Master;
 use App\Models\Promotion;
@@ -23,12 +24,14 @@ class HomePageData extends Data
      * @param  Collection<int, Master>  $masters
      * @param  Collection<int, Faq>  $faqs
      * @param  Collection<int, Promotion>  $promotions
+     * @param  Collection<int, Cabinet>  $cabinets
      */
     public function __construct(
         public Collection $services,
         public Collection $masters,
         public Collection $faqs,
         public Collection $promotions,
+        public Collection $cabinets,
         public SiteContent $site,
     ) {}
 }

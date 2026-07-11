@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Services;
 
+use App\Contracts\Services\CabinetServiceInterface;
 use App\Contracts\Services\FaqServiceInterface;
 use App\Contracts\Services\HomePageServiceInterface;
 use App\Contracts\Services\MasterServiceInterface;
@@ -19,6 +20,7 @@ class HomePageService implements HomePageServiceInterface
         protected MasterServiceInterface $masterService,
         protected FaqServiceInterface $faqService,
         protected PromotionServiceInterface $promotionService,
+        protected CabinetServiceInterface $cabinetService,
     ) {}
 
     public function pageData(): HomePageData
@@ -28,6 +30,7 @@ class HomePageService implements HomePageServiceInterface
             masters: $this->masterService->activeOrdered(),
             faqs: $this->faqService->activeOrdered(),
             promotions: $this->promotionService->activeOrdered(),
+            cabinets: $this->cabinetService->activeOrdered(),
             site: SiteContent::current(),
         );
     }

@@ -8,6 +8,7 @@
         <a href="{{ route('home') }}#services">Услуги</a>
         <a href="{{ route('home') }}#masters">Мастера</a>
         <a href="{{ route('home') }}#about">О студии</a>
+        <a href="{{ route('home') }}#cabinets">Кабинеты</a>
         <a href="{{ route('home') }}#map">Контакты</a>
         <a href="{{ route('home') }}#faq">Вопросы</a>
     </nav>

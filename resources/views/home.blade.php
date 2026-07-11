@@ -20,6 +20,7 @@
     @include('partials.home.about')
     @include('partials.home.masters')
     @include('partials.home.gift')
+    @include('partials.home.cabinets')
     @include('partials.home.map')
     @include('partials.home.faq')
     @include('partials.home.booking')

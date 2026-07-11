@@ -23,6 +23,7 @@ class DatabaseSeeder extends Seeder
             MasterSeeder::class,
             FaqSeeder::class,
             PromotionSeeder::class,
+            CabinetSeeder::class,
             SettingSeeder::class,
             SiteContentSeeder::class,
         ]);

@@ -4,12 +4,14 @@ declare(strict_types=1);
 
 namespace App\Providers;
 
+use App\Contracts\Repositories\CabinetRepositoryInterface;
 use App\Contracts\Repositories\CertificateRepositoryInterface;
 use App\Contracts\Repositories\FaqRepositoryInterface;
 use App\Contracts\Repositories\MasterRepositoryInterface;
 use App\Contracts\Repositories\PromotionRepositoryInterface;
 use App\Contracts\Repositories\ServiceRepositoryInterface;
 use App\Contracts\Repositories\VisitRepositoryInterface;
+use App\Contracts\Services\CabinetServiceInterface;
 use App\Contracts\Services\CertificateServiceInterface;
 use App\Contracts\Services\FaqServiceInterface;
 use App\Contracts\Services\HomePageServiceInterface;
@@ -18,12 +20,14 @@ use App\Contracts\Services\PromotionServiceInterface;
 use App\Contracts\Services\ServiceServiceInterface;
 use App\Contracts\Services\VisitServiceInterface;
 use App\Models\Setting;
+use App\Repositories\CabinetRepository;
 use App\Repositories\CertificateRepository;
 use App\Repositories\FaqRepository;
 use App\Repositories\MasterRepository;
 use App\Repositories\PromotionRepository;
 use App\Repositories\ServiceRepository;
 use App\Repositories\VisitRepository;
+use App\Services\CabinetService;
 use App\Services\CertificateService;
 use App\Services\FaqService;
 use App\Services\HomePageService;
@@ -63,6 +67,7 @@ class DIServiceProvider extends ServiceProvider
         $this->app->bind(MasterRepositoryInterface::class, MasterRepository::class);
         $this->app->bind(FaqRepositoryInterface::class, FaqRepository::class);
         $this->app->bind(PromotionRepositoryInterface::class, PromotionRepository::class);
+        $this->app->bind(CabinetRepositoryInterface::class, CabinetRepository::class);
         $this->app->bind(CertificateRepositoryInterface::class, CertificateRepository::class);
         $this->app->bind(VisitRepositoryInterface::class, VisitRepository::class);
     }
@@ -74,6 +79,7 @@ class DIServiceProvider extends ServiceProvider
         $this->app->bind(FaqServiceInterface::class, FaqService::class);
         $this->app->bind(HomePageServiceInterface::class, HomePageService::class);
         $this->app->bind(PromotionServiceInterface::class, PromotionService::class);
+        $this->app->bind(CabinetServiceInterface::class, CabinetService::class);
         $this->app->bind(CertificateServiceInterface::class, CertificateService::class);
         $this->app->bind(VisitServiceInterface::class, VisitService::class);
     }
