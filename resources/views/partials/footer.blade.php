@@ -19,6 +19,18 @@
         </div>
         <div class="footer__cols">
             <div class="footer__col">
+                <span class="h">Контакты</span>
+                @if($legalName)
+                    <span>{{ $legalName }}@if($legalUnp) · УНП {{ $legalUnp }}@endif</span>
+                @endif
+                @if($legalAuthority || $legalRegDate)
+                    <span>Свидетельство о госрегистрации@if($legalAuthority): выдано {{ $legalAuthority }}@endif@if($legalRegDate) от {{ $legalRegDate }}@endif</span>
+                @endif
+                @if($legalAddress)
+                    <span>Юридический адрес: {{ $legalAddress }}</span>
+                @endif
+            </div>
+            <div class="footer__col">
                 <span class="h">Студия</span>
                 <a href="{{ route('home') }}#services">Услуги</a>
                 <a href="{{ route('home') }}#masters">Мастера</a>
@@ -41,15 +53,6 @@
         </div>
     </div>
     <div class="footer__legal">
-        @if($legalName)
-            <span>{{ $legalName }}@if($legalUnp) · УНП {{ $legalUnp }}@endif</span>
-        @endif
-        @if($legalAuthority || $legalRegDate)
-            <span>Свидетельство о госрегистрации@if($legalAuthority): выдано {{ $legalAuthority }}@endif@if($legalRegDate) от {{ $legalRegDate }}@endif</span>
-        @endif
-        @if($legalAddress)
-            <span>Юридический адрес: {{ $legalAddress }}</span>
-        @endif
         <span>Адрес студии: {{ $address }}@if($workHours) · Режим работы: {{ $workHours }}@endif</span>
         <span>© {{ date('Y') }} HANDS · Массажная студия · Приём только по предварительной записи</span>
     </div>
