@@ -11,7 +11,7 @@
         </div>
         <div class="stats hero__stats">
             <div><div class="stat__num">{{ $services->count() ?: 6 }}</div><div class="stat__label">видов массажа</div></div>
-            <div><div class="stat__num">от 60′</div><div class="stat__label">длительность сеанса</div></div>
+            <div><div class="stat__num">40–90′</div><div class="stat__label">длительность сеанса</div></div>
             <div><div class="stat__num">{{ $masters->count() ?: 3 }}</div><div class="stat__label">мастера студии</div></div>
         </div>
     </div>
