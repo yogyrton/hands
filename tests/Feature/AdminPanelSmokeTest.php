@@ -57,7 +57,11 @@ class AdminPanelSmokeTest extends TestCase
         $this->actingAs($admin);
 
         // контент сайта
-        $this->get('/admin')->assertOk();
+        $this->get('/admin')
+            ->assertOk()
+            // ссылка «На сайт» в шапке админки, открывается в новой вкладке
+            ->assertSee('На сайт')
+            ->assertSee('target="_blank"', false);
         $this->get('/admin/services')->assertOk();
         $this->get('/admin/services/create')->assertOk();
         $this->get("/admin/services/{$service->id}/edit")->assertOk();
