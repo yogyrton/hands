@@ -16,6 +16,7 @@ use Illuminate\Database\Eloquent\Model;
 class Faq extends Model
 {
     protected $fillable = [
+        'slug',
         'question',
         'answer',
         'sort_order',

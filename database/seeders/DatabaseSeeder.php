@@ -16,8 +16,9 @@ class DatabaseSeeder extends Seeder
      */
     public function run(): void
     {
+        // UserSeeder сюда НЕ включаем — запускается точечно
+        // (php artisan db:seed --class=UserSeeder), чтобы не трогать пароли.
         $this->call([
-            UserSeeder::class,
             ServiceSeeder::class,
             MasterSeeder::class,
             FaqSeeder::class,
