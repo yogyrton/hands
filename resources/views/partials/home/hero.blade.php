@@ -2,9 +2,9 @@
 @php($heroImg = $site->heroUrl())
 <section class="hero">
     <div class="hero__text">
-        <div class="eyebrow hero__eyebrow">Массажная студия · Могилёв</div>
-        <h1>Массаж в Могилёве —<br><em>ваше удовольствие</em></h1>
-        <p class="hero__lead">Тишина, тёплый свет и точные руки мастера. Классический, спортивный и релакс-массаж, работа со спиной, лицом и фигурой — под ваш запрос.</p>
+        <div class="eyebrow hero__eyebrow">Массаж в Могилёве · переулок Пожарный, 3Б</div>
+        <h1>Массажная студия в Могилёве,<br>где тело <em>наконец выдыхает</em></h1>
+        <p class="hero__lead">Классический, спортивный и релакс-массаж. Работа со спиной, лицом и фигурой — под ваш запрос. Без спешки и очередей: только вы и руки мастера.</p>
         <div class="hero__cta">
             <a href="{{ $yclients }}" target="_blank" rel="noopener" class="btn btn-primary">Записаться онлайн →</a>
             <a href="#services" class="btn btn-outline">Наши услуги</a>
