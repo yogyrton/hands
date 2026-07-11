@@ -5,9 +5,8 @@
 <section id="map" class="map section--dark">
     <div class="map__text">
         <span class="eyebrow eyebrow--gold">Как нас найти</span>
-        <h2>Могилёв,<br>переулок Пожарный, 3Б</h2>
+        <h2>{{ $address }}</h2>
         <div class="contact-rows">
-            <div class="contact-row"><span class="k">Адрес</span><span class="v">{{ $address }}</span></div>
             <div class="contact-row"><span class="k">Запись</span><span class="v">только онлайн через <a href="{{ $yclients }}" target="_blank" rel="noopener" style="color:var(--gold-light)">YClients</a></span></div>
             <div class="contact-row"><span class="k">Instagram</span><a href="{{ $instagram }}" target="_blank" rel="noopener" style="color:var(--gold-light)">@hands.mg</a></div>
         </div>
