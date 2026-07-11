@@ -17,7 +17,7 @@
     <section class="mst-hero">
         <div class="mst-hero__media @if(! $mainImg) ph @endif">
             @if($mainImg)
-                <img src="{{ $mainImg }}" alt="{{ $master->name }} — мастер студии HANDS">
+                <img src="{{ $mainImg }}" alt="{{ $master->name }} — мастер студии HANDS" fetchpriority="high" decoding="async">
             @endif
         </div>
         <div class="mst-hero__text">
@@ -70,7 +70,7 @@
             <div class="rule"><h2>Фотографии</h2></div>
             <div class="gallery">
                 @foreach($gallery as $photo)
-                    <div class="cell"><img src="{{ $photo->hasGeneratedConversion('webp') ? $photo->getUrl('webp') : $photo->getUrl() }}" alt="Фото — {{ $master->name }}, студия HANDS"></div>
+                    <div class="cell"><img src="{{ $photo->hasGeneratedConversion('webp') ? $photo->getUrl('webp') : $photo->getUrl() }}" alt="Фото — {{ $master->name }}, студия HANDS" loading="lazy" decoding="async"></div>
                 @endforeach
             </div>
         </section>

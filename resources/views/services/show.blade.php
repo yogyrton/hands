@@ -32,7 +32,7 @@
         </div>
         <div class="svc-hero__media @if(! $heroImg) ph @endif">
             @if($heroImg)
-                <img src="{{ $heroImg }}" alt="{{ $service->name }} в студии HANDS">
+                <img src="{{ $heroImg }}" alt="{{ $service->name }} в студии HANDS" fetchpriority="high" decoding="async">
             @endif
         </div>
     </section>
@@ -99,7 +99,7 @@
                     <a href="{{ route('masters.show', $master->slug) }}" class="card-master">
                         <div class="card-master__photo @if(! $img) ph @endif">
                             @if($img)
-                                <img src="{{ $img }}" alt="{{ $master->name }} — мастер студии HANDS">
+                                <img src="{{ $img }}" alt="{{ $master->name }} — мастер студии HANDS" loading="lazy" decoding="async">
                             @endif
                         </div>
                         <div class="card-master__body">

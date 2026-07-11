@@ -2,7 +2,7 @@
 <section id="about" class="about">
     <div class="about__media @if(! $aboutImg) ph @endif">
         @if($aboutImg)
-            <img src="{{ $aboutImg }}" alt="Массажная студия HANDS в Могилёве">
+            <img src="{{ $aboutImg }}" alt="Массажная студия HANDS в Могилёве" loading="lazy" decoding="async">
         @endif
     </div>
     <div class="about__text">

@@ -58,7 +58,7 @@
             @php($img = $service->cardUrl())
             <a href="{{ route('services.show', $service->slug) }}" class="card-service @if(! $img) ph @endif">
                 @if($img)
-                    <img src="{{ $img }}" alt="{{ $service->name }} в студии HANDS">
+                    <img src="{{ $img }}" alt="{{ $service->name }} в студии HANDS" loading="lazy" decoding="async">
                 @endif
                 <span class="veil"></span>
                 <span class="badge">Проработка {{ $service->level }}/5</span>

@@ -17,7 +17,7 @@
     </div>
     <div class="hero__media @if(! $heroImg) ph @endif">
         @if($heroImg)
-            <img src="{{ $heroImg }}" alt="Массаж в студии HANDS в Могилёве">
+            <img src="{{ $heroImg }}" alt="Массаж в студии HANDS в Могилёве" fetchpriority="high" decoding="async">
         @endif
     </div>
 </section>

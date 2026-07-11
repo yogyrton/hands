@@ -9,7 +9,7 @@
             <a href="{{ route('masters.show', $master->slug) }}" class="card-master">
                 <div class="card-master__photo @if(! $img) ph @endif">
                     @if($img)
-                        <img src="{{ $img }}" alt="{{ $master->name }} — мастер студии HANDS">
+                        <img src="{{ $img }}" alt="{{ $master->name }} — мастер студии HANDS" loading="lazy" decoding="async">
                     @endif
                 </div>
                 <div class="card-master__body">
