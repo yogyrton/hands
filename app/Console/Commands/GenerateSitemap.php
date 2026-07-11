@@ -7,6 +7,8 @@ namespace App\Console\Commands;
 use App\Models\Master;
 use App\Models\Service;
 use Illuminate\Console\Command;
+use Spatie\Sitemap\Sitemap;
+use Spatie\Sitemap\Tags\Url;
 
 class GenerateSitemap extends Command
 {
@@ -16,37 +18,40 @@ class GenerateSitemap extends Command
 
     public function handle(): int
     {
-        $urls = [route('home')];
+        $count = 1;
 
-        Service::query()->where('is_active', true)->orderBy('sort_order')
-            ->pluck('slug')
-            ->each(function (string $slug) use (&$urls): void {
-                $urls[] = route('services.show', $slug);
+        $sitemap = Sitemap::create()
+            ->add(
+                Url::create(route('home'))
+                    ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
+                    ->setPriority(1.0)
+            );
+
+        Service::query()->where('is_active', true)->orderBy('sort_order')->get()
+            ->each(function (Service $service) use ($sitemap, &$count): void {
+                $count++;
+                $sitemap->add(
+                    Url::create(route('services.show', $service->slug))
+                        ->setLastModificationDate($service->updated_at ?? now())
+                        ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
+                        ->setPriority(0.8)
+                );
             });
 
-        Master::query()->where('is_active', true)->orderBy('sort_order')
-            ->pluck('slug')
-            ->each(function (string $slug) use (&$urls): void {
-                $urls[] = route('masters.show', $slug);
+        Master::query()->where('is_active', true)->orderBy('sort_order')->get()
+            ->each(function (Master $master) use ($sitemap, &$count): void {
+                $count++;
+                $sitemap->add(
+                    Url::create(route('masters.show', $master->slug))
+                        ->setLastModificationDate($master->updated_at ?? now())
+                        ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
+                        ->setPriority(0.7)
+                );
             });
 
-        $today = now()->toDateString();
+        $sitemap->writeToFile(public_path('sitemap.xml'));
 
-        $xml = '<?xml version="1.0" encoding="UTF-8"?>'."\n"
-            .'<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">'."\n";
-
-        foreach ($urls as $url) {
-            $xml .= '  <url>'."\n"
-                .'    <loc>'.htmlspecialchars($url, ENT_XML1).'</loc>'."\n"
-                .'    <lastmod>'.$today.'</lastmod>'."\n"
-                .'  </url>'."\n";
-        }
-
-        $xml .= '</urlset>'."\n";
-
-        file_put_contents(public_path('sitemap.xml'), $xml);
-
-        $this->info('sitemap.xml сгенерирован: '.count($urls).' URL.');
+        $this->info('sitemap.xml сгенерирован: '.$count.' URL.');
 
         return self::SUCCESS;
     }
