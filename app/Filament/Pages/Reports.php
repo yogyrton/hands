@@ -4,6 +4,7 @@ namespace App\Filament\Pages;
 
 use App\Models\Certificate;
 use App\Models\Master;
+use App\Models\Promotion;
 use App\Models\Visit;
 use BackedEnum;
 use Filament\Forms\Components\DatePicker;
@@ -99,23 +100,56 @@ class Reports extends Page
      */
     public function revenue(): array
     {
-        $rows = $this->visitsQuery()
-            ->selectRaw('payment_type, SUM(paid_amount) as total')
-            ->groupBy('payment_type')
-            ->pluck('total', 'payment_type');
+        // Прямая оплата нал/картой.
+        $cash = (float) $this->visitsQuery()->where('payment_type', 'cash')->sum('paid_amount');
+        $card = (float) $this->visitsQuery()->where('payment_type', 'card')->sum('paid_amount');
 
-        $cash = (float) ($rows['cash'] ?? 0);
-        $card = (float) ($rows['card'] ?? 0);
-        $mixed = (float) ($rows['mixed'] ?? 0);
+        // Доплата по «сертификат с доплатой» — тоже живые деньги, падает в нал/карту по методу доплаты.
+        $cash += (float) $this->visitsQuery()
+            ->where('payment_type', 'certificate_surcharge')
+            ->where('surcharge_payment_type', 'cash')
+            ->sum('paid_amount');
+        $card += (float) $this->visitsQuery()
+            ->where('payment_type', 'certificate_surcharge')
+            ->where('surcharge_payment_type', 'card')
+            ->sum('paid_amount');
 
         return [
             'cash' => $cash,
             'card' => $card,
-            'mixed' => $mixed,
-            'total' => $cash + $card + $mixed,
+            'total' => $cash + $card,
             'visits' => $this->visitsQuery()->count(),
             'cert_visits' => $this->visitsQuery()->whereNotNull('certificate_id')->count(),
         ];
+    }
+
+    /**
+     * Статистика по акциям за период: посещений, деньгами, сумма предоставленной скидки.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function byPromotion(): array
+    {
+        return Promotion::query()
+            ->orderBy('sort_order')
+            ->get()
+            ->map(function (Promotion $promotion): array {
+                $agg = $this->visitsQuery()
+                    ->where('promotion_id', $promotion->id)
+                    ->selectRaw('COUNT(*) as cnt, COALESCE(SUM(paid_amount), 0) as paid, COALESCE(SUM(base_price - service_price), 0) as discount')
+                    ->first();
+
+                return [
+                    'title' => $promotion->title,
+                    'percent' => $promotion->discount_percent,
+                    'count' => (int) $agg->cnt,
+                    'paid' => (float) $agg->paid,
+                    'discount' => (float) $agg->discount,
+                ];
+            })
+            ->filter(fn (array $row): bool => $row['count'] > 0)
+            ->values()
+            ->all();
     }
 
     /**

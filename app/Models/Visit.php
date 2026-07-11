@@ -25,8 +25,10 @@ class Visit extends Model
         'service_price',
         'paid_amount',
         'payment_type',
+        'surcharge_payment_type',
         'discount_reason',
         'certificate_id',
+        'promotion_id',
         'comment',
         'performed_at',
     ];
@@ -38,6 +40,7 @@ class Visit extends Model
             'service_price' => 'decimal:2',
             'paid_amount' => 'decimal:2',
             'payment_type' => PaymentType::class,
+            'surcharge_payment_type' => PaymentType::class,
             'performed_at' => 'datetime',
         ];
     }
@@ -64,6 +67,22 @@ class Visit extends Model
     public function certificate(): BelongsTo
     {
         return $this->belongsTo(Certificate::class);
+    }
+
+    /**
+     * @return BelongsTo<Promotion, Visit>
+     */
+    public function promotion(): BelongsTo
+    {
+        return $this->belongsTo(Promotion::class);
+    }
+
+    /**
+     * Сумма предоставленной скидки: базовая − итоговая (не ниже 0).
+     */
+    public function discountAmount(): float
+    {
+        return round(max(0, (float) $this->base_price - (float) $this->service_price), 2);
     }
 
     /**

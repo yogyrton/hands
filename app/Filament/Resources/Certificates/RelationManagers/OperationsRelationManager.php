@@ -3,6 +3,9 @@
 namespace App\Filament\Resources\Certificates\RelationManagers;
 
 use App\Enums\CertificateOperationType;
+use App\Filament\Resources\Certificates\CertificateResource;
+use App\Filament\Resources\Visits\VisitResource;
+use App\Models\CertificateOperation;
 use Filament\Resources\RelationManagers\RelationManager;
 use Filament\Schemas\Schema;
 use Filament\Tables\Columns\TextColumn;
@@ -23,6 +26,14 @@ class OperationsRelationManager extends RelationManager
     {
         return $table
             ->defaultSort('created_at', 'desc')
+            // Клик по строке: списание → на конкретное посещение, продажа → на сам сертификат.
+            ->recordUrl(function (CertificateOperation $record): ?string {
+                if ($record->visit_id !== null) {
+                    return VisitResource::getUrl('view', ['record' => $record->visit_id]);
+                }
+
+                return CertificateResource::getUrl('view', ['record' => $record->certificate_id]);
+            })
             ->columns([
                 TextColumn::make('created_at')
                     ->label('Дата')

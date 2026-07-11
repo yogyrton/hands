@@ -17,6 +17,9 @@ class VisitData extends Data
         public PaymentType $payment_type = PaymentType::Cash,
         public ?string $discount_reason = null,
         public ?int $certificate_id = null,
+        public ?int $promotion_id = null,
+        public float $surcharge_amount = 0.0,
+        public ?PaymentType $surcharge_payment_type = null,
         public ?string $comment = null,
     ) {}
 }

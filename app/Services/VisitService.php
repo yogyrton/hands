@@ -32,6 +32,7 @@ class VisitService extends BaseQueryService implements VisitServiceInterface
             $servicePrice = round($data->service_price, 2);
             $paid = 0.0;
             $paymentType = $data->payment_type;
+            $surchargeMethod = null;
             $certificate = null;
             $operationAmount = null;
 
@@ -43,24 +44,30 @@ class VisitService extends BaseQueryService implements VisitServiceInterface
                     ->firstOrFail();
 
                 if ($certificate->type === CertificateType::Visits) {
+                    // Списываем 1 посещение. Итоговую (цену этого сеанса по серту) вводит оператор —
+                    // от неё и считается зарплата, а не от суммы всего сертификата.
                     $certificate->remaining_visits = max(0, (int) $certificate->remaining_visits - 1);
                     $operationAmount = -1.0;
                     $paid = 0.0;
                     $paymentType = PaymentType::Certificate;
                 } else {
                     $remaining = (float) $certificate->remaining_amount;
+                    $surcharge = round(max(0.0, $data->surcharge_amount), 2);
 
-                    if ($remaining >= $servicePrice) {
-                        $certificate->remaining_amount = round($remaining - $servicePrice, 2);
-                        $operationAmount = -$servicePrice;
+                    // Сертификатом покрываем итоговую за вычетом доплаты, но не больше остатка.
+                    $cover = round($servicePrice - $surcharge, 2);
+                    $cover = max(0.0, min($cover, $remaining));
+
+                    $certificate->remaining_amount = round($remaining - $cover, 2);
+                    $operationAmount = -$cover;
+
+                    if ($surcharge > 0) {
+                        $paid = $surcharge;
+                        $paymentType = PaymentType::CertificateSurcharge;
+                        $surchargeMethod = $data->surcharge_payment_type ?? PaymentType::Cash;
+                    } else {
                         $paid = 0.0;
                         $paymentType = PaymentType::Certificate;
-                    } else {
-                        // Сертификата не хватает — остаток списываем, разницу доплачивают деньгами.
-                        $certificate->remaining_amount = 0;
-                        $operationAmount = -$remaining;
-                        $paid = round($servicePrice - $remaining, 2);
-                        // $paymentType остаётся тем, что выбрал мастер (нал/карта/смешанно)
                     }
                 }
 
@@ -78,8 +85,10 @@ class VisitService extends BaseQueryService implements VisitServiceInterface
                 'service_price' => $servicePrice,
                 'paid_amount' => $paid,
                 'payment_type' => $paymentType,
+                'surcharge_payment_type' => $surchargeMethod,
                 'discount_reason' => $data->discount_reason,
                 'certificate_id' => $certificate?->id,
+                'promotion_id' => $data->promotion_id,
                 'comment' => $data->comment,
                 'performed_at' => now(),
             ]);

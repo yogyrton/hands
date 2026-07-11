@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Certificates\Schemas;
 use App\Enums\CertificateType;
 use App\Models\Certificate;
 use Filament\Forms\Components\Select;
+use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Schemas\Components\Section;
 use Filament\Schemas\Components\Utilities\Get;
@@ -37,11 +38,17 @@ class CertificateForm
                         ->required(fn (Get $get): bool => $get('type') === CertificateType::Visits->value),
                     TextInput::make('initial_amount')
                         ->label('Сумма')
+                        ->helperText('Общая сумма сертификата (сколько заплатил клиент)')
                         ->numeric()
                         ->minValue(1)
                         ->suffix('р')
-                        ->visible(fn (Get $get): bool => $get('type') === CertificateType::Money->value)
-                        ->required(fn (Get $get): bool => $get('type') === CertificateType::Money->value),
+                        ->required(),
+                    Textarea::make('comment')
+                        ->label('Описание')
+                        ->helperText('Для «на посещения» укажите разбивку, напр.: 6 классика по 45 + 6 спина по 63')
+                        ->rows(2)
+                        ->columnSpanFull()
+                        ->required(fn (Get $get): bool => $get('type') === CertificateType::Visits->value),
                 ]),
 
             Section::make('Клиент (необязательно)')

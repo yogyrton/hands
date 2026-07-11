@@ -64,6 +64,8 @@ class AdminPanelSmokeTest extends TestCase
         $this->get('/admin/masters')->assertOk();
         $this->get("/admin/masters/{$master->id}/edit")->assertOk();
         $this->get('/admin/faqs')->assertOk();
+        $this->get('/admin/promotions')->assertOk();
+        $this->get('/admin/promotions/create')->assertOk();
         $this->get('/admin/manage-studio-settings')->assertOk();
 
         $site = SiteContent::current();
@@ -96,6 +98,7 @@ class AdminPanelSmokeTest extends TestCase
         // контент сайта — запрещён
         $this->get('/admin/services')->assertForbidden();
         $this->get('/admin/masters')->assertForbidden();
+        $this->get('/admin/promotions')->assertForbidden();
         $this->get('/admin/manage-studio-settings')->assertForbidden();
     }
 
@@ -132,5 +135,70 @@ class AdminPanelSmokeTest extends TestCase
 
         $visit = Visit::query()->firstOrFail();
         $this->get("/admin/visits/{$visit->id}")->assertOk();
+    }
+
+    public function test_visit_form_blocks_money_certificate_without_surcharge(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+
+        $service = Service::create([
+            'slug' => 's2', 'name' => 'Услуга', 'level' => 4, 'base_price' => 60, 'lead' => 'l',
+        ]);
+        $master = Master::create([
+            'slug' => 'm2', 'name' => 'Мастер', 'name_dative' => 'Мастеру', 'role' => 'r',
+            'yclients_url' => 'https://e.com', 'bio1' => 'a', 'bio2' => 'b', 'salary_rate' => 35,
+        ]);
+        $cert = app(CertificateServiceInterface::class)->issue(
+            CertificateData::from(['type' => CertificateType::Money, 'initial_amount' => 20]),
+        );
+
+        // Услуга 60, остаток 20, доплата не включена — сохранить нельзя.
+        Livewire::test(CreateVisit::class)
+            ->fillForm([
+                'master_id' => $master->id,
+                'service_id' => $service->id,
+                'base_price' => 60,
+                'service_price' => 60,
+                'use_certificate' => true,
+                'certificate_id' => $cert->id,
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['certificate_id']);
+
+        $this->assertDatabaseCount('visits', 0);
+    }
+
+    public function test_visit_form_blocks_insufficient_surcharge(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+
+        $service = Service::create([
+            'slug' => 's3', 'name' => 'Услуга', 'level' => 4, 'base_price' => 200, 'lead' => 'l',
+        ]);
+        $master = Master::create([
+            'slug' => 'm3', 'name' => 'Мастер', 'name_dative' => 'Мастеру', 'role' => 'r',
+            'yclients_url' => 'https://e.com', 'bio1' => 'a', 'bio2' => 'b', 'salary_rate' => 35,
+        ]);
+        $cert = app(CertificateServiceInterface::class)->issue(
+            CertificateData::from(['type' => CertificateType::Money, 'initial_amount' => 100]),
+        );
+
+        // Услуга 200, серт покроет 100, доплата всего 50 → не хватает 50, сохранять нельзя.
+        Livewire::test(CreateVisit::class)
+            ->fillForm([
+                'master_id' => $master->id,
+                'service_id' => $service->id,
+                'base_price' => 200,
+                'service_price' => 200,
+                'use_certificate' => true,
+                'certificate_id' => $cert->id,
+                'use_surcharge' => true,
+                'surcharge_amount' => 50,
+                'surcharge_payment_type' => 'cash',
+            ])
+            ->call('create')
+            ->assertHasFormErrors(['surcharge_amount']);
+
+        $this->assertDatabaseCount('visits', 0);
     }
 }

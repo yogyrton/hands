@@ -29,6 +29,10 @@ class CertificatesTable
                     ->label('Тип')
                     ->badge()
                     ->formatStateUsing(fn (CertificateType $state): string => $state->label()),
+                TextColumn::make('initial_amount')
+                    ->label('Сумма')
+                    ->suffix(' р')
+                    ->placeholder('—'),
                 TextColumn::make('remaining')
                     ->label('Остаток')
                     ->state(fn (Certificate $record): string => $record->remainingLabel()),

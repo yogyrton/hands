@@ -35,12 +35,15 @@ class CertificateService extends BaseQueryService implements CertificateServiceI
             $certificate->client_first_name = $data->client_first_name;
             $certificate->client_last_name = $data->client_last_name;
             $certificate->client_phone = $data->client_phone;
+            $certificate->comment = $data->comment;
+
+            // Сумма хранится у обоих типов (для «на посещения» — общая сумма покупки).
+            $certificate->initial_amount = $data->initial_amount;
 
             if ($data->type === CertificateType::Visits) {
                 $certificate->initial_visits = $data->initial_visits;
                 $certificate->remaining_visits = $data->initial_visits;
             } else {
-                $certificate->initial_amount = $data->initial_amount;
                 $certificate->remaining_amount = $data->initial_amount;
             }
 
@@ -53,13 +56,12 @@ class CertificateService extends BaseQueryService implements CertificateServiceI
             $certificate->number = (string) $certificate->id;
             $certificate->save();
 
+            // Операция продажи — на сумму сертификата (у обоих типов).
             CertificateOperation::create([
                 'certificate_id' => $certificate->id,
                 'visit_id' => null,
                 'type' => CertificateOperationType::Sale,
-                'amount' => $data->type === CertificateType::Visits
-                    ? (float) $data->initial_visits
-                    : (float) $data->initial_amount,
+                'amount' => (float) ($data->initial_amount ?? 0),
             ]);
 
             return $certificate;

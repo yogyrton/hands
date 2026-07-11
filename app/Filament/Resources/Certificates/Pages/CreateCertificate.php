@@ -23,6 +23,7 @@ class CreateCertificate extends CreateRecord
             'type' => $data['type'],
             'initial_visits' => $data['initial_visits'] ?? null,
             'initial_amount' => $data['initial_amount'] ?? null,
+            'comment' => $data['comment'] ?? null,
             'client_first_name' => $data['client_first_name'] ?? null,
             'client_last_name' => $data['client_last_name'] ?? null,
             'client_phone' => $data['client_phone'] ?? null,

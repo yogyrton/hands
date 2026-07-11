@@ -3,6 +3,7 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
+    <link rel="icon" type="image/svg+xml" href="{{ asset('images/hands-logo.svg') }}">
     <title>@yield('title', 'HANDS — массажная студия в Могилёве · запись онлайн')</title>
     <meta name="description" content="@yield('meta_description', 'HANDS — массажная студия в Могилёве, переулок Пожарный, 3Б. Классический, спортивный, релакс, массаж спины и лица, коррекция фигуры. Только по предварительной записи через YClients.')">
 

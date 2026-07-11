@@ -29,8 +29,10 @@ class CertificateInfolist
                     TextEntry::make('remaining')
                         ->label('Остаток')
                         ->state(fn (Certificate $record): string => $record->remainingLabel()),
+                    TextEntry::make('initial_amount')->label('Сумма')->suffix(' р')->placeholder('—'),
                     TextEntry::make('sold_at')->label('Продан')->date('d.m.Y'),
                     TextEntry::make('expires_at')->label('Действует до')->date('d.m.Y'),
+                    TextEntry::make('comment')->label('Описание')->columnSpanFull()->placeholder('—'),
                 ]),
 
             Section::make('Клиент')
