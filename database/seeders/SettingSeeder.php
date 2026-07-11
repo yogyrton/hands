@@ -25,7 +25,7 @@ class SettingSeeder extends Seeder
             'legal_name' => 'ИП Парусов Егор Васильевич',
             'legal_unp' => '392038435',
             'legal_email' => '',
-            'legal_reg_authority' => 'Оршанский райисполком',
+            'legal_reg_authority' => 'Оршанским райисполкомом',
             'legal_reg_date' => '17.06.2026',
             'legal_address' => 'Витебская обл., г. Орша, ул. 1 Красная, д. 3, кв. 68',
             'work_hours' => 'Ежедневно с 9:00 до 21:00',
