@@ -14,7 +14,42 @@
     </div>
     <div class="map__frame">
         @if($mapEmbed)
-            <iframe src="{{ $mapEmbed }}" width="100%" height="100%" frameborder="0" allowfullscreen loading="lazy"></iframe>
+            {{-- Фасад: карту (сторонний виджет Яндекса ~264 КиБ JS + куки) грузим
+                 только по клику. До клика — лёгкая заглушка, ноль стороннего кода. --}}
+            <button type="button" class="map-facade" data-map-embed="{{ $mapEmbed }}"
+                    aria-label="Показать интерактивную карту: переулок Пожарный, 3Б, Могилёв">
+                <span class="map-facade__pin" aria-hidden="true">
+                    <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none"
+                         stroke="currentColor" stroke-width="1.6" stroke-linecap="round" stroke-linejoin="round">
+                        <path d="M12 21s7-6.2 7-11a7 7 0 1 0-14 0c0 4.8 7 11 7 11Z"/>
+                        <circle cx="12" cy="10" r="2.5"/>
+                    </svg>
+                </span>
+                <span class="map-facade__label">Показать карту</span>
+                <span class="map-facade__hint">переулок Пожарный, 3Б, Могилёв</span>
+            </button>
         @endif
     </div>
 </section>
+
+@push('scripts')
+    <script>
+        (function () {
+            var facades = document.querySelectorAll('.map-facade');
+            facades.forEach(function (btn) {
+                btn.addEventListener('click', function () {
+                    var src = btn.getAttribute('data-map-embed');
+                    if (! src) return;
+                    var frame = btn.parentNode;
+                    var iframe = document.createElement('iframe');
+                    iframe.src = src;
+                    iframe.title = 'Карта — как нас найти: HANDS, переулок Пожарный, 3Б, Могилёв';
+                    iframe.loading = 'lazy';
+                    iframe.setAttribute('allowfullscreen', '');
+                    frame.innerHTML = '';
+                    frame.appendChild(iframe);
+                }, { once: true });
+            });
+        })();
+    </script>
+@endpush
