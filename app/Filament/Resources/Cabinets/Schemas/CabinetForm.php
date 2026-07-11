@@ -7,6 +7,7 @@ use Filament\Forms\Components\Textarea;
 use Filament\Forms\Components\TextInput;
 use Filament\Forms\Components\Toggle;
 use Filament\Schemas\Components\Section;
+use Filament\Schemas\Components\Utilities\Get;
 use Filament\Schemas\Components\Utilities\Set;
 use Filament\Schemas\Schema;
 use Illuminate\Support\Str;
@@ -25,8 +26,10 @@ class CabinetForm
                         ->required()
                         ->maxLength(255)
                         ->live(onBlur: true)
-                        ->afterStateUpdated(function (Set $set, ?string $state, string $operation): void {
-                            if ($operation === 'create') {
+                        ->afterStateUpdated(function (Get $get, Set $set, ?string $state): void {
+                            // Подставляем slug из названия только пока он пуст —
+                            // ручное значение никогда не перезатираем.
+                            if (blank($get('slug'))) {
                                 $set('slug', Str::slug((string) $state));
                             }
                         }),
@@ -35,7 +38,7 @@ class CabinetForm
                         ->required()
                         ->maxLength(255)
                         ->unique(ignoreRecord: true)
-                        ->helperText('Технический код, генерируется из названия'),
+                        ->helperText('Заполняется из названия, но можно изменить вручную.'),
                     Textarea::make('description')
                         ->label('Описание')
                         ->placeholder('Природные фактуры, приглушённый зелёный свет и мягкие текстуры — как прогулка в тихом лесу.')
