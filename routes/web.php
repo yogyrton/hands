@@ -6,9 +6,11 @@ use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\Site\MasterController;
 use App\Http\Controllers\Site\PolicyController;
 use App\Http\Controllers\Site\ServiceController;
+use App\Http\Controllers\Site\SitemapController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 Route::get('/services/{service:slug}', [ServiceController::class, 'show'])->name('services.show');
 Route::get('/masters/{master:slug}', [MasterController::class, 'show'])->name('masters.show');
 Route::get('/privacy-policy', [PolicyController::class, 'privacy'])->name('privacy');
