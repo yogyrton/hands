@@ -48,7 +48,7 @@ class MasterSeeder extends Seeder
                     ['title' => 'Сила и мягкость', 'description' => 'Подбирает интенсивность так, чтобы было эффективно и комфортно.'],
                 ],
                 'sort_order' => 3,
-                'services' => ['sport', 'classic', 'back'],
+                'services' => ['sport', 'classic', 'back', 'relax', 'figure', 'face'],
             ],
             [
                 'slug' => 'anna',
@@ -65,7 +65,7 @@ class MasterSeeder extends Seeder
                     ['title' => 'Гармония', 'description' => 'Помогает восстановить внутреннее равновесие и лёгкость.'],
                 ],
                 'sort_order' => 2,
-                'services' => ['relax', 'face', 'figure'],
+                'services' => ['sport', 'classic', 'back', 'relax', 'figure', 'face'],
             ],
             [
                 'slug' => 'dmitriy-e',
@@ -82,7 +82,7 @@ class MasterSeeder extends Seeder
                     ['title' => 'Результат', 'description' => 'Возвращает лёгкость движений и правильную осанку.'],
                 ],
                 'sort_order' => 1,
-                'services' => ['back', 'classic', 'sport'],
+                'services' => ['sport', 'classic', 'back', 'relax', 'figure'],
             ],
         ];
     }
