@@ -13,6 +13,8 @@ use App\Enums\CertificateType;
 use App\Enums\PaymentType;
 use App\Enums\UserRole;
 use App\Filament\Pages\Reports;
+use App\Filament\Resources\Certificates\Pages\ViewCertificate;
+use App\Filament\Resources\Certificates\RelationManagers\OperationsRelationManager;
 use App\Filament\Resources\Visits\Pages\CreateVisit;
 use App\Models\Certificate;
 use App\Models\Master;
@@ -661,6 +663,36 @@ class AccountingScenariosTest extends TestCase
         $cert->refresh();
         $this->assertSame(1, $cert->remaining_visits);
         $this->assertSame(CertificateStatus::Active, $cert->status);
+    }
+
+    // ───────────────────────── История операций сертификата: ссылки ─────────────────────────
+
+    /**
+     * Проверяем историю операций на странице сертификата.
+     * Ожидаем: строка списания (посещение) ведёт на просмотр ЭТОГО посещения;
+     * строка продажи сертификата ссылки не имеет (вести некуда).
+     */
+    public function test_operations_history_links_visit_to_visit_view_not_sale(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+
+        $cert = $this->certificates()->issue(CertificateData::from([
+            'type' => CertificateType::Money, 'initial_amount' => 100,
+        ]));
+        $visit = $this->visits()->register(VisitData::from([
+            'master_id' => $this->master()->id, 'service_id' => $this->service(60)->id,
+            'base_price' => 60, 'service_price' => 60,
+            'certificate_id' => $cert->id,
+        ]));
+
+        // В отрендеренной истории операций строка списания содержит ссылку на
+        // просмотр этого посещения (/admin/visits/{id}).
+        Livewire::test(OperationsRelationManager::class, [
+            'ownerRecord' => $cert,
+            'pageClass' => ViewCertificate::class,
+        ])
+            ->assertOk()
+            ->assertSee('/admin/visits/'.$visit->id, false);
     }
 
     // ───────────────────────── Особые условия: услуга себе / по себестоимости ─────────────────────────
