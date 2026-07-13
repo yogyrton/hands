@@ -9,27 +9,33 @@
 @php($workHours = $studio['work_hours'] ?? '')
 @php($paymentReceipt = $studio['payment_receipt'] ?? '')
 <footer class="footer">
-    <div class="footer__top">
-        <div>
+    <div class="footer__grid">
+        {{-- Слева: бренд --}}
+        <div class="footer__brand">
             <a href="{{ route('home') }}" class="logo">
                 <img src="{{ asset('images/hands-logo.svg') }}" alt="" class="logo__mark" width="38" height="38">
                 <span class="logo__text">HANDS</span>
             </a>
             <p class="footer__about">Массажная студия в Могилёве. В наших руках — ваше удовольствие.</p>
         </div>
+
+        {{-- По центру: реквизиты (требование законодательства РБ) --}}
+        <div class="footer__legal">
+            @if($legalName)
+                <span>{{ $legalName }}@if($legalUnp) · УНП {{ $legalUnp }}@endif</span>
+            @endif
+            @if($legalAuthority || $legalRegDate)
+                <span>Свидетельство о госрегистрации@if($legalAuthority): выдано {{ $legalAuthority }}@endif@if($legalRegDate) от {{ $legalRegDate }}@endif</span>
+            @endif
+            @if($legalAddress)
+                <span>Юридический адрес: {{ $legalAddress }}</span>
+            @endif
+            <span>Адрес студии: {{ $address }}@if($workHours) · Режим работы: {{ $workHours }}@endif</span>
+            <span class="footer__copy">© {{ date('Y') }} HANDS · Массажная студия · Приём только по предварительной записи</span>
+        </div>
+
+        {{-- Справа: колонки --}}
         <div class="footer__cols">
-            <div class="footer__col">
-                <span class="h">Контакты</span>
-                @if($legalName)
-                    <span>{{ $legalName }}@if($legalUnp) · УНП {{ $legalUnp }}@endif</span>
-                @endif
-                @if($legalAuthority || $legalRegDate)
-                    <span>Свидетельство о госрегистрации@if($legalAuthority): выдано {{ $legalAuthority }}@endif@if($legalRegDate) от {{ $legalRegDate }}@endif</span>
-                @endif
-                @if($legalAddress)
-                    <span>Юридический адрес: {{ $legalAddress }}</span>
-                @endif
-            </div>
             <div class="footer__col">
                 <span class="h">Студия</span>
                 <a href="{{ route('home') }}#services">Услуги</a>
@@ -51,9 +57,5 @@
                 @endif
             </div>
         </div>
-    </div>
-    <div class="footer__legal">
-        <span>Адрес студии: {{ $address }}@if($workHours) · Режим работы: {{ $workHours }}@endif</span>
-        <span>© {{ date('Y') }} HANDS · Массажная студия · Приём только по предварительной записи</span>
     </div>
 </footer>
