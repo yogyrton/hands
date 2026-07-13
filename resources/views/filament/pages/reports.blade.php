@@ -61,8 +61,17 @@
     <x-filament::section>
         <x-slot name="heading">Сертификаты</x-slot>
         <div style="font-size: 0.875rem; color: rgb(113 113 122);">Продано за период</div>
-        <div style="font-size: 1.5rem; font-weight: 600;">{{ $certs['count'] }} шт · на сумму {{ number_format($certs['amount'], 2, '.', ' ') }} р</div>
-        <div style="margin-top: 0.25rem; font-size: 0.75rem; color: rgb(113 113 122);">Сумма — по денежным сертификатам (номинал).</div>
+        <div style="font-size: 1.5rem; font-weight: 600;">{{ $certs['count'] }} шт · на сумму {{ number_format($certs['total'], 2, '.', ' ') }} р</div>
+        <div style="margin-top: 0.5rem; display: flex; gap: 2rem; flex-wrap: wrap; font-size: 0.875rem;">
+            <div>
+                <span style="color: rgb(113 113 122);">На посещения:</span>
+                <span style="font-weight: 600;">{{ number_format($certs['visits'], 2, '.', ' ') }} р</span>
+            </div>
+            <div>
+                <span style="color: rgb(113 113 122);">На сумму:</span>
+                <span style="font-weight: 600;">{{ number_format($certs['money'], 2, '.', ' ') }} р</span>
+            </div>
+        </div>
     </x-filament::section>
 
     <x-filament::section>

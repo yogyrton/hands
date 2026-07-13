@@ -188,12 +188,20 @@ class Reports extends Page
      */
     public function certsSold(): array
     {
+        // whereDate по границам: sold_at хранится со временем (00:00:00), поэтому
+        // обычный whereBetween со строками-датами отбрасывал бы продажи последнего
+        // дня периода. whereDate сравнивает только дату — корректно на любой СУБД.
         $query = Certificate::query()
-            ->whereBetween('sold_at', [$this->from()->toDateString(), $this->until()->toDateString()]);
+            ->whereDate('sold_at', '>=', $this->from()->toDateString())
+            ->whereDate('sold_at', '<=', $this->until()->toDateString());
 
         return [
             'count' => (clone $query)->count(),
-            'amount' => (float) (clone $query)->where('type', 'money')->sum('initial_amount'),
+            // Продано за период — общая сумма по всем сертификатам (оба типа).
+            'total' => (float) (clone $query)->sum('initial_amount'),
+            // Отдельно по типам.
+            'visits' => (float) (clone $query)->where('type', 'visits')->sum('initial_amount'),
+            'money' => (float) (clone $query)->where('type', 'money')->sum('initial_amount'),
         ];
     }
 }

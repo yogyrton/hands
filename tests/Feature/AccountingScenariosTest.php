@@ -243,6 +243,37 @@ class AccountingScenariosTest extends TestCase
         $this->assertEquals(20, $rows[0]['discount']);
     }
 
+    // ───────────────────────── Отчёт по продаже сертификатов ─────────────────────────
+
+    /**
+     * Проверяем отчёт «Сертификаты»: продажа за период с разбивкой по типам.
+     * Продали сертификат на посещения (сумма покупки 450) и денежный (100).
+     * Ожидаем: продано 2 шт, всего 550 р; отдельно «на посещения» 450, «на сумму» 100.
+     * Сертификат, проданный в прошлом месяце, в текущий период не попадает.
+     */
+    public function test_certificates_sold_report_splits_by_type(): void
+    {
+        $this->certificates()->issue(CertificateData::from([
+            'type' => CertificateType::Visits, 'initial_visits' => 10, 'initial_amount' => 450,
+        ]));
+        $this->certificates()->issue(CertificateData::from([
+            'type' => CertificateType::Money, 'initial_amount' => 100,
+        ]));
+
+        // Продан в прошлом месяце — вне периода.
+        $old = $this->certificates()->issue(CertificateData::from([
+            'type' => CertificateType::Money, 'initial_amount' => 999,
+        ]));
+        $old->forceFill(['sold_at' => now()->startOfMonth()->subDay()->toDateString()])->save();
+
+        $certs = $this->report(now()->startOfMonth()->toDateString(), now()->toDateString())->certsSold();
+
+        $this->assertSame(2, $certs['count']);
+        $this->assertEquals(550, $certs['total']);   // 450 + 100
+        $this->assertEquals(450, $certs['visits']);
+        $this->assertEquals(100, $certs['money']);
+    }
+
     // ───────────────────────── Денежный сертификат ─────────────────────────
 
     /**
