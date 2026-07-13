@@ -97,6 +97,15 @@ class VisitForm
                         ->rows(2)
                         ->visible(fn (Get $get): bool => (bool) $get('use_special'))
                         ->columnSpanFull(),
+                    TextInput::make('special_paid_amount')
+                        ->label('Сумма оплаты по кассе')
+                        ->helperText('Сколько реально пробить по кассе (пойдёт в выручку и налог). Зарплата мастера всё равно считается от «Итоговой стоимости». Пусто — оплата равна итоговой.')
+                        ->numeric()
+                        ->minValue(0)
+                        ->suffix('р')
+                        // Значение уходит в учёт только при включённых особых условиях.
+                        ->visible(fn (Get $get): bool => (bool) $get('use_special') && ! (bool) $get('use_certificate'))
+                        ->dehydrated(fn (Get $get): bool => (bool) $get('use_special') && ! (bool) $get('use_certificate')),
                 ]),
 
             Section::make('Оплата')

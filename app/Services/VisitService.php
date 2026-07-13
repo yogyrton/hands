@@ -74,8 +74,11 @@ class VisitService extends BaseQueryService implements VisitServiceInterface
                 $certificate->save();
                 $certificate->refreshStatus();
             } else {
-                // Без сертификата — вся стоимость услуги оплачена деньгами.
-                $paid = $servicePrice;
+                // Без сертификата — обычно оплачена вся стоимость услуги.
+                // При «особых условиях» оператор может пробить по кассе иную сумму
+                // (напр. владелец платит только долю мастера): в выручку/налог идёт
+                // именно она, а зарплата мастера считается от полной итоговой.
+                $paid = $data->special_paid_amount ?? $servicePrice;
             }
 
             $visit = Visit::create([

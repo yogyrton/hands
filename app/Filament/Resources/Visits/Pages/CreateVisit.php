@@ -31,6 +31,7 @@ class CreateVisit extends CreateRecord
             'surcharge_amount' => $data['surcharge_amount'] ?? 0,
             'surcharge_payment_type' => $data['surcharge_payment_type'] ?? null,
             'comment' => $data['comment'] ?? null,
+            'special_paid_amount' => $data['special_paid_amount'] ?? null,
         ]));
     }
 }

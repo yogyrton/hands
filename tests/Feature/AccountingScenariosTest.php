@@ -663,6 +663,100 @@ class AccountingScenariosTest extends TestCase
         $this->assertSame(CertificateStatus::Active, $cert->status);
     }
 
+    // ───────────────────────── Особые условия: услуга себе / по себестоимости ─────────────────────────
+
+    /**
+     * Ключевой сценарий «массаж себе». Итоговая 100 (база для зарплаты Анны),
+     * но по кассе владелец пробивает только долю мастера — 35 р.
+     * Ожидаем: зарплата Анны 35 (35% от полной 100), в кассу/выручку/налог идёт 35
+     * (а не 100), тип оплаты — наличные.
+     */
+    public function test_special_paid_amount_salary_from_full_revenue_from_paid(): void
+    {
+        $anna = $this->master(35, 'Анна');
+
+        $visit = $this->visits()->register(VisitData::from([
+            'master_id' => $anna->id, 'service_id' => $this->service(100)->id,
+            'base_price' => 100, 'service_price' => 100,
+            'payment_type' => PaymentType::Cash,
+            'discount_reason' => 'Массаж себе (владелец)',
+            'special_paid_amount' => 35,
+        ]));
+
+        $this->assertEquals(100, $visit->service_price);
+        $this->assertEquals(35, $visit->paid_amount);
+        $this->assertEquals(35, $visit->salaryAmount());       // 35% от 100
+
+        $rev = $this->report(now()->startOfMonth()->toDateString(), now()->toDateString())->revenue();
+        $this->assertEquals(35, $rev['cash']);                 // в выручку — 35, не 100
+    }
+
+    /**
+     * Вариант «мимо кассы»: оплата по кассе 0, зарплату мастера держим справочно.
+     * Ожидаем: paid 0, выручка 0, но зарплата всё равно 35 (от полной 100).
+     */
+    public function test_special_paid_zero_keeps_salary(): void
+    {
+        $anna = $this->master(35);
+
+        $visit = $this->visits()->register(VisitData::from([
+            'master_id' => $anna->id, 'service_id' => $this->service(100)->id,
+            'base_price' => 100, 'service_price' => 100,
+            'payment_type' => PaymentType::Cash,
+            'special_paid_amount' => 0,
+        ]));
+
+        $this->assertEquals(0, $visit->paid_amount);
+        $this->assertEquals(35, $visit->salaryAmount());
+
+        $rev = $this->report(now()->startOfMonth()->toDateString(), now()->toDateString())->revenue();
+        $this->assertEquals(0, $rev['cash']);
+    }
+
+    /**
+     * Регрессия: без «особых условий» (без special_paid_amount) оплата равна
+     * итоговой — прежнее поведение не сломано.
+     */
+    public function test_without_special_amount_paid_equals_service(): void
+    {
+        $visit = $this->visits()->register(VisitData::from([
+            'master_id' => $this->master()->id, 'service_id' => $this->service(80)->id,
+            'base_price' => 80, 'service_price' => 80,
+            'payment_type' => PaymentType::Card,
+        ]));
+
+        $this->assertEquals(80, $visit->paid_amount);
+    }
+
+    /**
+     * Через форму: итоговая 100, «Особые условия» + причина + сумма оплаты 35.
+     * Ожидаем: посещение создано без ошибок; service_price 100, paid_amount 35,
+     * зарплата 35, причина сохранена.
+     */
+    public function test_special_paid_amount_via_form(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $anna = $this->master(35);
+
+        Livewire::test(CreateVisit::class)
+            ->fillForm([
+                'master_id' => $anna->id,
+                'service_id' => $this->service(100)->id,   // base=100, итоговая=100
+                'payment_type' => 'cash',
+                'use_special' => true,
+                'discount_reason' => 'Массаж себе',
+                'special_paid_amount' => 35,
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $visit = Visit::query()->firstOrFail();
+        $this->assertEquals(100, $visit->service_price);
+        $this->assertEquals(35, $visit->paid_amount);
+        $this->assertEquals(35, $visit->salaryAmount());
+        $this->assertSame('Массаж себе', $visit->discount_reason);
+    }
+
     /**
      * Хелпер: создаёт посещение на конкретную дату с заданной оплатой (для отчётов
      * за период). Прямые нал/карта посещения без сертификата пишем напрямую,

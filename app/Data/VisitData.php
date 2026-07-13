@@ -21,5 +21,9 @@ class VisitData extends Data
         public float $surcharge_amount = 0.0,
         public ?PaymentType $surcharge_payment_type = null,
         public ?string $comment = null,
+        // «Особые условия»: реальная сумма оплаты по кассе, если она отличается
+        // от итоговой (напр. владелец платит только долю мастера). Зарплата
+        // мастера всё равно считается от service_price. null — оплата = итоговой.
+        public ?float $special_paid_amount = null,
     ) {}
 }
