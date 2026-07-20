@@ -35,7 +35,7 @@ class MasterSeeder extends Seeder
         return [
             [
                 'slug' => 'dmitriy-p',
-                'name' => 'Дмитрий П.',
+                'name' => 'Дмитрий Подов',
                 'name_dative' => 'Дмитрию',
                 'role' => 'Массажист · спортивный и классический массаж',
                 'yclients_url' => 'https://n2387895.yclients.com',
@@ -52,7 +52,7 @@ class MasterSeeder extends Seeder
             ],
             [
                 'slug' => 'anna',
-                'name' => 'Анна',
+                'name' => 'Анна Петрова',
                 'name_dative' => 'Анне',
                 'role' => 'Массажист · релакс, лицо и коррекция фигуры',
                 'yclients_url' => 'https://n2387892.yclients.com',
@@ -69,7 +69,7 @@ class MasterSeeder extends Seeder
             ],
             [
                 'slug' => 'dmitriy-e',
-                'name' => 'Дмитрий Е.',
+                'name' => 'Дмитрий Ерошенко',
                 'name_dative' => 'Дмитрию',
                 'role' => 'Массажист · спина и классический массаж',
                 'yclients_url' => 'https://n2387901.yclients.com',
