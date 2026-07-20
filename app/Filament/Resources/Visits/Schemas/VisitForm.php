@@ -104,8 +104,8 @@ class VisitForm
                         ->minValue(0)
                         ->suffix('р')
                         // Значение уходит в учёт только при включённых особых условиях.
-                        ->visible(fn (Get $get): bool => (bool) $get('use_special') && ! (bool) $get('use_certificate'))
-                        ->dehydrated(fn (Get $get): bool => (bool) $get('use_special') && ! (bool) $get('use_certificate')),
+                        ->visible(fn (Get $get): bool => (bool) $get('use_special') && ! (bool) $get('use_certificate') && ! (bool) $get('use_external_certificate'))
+                        ->dehydrated(fn (Get $get): bool => (bool) $get('use_special') && ! (bool) $get('use_certificate') && ! (bool) $get('use_external_certificate')),
                 ]),
 
             Section::make('Оплата')
@@ -115,6 +115,30 @@ class VisitForm
                         ->label('Оплата сертификатом')
                         ->live()
                         ->dehydrated(false)
+                        ->afterStateUpdated(function (bool $state, Set $set): void {
+                            if ($state) {
+                                $set('use_external_certificate', false);
+                            }
+                        })
+                        ->columnSpanFull(),
+                    Toggle::make('use_external_certificate')
+                        ->label('Оплата старым сертификатом (из Excel)')
+                        ->helperText('Старый бумажный сертификат, которого нет в базе — номер вводится вручную.')
+                        ->live()
+                        ->dehydrated(false)
+                        ->afterStateUpdated(function (bool $state, Set $set): void {
+                            if ($state) {
+                                $set('use_certificate', false);
+                            }
+                        })
+                        ->columnSpanFull(),
+                    TextInput::make('external_certificate_number')
+                        ->label('Номер старого сертификата')
+                        ->helperText('По вашему Excel. Остаток/доплату/разбивку опишите в комментарии.')
+                        ->maxLength(255)
+                        ->visible(fn (Get $get): bool => (bool) $get('use_external_certificate'))
+                        ->required(fn (Get $get): bool => (bool) $get('use_external_certificate'))
+                        ->dehydrated(fn (Get $get): bool => (bool) $get('use_external_certificate'))
                         ->columnSpanFull(),
                     Select::make('certificate_id')
                         ->label('Сертификат')
@@ -160,31 +184,35 @@ class VisitForm
                         ->live()
                         ->dehydrated(false)
                         ->columnSpanFull()
-                        ->visible(fn (Get $get): bool => (bool) $get('use_certificate')
-                            && Certificate::find($get('certificate_id'))?->type === CertificateType::Money)
+                        ->visible(fn (Get $get): bool => (bool) $get('use_external_certificate')
+                            || ((bool) $get('use_certificate')
+                                && Certificate::find($get('certificate_id'))?->type === CertificateType::Money))
                         ->afterStateUpdated(function (bool $state, Get $get, Set $set): void {
                             if (! $state) {
                                 $set('surcharge_amount', 0);
 
                                 return;
                             }
-                            // Подсказка: доплата = итоговая − остаток сертификата.
-                            $remaining = (float) (Certificate::find($get('certificate_id'))?->remaining_amount ?? 0);
-                            $set('surcharge_amount', max(0, round((float) $get('service_price') - $remaining, 2)));
+                            // Подсказка суммы доплаты — только для серта из БД
+                            // (у старого остаток неизвестен, вводится вручную).
+                            if ($get('use_certificate')) {
+                                $remaining = (float) (Certificate::find($get('certificate_id'))?->remaining_amount ?? 0);
+                                $set('surcharge_amount', max(0, round((float) $get('service_price') - $remaining, 2)));
+                            }
                         }),
                     Select::make('surcharge_payment_type')
                         ->label('Доплата — тип оплаты')
                         ->options(PaymentType::moneyOptions())
                         ->native(false)
                         ->default(PaymentType::Cash->value)
-                        ->visible(fn (Get $get): bool => (bool) $get('use_certificate') && (bool) $get('use_surcharge')),
+                        ->visible(fn (Get $get): bool => ((bool) $get('use_certificate') || (bool) $get('use_external_certificate')) && (bool) $get('use_surcharge')),
                     TextInput::make('surcharge_amount')
                         ->label('Сумма доплаты')
                         ->numeric()
                         ->minValue(0)
                         ->default(0)
                         ->suffix('р')
-                        ->visible(fn (Get $get): bool => (bool) $get('use_certificate') && (bool) $get('use_surcharge'))
+                        ->visible(fn (Get $get): bool => ((bool) $get('use_certificate') || (bool) $get('use_external_certificate')) && (bool) $get('use_surcharge'))
                         ->rule(function (Get $get): Closure {
                             // Сертификат + доплата обязаны в сумме закрыть итоговую (не меньше и не больше).
                             return function (string $attribute, $value, Closure $fail) use ($get): void {
@@ -213,7 +241,7 @@ class VisitForm
                         ->options(PaymentType::moneyOptions())
                         ->native(false)
                         ->default(PaymentType::Cash->value)
-                        ->visible(fn (Get $get): bool => ! (bool) $get('use_certificate'))
+                        ->visible(fn (Get $get): bool => ! (bool) $get('use_certificate') && ! (bool) $get('use_external_certificate'))
                         ->helperText('Обычная оплата без сертификата'),
                     Textarea::make('comment')
                         ->label('Комментарий')

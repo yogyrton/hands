@@ -47,10 +47,11 @@ class Promotion extends Model
 
     /**
      * Итоговая цена после скидки этой акции.
+     * Округляем ВНИЗ до целых рублей (без копеек): 65 −10% = 58,50 → 58.
      */
     public function applyTo(float $basePrice): float
     {
-        return round($basePrice * (100 - $this->discount_percent) / 100, 2);
+        return (float) floor($basePrice * (100 - $this->discount_percent) / 100);
     }
 
     /**

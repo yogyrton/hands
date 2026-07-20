@@ -11,6 +11,8 @@ class CertificateData extends Data
 {
     public function __construct(
         public CertificateType $type,
+        // Пусто — номер присвоится автоматически (= id). Можно задать вручную.
+        public ?string $number = null,
         public ?int $initial_visits = null,
         public ?float $initial_amount = null,
         public ?string $comment = null,

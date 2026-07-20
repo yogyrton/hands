@@ -17,6 +17,8 @@ class VisitData extends Data
         public PaymentType $payment_type = PaymentType::Cash,
         public ?string $discount_reason = null,
         public ?int $certificate_id = null,
+        // Номер «старого» сертификата (из Excel) — оплата без записи серта в БД.
+        public ?string $external_certificate_number = null,
         public ?int $promotion_id = null,
         public float $surcharge_amount = 0.0,
         public ?PaymentType $surcharge_payment_type = null,

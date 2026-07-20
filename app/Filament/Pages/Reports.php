@@ -104,13 +104,15 @@ class Reports extends Page
         $cash = (float) $this->visitsQuery()->where('payment_type', 'cash')->sum('paid_amount');
         $card = (float) $this->visitsQuery()->where('payment_type', 'card')->sum('paid_amount');
 
-        // Доплата по «сертификат с доплатой» — тоже живые деньги, падает в нал/карту по методу доплаты.
+        // Доплата (обычный серт с доплатой + старый серт) — живые деньги,
+        // падает в нал/карту по методу доплаты.
+        $surchargeTypes = ['certificate_surcharge', 'certificate_external'];
         $cash += (float) $this->visitsQuery()
-            ->where('payment_type', 'certificate_surcharge')
+            ->whereIn('payment_type', $surchargeTypes)
             ->where('surcharge_payment_type', 'cash')
             ->sum('paid_amount');
         $card += (float) $this->visitsQuery()
-            ->where('payment_type', 'certificate_surcharge')
+            ->whereIn('payment_type', $surchargeTypes)
             ->where('surcharge_payment_type', 'card')
             ->sum('paid_amount');
 
@@ -119,7 +121,11 @@ class Reports extends Page
             'card' => $card,
             'total' => $cash + $card,
             'visits' => $this->visitsQuery()->count(),
-            'cert_visits' => $this->visitsQuery()->whereNotNull('certificate_id')->count(),
+            // Посещения по сертификатам: и по нашим (в БД), и по «старым» (из Excel).
+            'cert_visits' => $this->visitsQuery()
+                ->where(fn (Builder $q) => $q->whereNotNull('certificate_id')
+                    ->orWhereNotNull('external_certificate_number'))
+                ->count(),
         ];
     }
 

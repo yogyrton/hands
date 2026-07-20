@@ -73,6 +73,14 @@ class VisitService extends BaseQueryService implements VisitServiceInterface
 
                 $certificate->save();
                 $certificate->refreshStatus();
+            } elseif ($data->external_certificate_number !== null) {
+                // Оплата «старым» сертификатом (из Excel) — записи серта в БД нет,
+                // списывать нечего. В выручку тело серта не идёт (деньги получены при
+                // внешней продаже). Живыми деньгами — только доплата, если есть.
+                $surcharge = round(max(0.0, $data->surcharge_amount), 2);
+                $paymentType = PaymentType::CertificateExternal;
+                $paid = $surcharge;
+                $surchargeMethod = $surcharge > 0 ? ($data->surcharge_payment_type ?? PaymentType::Cash) : null;
             } else {
                 // Без сертификата — обычно оплачена вся стоимость услуги.
                 // При «особых условиях» оператор может пробить по кассе иную сумму
@@ -91,6 +99,7 @@ class VisitService extends BaseQueryService implements VisitServiceInterface
                 'surcharge_payment_type' => $surchargeMethod,
                 'discount_reason' => $data->discount_reason,
                 'certificate_id' => $certificate?->id,
+                'external_certificate_number' => $data->external_certificate_number,
                 'promotion_id' => $data->promotion_id,
                 'comment' => $data->comment,
                 'performed_at' => now(),

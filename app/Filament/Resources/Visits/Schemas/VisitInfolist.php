@@ -30,6 +30,7 @@ class VisitInfolist
                         ->placeholder('—')
                         ->formatStateUsing(fn (?PaymentType $state): string => $state?->label() ?? '—'),
                     TextEntry::make('certificate.number')->label('Сертификат')->prefix('№')->placeholder('—'),
+                    TextEntry::make('external_certificate_number')->label('Старый сертификат')->prefix('№')->placeholder('—'),
                     TextEntry::make('promotion.title')->label('Акция')->badge()->color('warning')->placeholder('—'),
                     TextEntry::make('discount_reason')->label('Особые условия')->placeholder('—'),
                 ]),

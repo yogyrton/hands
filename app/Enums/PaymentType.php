@@ -10,6 +10,7 @@ enum PaymentType: string
     case Card = 'card';
     case Certificate = 'certificate';
     case CertificateSurcharge = 'certificate_surcharge';
+    case CertificateExternal = 'certificate_external';
 
     public function label(): string
     {
@@ -18,6 +19,7 @@ enum PaymentType: string
             self::Card => 'Карта',
             self::Certificate => 'Сертификат',
             self::CertificateSurcharge => 'Сертификат с доплатой',
+            self::CertificateExternal => 'Сертификат (старый)',
         };
     }
 

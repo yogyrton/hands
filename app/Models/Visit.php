@@ -28,6 +28,7 @@ class Visit extends Model
         'surcharge_payment_type',
         'discount_reason',
         'certificate_id',
+        'external_certificate_number',
         'promotion_id',
         'comment',
         'performed_at',

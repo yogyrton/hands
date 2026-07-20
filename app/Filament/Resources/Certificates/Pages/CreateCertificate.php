@@ -21,6 +21,7 @@ class CreateCertificate extends CreateRecord
     {
         return app(CertificateServiceInterface::class)->issue(CertificateData::from([
             'type' => $data['type'],
+            'number' => $data['number'] ?? null,
             'initial_visits' => $data['initial_visits'] ?? null,
             'initial_amount' => $data['initial_amount'] ?? null,
             'comment' => $data['comment'] ?? null,

@@ -48,6 +48,8 @@ class PromotionTest extends TestCase
 
         $this->assertEquals(90.0, $promo->applyTo(100));
         $this->assertEquals(54.0, $promo->applyTo(60));
+        // Округление ВНИЗ до целых рублей: 65 −10% = 58,50 → 58.
+        $this->assertEquals(58.0, $promo->applyTo(65));
     }
 
     public function test_visit_with_promotion_stores_it_and_salary_from_discounted(): void

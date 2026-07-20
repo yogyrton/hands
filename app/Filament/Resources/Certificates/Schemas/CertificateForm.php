@@ -19,11 +19,12 @@ class CertificateForm
             Section::make('Сертификат')
                 ->columns(2)
                 ->schema([
-                    TextInput::make('number_preview')
-                        ->label('Номер (присвоится автоматически)')
-                        ->default(fn (): int => (int) (Certificate::max('id') ?? 0) + 1)
-                        ->disabled()
-                        ->dehydrated(false),
+                    TextInput::make('number')
+                        ->label('Номер')
+                        ->helperText('Пусто — присвоится автоматически. Можно задать вручную (напр. по старой нумерации).')
+                        ->placeholder(fn (): string => (string) ((int) (Certificate::max('id') ?? 0) + 1))
+                        ->maxLength(255)
+                        ->unique(ignoreRecord: true),
                     Select::make('type')
                         ->label('Тип сертификата')
                         ->options(CertificateType::options())

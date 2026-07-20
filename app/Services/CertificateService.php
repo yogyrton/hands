@@ -52,8 +52,10 @@ class CertificateService extends BaseQueryService implements CertificateServiceI
             $certificate->status = CertificateStatus::Active;
             $certificate->save();
 
-            // Авто-номер: начинается с 1 (id новой записи).
-            $certificate->number = (string) $certificate->id;
+            // Номер: заданный вручную, иначе авто (= id новой записи).
+            $certificate->number = ($data->number !== null && trim($data->number) !== '')
+                ? trim($data->number)
+                : (string) $certificate->id;
             $certificate->save();
 
             // Операция продажи — на сумму сертификата (у обоих типов).

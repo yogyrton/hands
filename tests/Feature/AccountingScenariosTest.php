@@ -695,6 +695,108 @@ class AccountingScenariosTest extends TestCase
             ->assertSee('/admin/visits/'.$visit->id, false);
     }
 
+    // ───────────────────────── Старый сертификат (из Excel) ─────────────────────────
+
+    /**
+     * Проверяем оплату «старым» сертификатом без доплаты (серт есть в Excel, в БД нет).
+     * Ожидаем: тип оплаты «Сертификат (старый)», деньгами 0, номер сохранён,
+     * зарплата мастера от итоговой; в денежную выручку 0, но как визит по серту учтён.
+     */
+    public function test_external_certificate_without_surcharge(): void
+    {
+        $anna = $this->master(35);
+
+        $visit = $this->visits()->register(VisitData::from([
+            'master_id' => $anna->id, 'service_id' => $this->service(50)->id,
+            'base_price' => 50, 'service_price' => 50,
+            'external_certificate_number' => '128',
+            'comment' => 'серт 128, покрыл полностью',
+        ]));
+
+        $this->assertSame('128', $visit->external_certificate_number);
+        $this->assertSame(PaymentType::CertificateExternal, $visit->payment_type);
+        $this->assertEquals(0, $visit->paid_amount);
+        $this->assertEquals(17.5, $visit->salaryAmount());
+
+        $rev = $this->report(now()->startOfMonth()->toDateString(), now()->toDateString())->revenue();
+        $this->assertEquals(0, $rev['cash']);
+        $this->assertEquals(0, $rev['card']);
+        $this->assertSame(1, $rev['cert_visits']);
+    }
+
+    /**
+     * Проверяем оплату старым сертификатом С доплатой (пример Анны: остаток 42 + 16 нал).
+     * Ожидаем: деньгами 16 (доплата), тип «Сертификат (старый)», метод доплаты нал,
+     * доплата 16 падает в наличную выручку; зарплата мастера от полной итоговой 58.
+     */
+    public function test_external_certificate_with_surcharge(): void
+    {
+        $anna = $this->master(35);
+
+        $visit = $this->visits()->register(VisitData::from([
+            'master_id' => $anna->id, 'service_id' => $this->service(58)->id,
+            'base_price' => 65, 'service_price' => 58,
+            'external_certificate_number' => '128',
+            'surcharge_amount' => 16,
+            'surcharge_payment_type' => PaymentType::Cash,
+            'comment' => 'серт 128 остаток 42 + доплата 16',
+        ]));
+
+        $this->assertSame(PaymentType::CertificateExternal, $visit->payment_type);
+        $this->assertEquals(16, $visit->paid_amount);
+        $this->assertSame(PaymentType::Cash, $visit->surcharge_payment_type);
+        $this->assertEquals(20.3, $visit->salaryAmount());   // 35% от 58
+
+        $rev = $this->report(now()->startOfMonth()->toDateString(), now()->toDateString())->revenue();
+        $this->assertEquals(16, $rev['cash']);
+        $this->assertEquals(0, $rev['card']);
+    }
+
+    /**
+     * Через форму: чекбокс «старый сертификат» + номер → визит создаётся с типом
+     * «Сертификат (старый)» и сохранённым номером, деньгами 0.
+     */
+    public function test_external_certificate_via_form(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $anna = $this->master(35);
+
+        Livewire::test(CreateVisit::class)
+            ->fillForm([
+                'master_id' => $anna->id,
+                'service_id' => $this->service(50)->id,
+                'use_external_certificate' => true,
+                'external_certificate_number' => '128',
+                'comment' => 'старый серт из экселя',
+            ])
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $visit = Visit::query()->firstOrFail();
+        $this->assertSame('128', $visit->external_certificate_number);
+        $this->assertSame(PaymentType::CertificateExternal, $visit->payment_type);
+        $this->assertEquals(0, $visit->paid_amount);
+    }
+
+    // ───────────────────────── Ручной номер сертификата ─────────────────────────
+
+    /**
+     * Проверяем ручной ввод номера при выпуске сертификата.
+     * Ожидаем: заданный номер используется; без номера — авто (= id).
+     */
+    public function test_certificate_manual_and_auto_number(): void
+    {
+        $manual = $this->certificates()->issue(CertificateData::from([
+            'type' => CertificateType::Money, 'initial_amount' => 100, 'number' => '128',
+        ]));
+        $this->assertSame('128', $manual->number);
+
+        $auto = $this->certificates()->issue(CertificateData::from([
+            'type' => CertificateType::Money, 'initial_amount' => 100,
+        ]));
+        $this->assertSame((string) $auto->id, $auto->number);
+    }
+
     // ───────────────────────── Особые условия: услуга себе / по себестоимости ─────────────────────────
 
     /**
