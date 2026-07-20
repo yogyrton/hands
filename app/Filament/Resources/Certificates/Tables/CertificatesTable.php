@@ -7,8 +7,10 @@ use App\Enums\CertificateType;
 use App\Models\Certificate;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
+use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Builder;
 
 class CertificatesTable
 {
@@ -55,6 +57,14 @@ class CertificatesTable
                 SelectFilter::make('type')
                     ->label('Тип')
                     ->options(CertificateType::options()),
+                Filter::make('expiring')
+                    ->label('Истекающие (< месяца)')
+                    ->toggle()
+                    // Активные, срок которых заканчивается в течение месяца (и ещё не истёк).
+                    ->query(fn (Builder $query): Builder => $query
+                        ->where('status', CertificateStatus::Active->value)
+                        ->whereDate('expires_at', '>=', now()->toDateString())
+                        ->whereDate('expires_at', '<=', now()->addMonth()->toDateString())),
             ])
             ->recordActions([
                 ViewAction::make(),
