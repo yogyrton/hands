@@ -85,6 +85,37 @@ class Certificate extends Model
     }
 
     /**
+     * Состояние по СРОКУ (живьём, независимо от остатка):
+     * истёк / заканчивается (< месяца) / активен.
+     */
+    public function conditionKey(): string
+    {
+        if ($this->isExpired()) {
+            return 'expired';
+        }
+
+        return $this->expires_at->lte(now()->addMonth()) ? 'ending' : 'active';
+    }
+
+    public function conditionLabel(): string
+    {
+        return match ($this->conditionKey()) {
+            'expired' => 'Истёк',
+            'ending' => 'Заканчивается',
+            default => 'Активен',
+        };
+    }
+
+    public function conditionColor(): string
+    {
+        return match ($this->conditionKey()) {
+            'expired' => 'danger',
+            'ending' => 'warning',
+            default => 'success',
+        };
+    }
+
+    /**
      * Пересчитать статус по остатку и сроку.
      */
     public function refreshStatus(): void

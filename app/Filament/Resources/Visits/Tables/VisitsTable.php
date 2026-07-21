@@ -4,9 +4,9 @@ namespace App\Filament\Resources\Visits\Tables;
 
 use App\Contracts\Services\VisitServiceInterface;
 use App\Enums\PaymentType;
+use App\Filament\Resources\Visits\VisitResource;
 use App\Models\Visit;
 use Filament\Actions\Action;
-use Filament\Actions\ViewAction;
 use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -20,6 +20,8 @@ class VisitsTable
     {
         return $table
             ->defaultSort('performed_at', 'desc')
+            // Клик по строке открывает просмотр посещения (отдельная кнопка не нужна).
+            ->recordUrl(fn (Visit $record): string => VisitResource::getUrl('view', ['record' => $record]))
             ->columns([
                 TextColumn::make('performed_at')
                     ->label('Когда')
@@ -67,7 +69,6 @@ class VisitsTable
                     }),
             ])
             ->recordActions([
-                ViewAction::make(),
                 Action::make('delete')
                     ->label('Удалить')
                     ->icon('heroicon-o-trash')

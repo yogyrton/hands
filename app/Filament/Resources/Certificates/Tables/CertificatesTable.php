@@ -7,7 +7,6 @@ use App\Enums\CertificateType;
 use App\Models\Certificate;
 use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
-use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Database\Eloquent\Builder;
@@ -38,33 +37,61 @@ class CertificatesTable
                 TextColumn::make('remaining')
                     ->label('Остаток')
                     ->state(fn (Certificate $record): string => $record->remainingLabel()),
+                // Статус по остатку: использован (остаток обнулён) или нет.
                 TextColumn::make('status')
                     ->label('Статус')
                     ->badge()
-                    ->formatStateUsing(fn (CertificateStatus $state): string => $state->label())
-                    ->color(fn (CertificateStatus $state): string => $state->color()),
-                TextColumn::make('sold_at')
-                    ->label('Продан')
-                    ->date('d.m.Y'),
+                    ->formatStateUsing(fn (CertificateStatus $state): string => $state === CertificateStatus::Used ? 'Использован' : 'Неиспользован')
+                    ->color(fn (CertificateStatus $state): string => $state === CertificateStatus::Used ? 'gray' : 'info'),
                 TextColumn::make('expires_at')
                     ->label('Действует до')
                     ->date('d.m.Y'),
+                // Состояние по сроку (живьём): активен / заканчивается / истёк.
+                TextColumn::make('condition')
+                    ->label('Состояние')
+                    ->badge()
+                    ->state(fn (Certificate $record): string => $record->conditionLabel())
+                    ->color(fn (Certificate $record): string => $record->conditionColor()),
             ])
             ->filters([
+                // Статус по остатку.
                 SelectFilter::make('status')
                     ->label('Статус')
-                    ->options(CertificateStatus::options()),
+                    ->options([
+                        'unused' => 'Неиспользован',
+                        'used' => 'Использован',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return match ($data['value'] ?? null) {
+                            'used' => $query->where('status', CertificateStatus::Used->value),
+                            'unused' => $query->where('status', '!=', CertificateStatus::Used->value),
+                            default => $query,
+                        };
+                    }),
                 SelectFilter::make('type')
                     ->label('Тип')
                     ->options(CertificateType::options()),
-                Filter::make('expiring')
-                    ->label('Истекающие (< месяца)')
-                    ->toggle()
-                    // Активные, срок которых заканчивается в течение месяца (и ещё не истёк).
-                    ->query(fn (Builder $query): Builder => $query
-                        ->where('status', CertificateStatus::Active->value)
-                        ->whereDate('expires_at', '>=', now()->toDateString())
-                        ->whereDate('expires_at', '<=', now()->addMonth()->toDateString())),
+                // Состояние по сроку.
+                SelectFilter::make('condition')
+                    ->label('Состояние')
+                    ->options([
+                        'active' => 'Активен',
+                        'ending' => 'Заканчивается (< месяца)',
+                        'expired' => 'Истёк',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        $today = now()->toDateString();
+                        $monthAhead = now()->addMonth()->toDateString();
+
+                        return match ($data['value'] ?? null) {
+                            'expired' => $query->whereDate('expires_at', '<', $today),
+                            'ending' => $query
+                                ->whereDate('expires_at', '>=', $today)
+                                ->whereDate('expires_at', '<=', $monthAhead),
+                            'active' => $query->whereDate('expires_at', '>', $monthAhead),
+                            default => $query,
+                        };
+                    }),
             ])
             ->recordActions([
                 ViewAction::make(),

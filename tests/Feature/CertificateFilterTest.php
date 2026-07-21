@@ -33,21 +33,76 @@ class CertificateFilterTest extends TestCase
     }
 
     /**
-     * Фильтр «Истекающие»: показывает только активные сертификаты, срок которых
-     * заканчивается в течение месяца и ещё не истёк.
+     * Фильтр «Состояние» = Заканчивается: только серты со сроком в пределах месяца
+     * (и ещё не истёкшие). Остаток на состояние не влияет.
      */
-    public function test_expiring_filter_shows_only_active_soon_to_expire(): void
+    public function test_condition_filter_ending_shows_only_soon_to_expire(): void
     {
         $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
 
-        $soon = $this->cert('SOON', now()->addDays(10), CertificateStatus::Active);       // попадает
-        $far = $this->cert('FAR', now()->addMonths(2), CertificateStatus::Active);        // ещё рано
-        $expired = $this->cert('EXPIRED', now()->subDay(), CertificateStatus::Expired);   // уже истёк
-        $usedSoon = $this->cert('USED', now()->addDays(10), CertificateStatus::Used);     // использован
+        $soon = $this->cert('SOON', now()->addDays(10), CertificateStatus::Active);
+        $far = $this->cert('FAR', now()->addMonths(2), CertificateStatus::Active);
+        $expired = $this->cert('EXPIRED', now()->subDay(), CertificateStatus::Active);
+        $usedSoon = $this->cert('USED', now()->addDays(10), CertificateStatus::Used);
 
         Livewire::test(ListCertificates::class)
-            ->filterTable('expiring', true)
-            ->assertCanSeeTableRecords([$soon])
-            ->assertCanNotSeeTableRecords([$far, $expired, $usedSoon]);
+            ->filterTable('condition', 'ending')
+            ->assertCanSeeTableRecords([$soon, $usedSoon])  // состояние — по сроку, не по остатку
+            ->assertCanNotSeeTableRecords([$far, $expired]);
+    }
+
+    /**
+     * Фильтр «Состояние» = Истёк: только серты, срок которых уже прошёл.
+     */
+    public function test_condition_filter_expired_shows_only_expired(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+
+        $soon = $this->cert('SOON', now()->addDays(10), CertificateStatus::Active);
+        $far = $this->cert('FAR', now()->addMonths(2), CertificateStatus::Active);
+        $expired = $this->cert('EXPIRED', now()->subDay(), CertificateStatus::Active);
+
+        Livewire::test(ListCertificates::class)
+            ->filterTable('condition', 'expired')
+            ->assertCanSeeTableRecords([$expired])
+            ->assertCanNotSeeTableRecords([$soon, $far]);
+    }
+
+    /**
+     * Фильтр «Состояние» = Активен: серты со сроком дальше месяца.
+     */
+    public function test_condition_filter_active_shows_only_far_dated(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+
+        $soon = $this->cert('SOON', now()->addDays(10), CertificateStatus::Active);
+        $far = $this->cert('FAR', now()->addMonths(2), CertificateStatus::Active);
+        $expired = $this->cert('EXPIRED', now()->subDay(), CertificateStatus::Active);
+
+        Livewire::test(ListCertificates::class)
+            ->filterTable('condition', 'active')
+            ->assertCanSeeTableRecords([$far])
+            ->assertCanNotSeeTableRecords([$soon, $expired]);
+    }
+
+    /**
+     * Фильтр «Статус» — по остатку: Использован (остаток обнулён) / Неиспользован.
+     */
+    public function test_status_filter_splits_by_remaining(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+
+        $unused = $this->cert('UNUSED', now()->addDays(10), CertificateStatus::Active);
+        $used = $this->cert('SPENT', now()->addDays(10), CertificateStatus::Used);
+
+        Livewire::test(ListCertificates::class)
+            ->filterTable('status', 'used')
+            ->assertCanSeeTableRecords([$used])
+            ->assertCanNotSeeTableRecords([$unused]);
+
+        Livewire::test(ListCertificates::class)
+            ->filterTable('status', 'unused')
+            ->assertCanSeeTableRecords([$unused])
+            ->assertCanNotSeeTableRecords([$used]);
     }
 }
