@@ -161,6 +161,19 @@ class PayrollTest extends TestCase
             ->assertCanSeeTableRecords([$payout]);
     }
 
+    public function test_create_button_hidden_from_master_shown_to_admin(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Master]));
+        Livewire::test(ListPayrollPeriods::class)
+            ->assertOk()
+            ->assertDontSee('Создать месяц');
+
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        Livewire::test(ListPayrollPeriods::class)
+            ->assertOk()
+            ->assertSee('Создать месяц');
+    }
+
     public function test_master_cannot_create_periods_admin_can(): void
     {
         $this->assertTrue(

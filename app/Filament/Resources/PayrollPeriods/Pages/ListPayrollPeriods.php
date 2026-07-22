@@ -14,7 +14,8 @@ class ListPayrollPeriods extends ListRecords
     {
         return [
             CreateAction::make()
-                ->label('Создать месяц'),
+                ->label('Создать месяц')
+                ->visible(fn (): bool => (bool) auth()->user()?->isAdmin()),
         ];
     }
 }
