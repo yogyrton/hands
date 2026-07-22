@@ -89,7 +89,12 @@ class ExpensePeriod extends Model
     public static function pnlFor(int $year, int $month, iterable $expenses): array
     {
         $start = Carbon::create($year, $month, 1)->startOfMonth();
-        $revenue = Visit::moneyRevenue($start, (clone $start)->endOfMonth())['total'];
+        $end = (clone $start)->endOfMonth();
+
+        // База прибыли — сумма оказанных услуг (заработок студии, в т.ч. по
+        // сертификатам). Деньги нал/карта — отдельно, как справка по кассе.
+        $revenue = Visit::servicesTotal($start, $end);
+        $cash = Visit::moneyRevenue($start, $end)['total'];
 
         $journal = 0.0;
         $all = 0.0;
@@ -107,6 +112,7 @@ class ExpensePeriod extends Model
 
         return [
             'revenue' => round($revenue, 2),
+            'cash' => round($cash, 2),
             'expenses_journal' => round($journal, 2),
             'expenses_all' => round($all, 2),
             'profit_journal' => $profitJournal,

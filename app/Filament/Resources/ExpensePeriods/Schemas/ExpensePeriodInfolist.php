@@ -18,12 +18,13 @@ class ExpensePeriodInfolist
     {
         return $schema->components([
             Section::make('Итоги за месяц')
-                ->description('«По журналу» — только официальные расходы (с ним считается налог). «Полная» — с учётом всех расходов.')
+                ->description('Выручка — сумма оказанных услуг (заработок студии, в т.ч. по сертификатам). «По журналу» — только официальные расходы (с ним считается налог). «Полная» — с учётом всех расходов.')
                 ->columns(4)
                 ->schema([
                     TextEntry::make('revenue')
-                        ->label('Выручка')
-                        ->state(fn (ExpensePeriod $record): string => self::money($record->pnl()['revenue'])),
+                        ->label('Выручка (услуги)')
+                        ->state(fn (ExpensePeriod $record): string => self::money($record->pnl()['revenue']))
+                        ->helperText(fn (ExpensePeriod $record): string => 'деньгами: '.self::money($record->pnl()['cash'])),
                     TextEntry::make('expenses')
                         ->label('Расходы (журнал / все)')
                         ->state(fn (ExpensePeriod $record): string => self::money($record->pnl()['expenses_journal'])

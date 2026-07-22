@@ -19,7 +19,7 @@ class ExpensePeriodsTable
                     ->state(fn (ExpensePeriod $record): string => $record->label())
                     ->weight('bold'),
                 TextColumn::make('revenue')
-                    ->label('Выручка')
+                    ->label('Выручка (услуги)')
                     ->state(fn (ExpensePeriod $record): float => $record->pnl()['revenue'])
                     ->numeric(decimalPlaces: 2)
                     ->suffix(' р'),

@@ -35,15 +35,15 @@ class DashboardStats extends StatsOverviewWidget
 
         $visitsCount = $this->visits($from, $until)->count();
         $revenue = Visit::moneyRevenue($from, $until);
-        $average = $visitsCount > 0 ? round($revenue['total'] / $visitsCount, 2) : 0.0;
 
         $period = ExpensePeriod::where('year', $from->year)->where('month', $from->month)->first();
         $pnl = ExpensePeriod::pnlFor($from->year, $from->month, $period?->expenses ?? new Collection);
         $taxLabel = rtrim(rtrim(number_format($pnl['tax_rate'], 2, '.', ''), '0'), '.');
+        $average = $visitsCount > 0 ? round($pnl['revenue'] / $visitsCount, 2) : 0.0;
 
         return [
-            Stat::make('Выручка за месяц', $this->money($revenue['total']))
-                ->description('нал '.$this->money($revenue['cash']).' · карта '.$this->money($revenue['card']))
+            Stat::make('Выручка (услуги)', $this->money($pnl['revenue']))
+                ->description('деньгами '.$this->money($revenue['total']).' (нал '.$this->money($revenue['cash']).' · карта '.$this->money($revenue['card']).')')
                 ->color('success'),
             Stat::make('Прибыль по журналу', $this->money($pnl['profit_journal']))
                 ->description('налог '.$taxLabel.'%: '.$this->money($pnl['tax']))

@@ -99,6 +99,23 @@ class ExpenseTest extends TestCase
         $this->assertEquals(2700, $pnl['profit_after_tax']); // 3500 − 800
     }
 
+    public function test_revenue_counts_services_including_certificate_visits(): void
+    {
+        $master = $this->master(35);
+        // Наличными на 100 (деньги пришли) + по сертификату на 200 (услуга оказана,
+        // денег в этот визит нет). Выручка для прибыли = 100 + 200 = 300.
+        $this->visit($master, 100, Carbon::create(2026, 7, 5, 12), PaymentType::Cash);
+        $certVisit = $this->visit($master, 200, Carbon::create(2026, 7, 6, 12), PaymentType::Certificate);
+        $certVisit->update(['paid_amount' => 0]);
+
+        $period = ExpensePeriod::create(['year' => 2026, 'month' => 7]);
+        $pnl = $period->pnl();
+
+        $this->assertEquals(300, $pnl['revenue']);   // сумма услуг (обе)
+        $this->assertEquals(100, $pnl['cash']);      // деньгами — только наличные
+        $this->assertEquals(300, $pnl['profit_full']); // расходов пока нет
+    }
+
     public function test_tax_not_negative_when_journal_profit_negative(): void
     {
         $period = ExpensePeriod::create(['year' => 2026, 'month' => 7]);
