@@ -24,6 +24,15 @@ class PayoutsRelationManager extends RelationManager
 
     protected static ?string $title = 'Мастера';
 
+    /**
+     * Relation manager на странице просмотра по умолчанию read-only —
+     * разрешаем действия (видимость каждого всё равно гейтится ролью админа).
+     */
+    public function isReadOnly(): bool
+    {
+        return false;
+    }
+
     private function isAdmin(): bool
     {
         return (bool) auth()->user()?->isAdmin();

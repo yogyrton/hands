@@ -158,7 +158,36 @@ class PayrollTest extends TestCase
             'pageClass' => ViewPayrollPeriod::class,
         ])
             ->assertOk()
-            ->assertCanSeeTableRecords([$payout]);
+            ->assertCanSeeTableRecords([$payout])
+            // Админ может вносить суммы аванса/зп — кнопка редактирования доступна.
+            ->assertTableActionVisible('edit', $payout);
+    }
+
+    public function test_admin_edits_advance_and_salary_via_relation_manager(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+
+        $master = $this->master(35);
+        $this->visit($master, 1000, Carbon::create(2026, 7, 10, 12));
+        $period = PayrollPeriod::create(['year' => 2026, 'month' => 7]);
+        $payout = $period->payouts()->create(['master_id' => $master->id]);
+
+        Livewire::test(PayoutsRelationManager::class, [
+            'ownerRecord' => $period,
+            'pageClass' => ViewPayrollPeriod::class,
+        ])
+            ->callTableAction('edit', $payout, data: [
+                'advance_date' => '2026-07-25',
+                'advance_amount' => 200,
+                'salary_date' => '2026-08-10',
+                'salary_amount' => 150,
+            ])
+            ->assertHasNoTableActionErrors();
+
+        $payout->refresh();
+        $this->assertEquals(200, $payout->advance_amount);
+        $this->assertEquals(150, $payout->salary_amount);
+        $this->assertEquals(0, $payout->debt());   // 350 начислено − 200 − 150
     }
 
     public function test_create_button_hidden_from_master_shown_to_admin(): void
