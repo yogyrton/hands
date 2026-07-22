@@ -126,6 +126,44 @@ class PayrollTest extends TestCase
         $this->assertEquals(300, $totals['debt']);       // 850 − 550
     }
 
+    public function test_dismissed_master_kept_in_past_period_excluded_from_new_one(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+
+        $podov = $this->master(35);
+        $podov->update(['name' => 'Подов']);
+        $this->visit($podov, 1000, Carbon::create(2026, 7, 15, 12));   // отработал июль
+
+        // Июль создан, пока Подов активен — строка заводится.
+        Livewire::test(CreatePayrollPeriod::class)
+            ->fillForm(['month' => 7, 'year' => 2026])
+            ->call('create')
+            ->assertHasNoFormErrors();
+        $july = PayrollPeriod::where('month', 7)->firstOrFail();
+
+        // Подова увольняем (мягкое удаление), выходит Александр.
+        $podov->delete();
+        $alex = $this->master(35);
+        $alex->update(['name' => 'Александр']);
+
+        // Июль по-прежнему видит Подова и его заработок.
+        $julyPayout = $july->payouts()->firstOrFail()->load('master', 'period');
+        $this->assertSame('Подов', $julyPayout->master->name);
+        $this->assertEquals(1000, $julyPayout->earned());
+
+        // Август создаём в сентябре: Подова нет, есть только Александр.
+        Livewire::test(CreatePayrollPeriod::class)
+            ->fillForm(['month' => 8, 'year' => 2026])
+            ->call('create')
+            ->assertHasNoFormErrors();
+        $august = PayrollPeriod::where('month', 8)->firstOrFail();
+
+        $this->assertSame(
+            ['Александр'],
+            $august->payouts()->with('master')->get()->map(fn ($p) => $p->master->name)->all(),
+        );
+    }
+
     public function test_duplicate_period_is_rejected(): void
     {
         $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));

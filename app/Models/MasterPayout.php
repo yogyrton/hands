@@ -54,11 +54,15 @@ class MasterPayout extends Model
     }
 
     /**
+     * С withTrashed: если мастера уволили (мягкое удаление), историческая
+     * выплата за прошлый месяц продолжает видеть его — имя и «заработано»
+     * не пропадают.
+     *
      * @return BelongsTo<Master, MasterPayout>
      */
     public function master(): BelongsTo
     {
-        return $this->belongsTo(Master::class);
+        return $this->belongsTo(Master::class)->withTrashed();
     }
 
     /**
