@@ -138,6 +138,91 @@ class ExpenseTest extends TestCase
         $this->assertEquals(0, $pnl['tax']);
     }
 
+    /**
+     * Сквозной сценарий (сверка «на бумаге»): 3 мастера × 3000 услуг наличными
+     * (9000) + продан сертификат на 1000 + расходник 300 не в журнале.
+     * Авто-запись зарплаты = 3150 грязными + взносы 34.6% (1089.90) = 4239.90.
+     * Расходы в журнале = 1880+200+250+4239.90 = 6569.90.
+     * Прибыль = 10000 − 6569.90 = 3430.10, налог 20% = 686.02, после = 2744.08.
+     */
+    public function test_full_month_walkthrough(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+
+        foreach (['expense_rent' => '1880', 'expense_utilities' => '200', 'expense_accountant' => '250',
+            'contrib_fszn_percent' => '34', 'contrib_belgosstrakh_percent' => '0.6', 'income_tax_percent' => '20'] as $k => $v) {
+            Setting::create(['key' => $k, 'value' => $v]);
+        }
+
+        foreach (range(1, 3) as $i) {
+            $master = $this->master(35);
+            $master->update(['sort_order' => $i]);
+            $this->visit($master, 3000, Carbon::create(2026, 7, 10, 12), PaymentType::Cash);   // 3000 наличными
+        }
+
+        Certificate::create([
+            'number' => 'C-1', 'type' => CertificateType::Money, 'initial_amount' => 1000, 'remaining_amount' => 1000,
+            'sold_at' => Carbon::create(2026, 7, 4)->toDateString(), 'expires_at' => Carbon::create(2026, 10, 4)->toDateString(),
+            'status' => CertificateStatus::Active,
+        ]);
+
+        Livewire::test(CreateExpensePeriod::class)->fillForm(['month' => 7, 'year' => 2026])->call('create')->assertHasNoFormErrors();
+        $period = ExpensePeriod::firstOrFail();
+        $period->expenses()->create(['title' => 'Расходники', 'amount' => 300, 'in_journal' => false]);
+
+        // Авто-запись зарплаты с взносами.
+        $salary = $period->expenses()->where('title', 'Зарплата мастерам + взносы')->firstOrFail();
+        $this->assertEquals(4239.90, (float) $salary->amount);
+
+        $pnl = $period->pnl();
+        $this->assertEquals(9000, $pnl['revenue_visits']);
+        $this->assertEquals(1000, $pnl['revenue_certs']);
+        $this->assertEquals(10000, $pnl['revenue']);
+        $this->assertEquals(6569.90, $pnl['expenses_journal']);
+        $this->assertEquals(300, $pnl['expenses_non_journal']);
+        $this->assertEquals(3430.10, $pnl['profit']);
+        $this->assertEquals(686.02, $pnl['tax']);
+        $this->assertEquals(2744.08, $pnl['profit_after_tax']);
+    }
+
+    /**
+     * Выручка по типам оплаты: тело сертификата НЕ идёт в выручку деньгами,
+     * с доплатой — только сумма доплаты; продажа сертификата — живые деньги.
+     * Зарплата-база (сумма услуг) считается со всех визитов независимо от оплаты.
+     */
+    public function test_revenue_by_payment_type(): void
+    {
+        $master = $this->master(35);
+
+        $mk = function (float $price, float $paid, PaymentType $type, ?string $surcharge = null) use ($master): void {
+            $service = Service::create(['slug' => 's-'.uniqid(), 'name' => 'У', 'level' => 4, 'base_price' => $price, 'lead' => 'l']);
+            Visit::create([
+                'master_id' => $master->id, 'service_id' => $service->id,
+                'base_price' => $price, 'service_price' => $price, 'paid_amount' => $paid,
+                'payment_type' => $type, 'surcharge_payment_type' => $surcharge,
+                'performed_at' => Carbon::create(2026, 7, 10, 12),
+            ]);
+        };
+
+        $mk(100, 100, PaymentType::Cash);                           // деньги 100
+        $mk(200, 0, PaymentType::Certificate);                      // наш серт — 0
+        $mk(300, 50, PaymentType::CertificateSurcharge, 'cash');    // только доплата 50
+        $mk(400, 30, PaymentType::CertificateExternal, 'card');     // только доплата 30
+
+        Certificate::create([
+            'number' => 'C', 'type' => CertificateType::Money, 'initial_amount' => 1000, 'remaining_amount' => 1000,
+            'sold_at' => Carbon::create(2026, 7, 3)->toDateString(), 'expires_at' => Carbon::create(2026, 10, 3)->toDateString(),
+            'status' => CertificateStatus::Active,
+        ]);
+
+        $pnl = ExpensePeriod::create(['year' => 2026, 'month' => 7])->pnl();
+
+        $this->assertEquals(180, $pnl['revenue_visits']);   // 100 + 0 + 50 + 30
+        $this->assertEquals(1000, $pnl['revenue_certs']);
+        $this->assertEquals(1180, $pnl['revenue']);
+        $this->assertEquals(1000, $master->earnedInMonth(2026, 7));   // 100+200+300+400 — зарплата со всех услуг
+    }
+
     public function test_expenses_hidden_from_master(): void
     {
         $this->actingAs(User::factory()->create(['role' => UserRole::Master]));
