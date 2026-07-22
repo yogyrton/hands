@@ -6,7 +6,9 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
@@ -78,6 +80,34 @@ class Master extends Model implements HasMedia
     public function activeServices(): BelongsToMany
     {
         return $this->services()->where('services.is_active', true);
+    }
+
+    /**
+     * @return HasMany<Visit>
+     */
+    public function visits(): HasMany
+    {
+        return $this->hasMany(Visit::class);
+    }
+
+    /**
+     * Заработано мастером за календарный месяц — сумма услуг по посещениям.
+     */
+    public function earnedInMonth(int $year, int $month): float
+    {
+        $start = Carbon::create($year, $month, 1)->startOfMonth();
+
+        return (float) $this->visits()
+            ->whereBetween('performed_at', [$start, (clone $start)->endOfMonth()])
+            ->sum('service_price');
+    }
+
+    /**
+     * Начислено мастеру за месяц: заработано × ставка.
+     */
+    public function accruedInMonth(int $year, int $month): float
+    {
+        return round($this->earnedInMonth($year, $month) * (float) $this->salary_rate / 100, 2);
     }
 
     public function registerMediaCollections(): void
