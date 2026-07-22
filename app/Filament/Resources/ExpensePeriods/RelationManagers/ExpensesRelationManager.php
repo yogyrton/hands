@@ -44,9 +44,9 @@ class ExpensesRelationManager extends RelationManager
                 ->required()
                 ->suffix(' р'),
             Toggle::make('in_journal')
-                ->label('В журнал (официально)')
+                ->label('В журнал')
                 ->default(true)
-                ->helperText('Влияет на официальную прибыль и налог.'),
+                ->helperText('Учитывается в прибыли и налоге. Без галочки — расход только виден (справочно), в расчёт не идёт.'),
             Textarea::make('details')
                 ->label('Подробнее')
                 ->rows(4),

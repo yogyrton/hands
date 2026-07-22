@@ -91,35 +91,39 @@ class ExpensePeriod extends Model
         $start = Carbon::create($year, $month, 1)->startOfMonth();
         $end = (clone $start)->endOfMonth();
 
-        // База прибыли — сумма оказанных услуг (заработок студии, в т.ч. по
-        // сертификатам). Деньги нал/карта — отдельно, как справка по кассе.
-        $revenue = Visit::servicesTotal($start, $end);
-        $cash = Visit::moneyRevenue($start, $end)['total'];
+        // Выручка по факту денег: оплаченные визиты (нал/карта/доплаты) +
+        // продажи сертификатов за месяц. Визит по сертификату денег не приносит
+        // (оплачен при продаже) — он идёт только в зарплату мастера.
+        $revenueVisits = Visit::moneyRevenue($start, $end)['total'];
+        $revenueCerts = Certificate::soldTotal($start, $end);
+        $revenue = $revenueVisits + $revenueCerts;
 
+        // В прибыли участвуют только расходы «в журнале». Прочие (расходники и
+        // т.п.) показываем для справки, в расчёт не берём.
         $journal = 0.0;
-        $all = 0.0;
+        $nonJournal = 0.0;
         foreach ($expenses as $expense) {
-            $all += (float) $expense->amount;
             if ($expense->in_journal) {
                 $journal += (float) $expense->amount;
+            } else {
+                $nonJournal += (float) $expense->amount;
             }
         }
 
-        $profitJournal = round($revenue - $journal, 2);
-        $profitFull = round($revenue - $all, 2);
+        $profit = round($revenue - $journal, 2);
         $taxRate = (float) Setting::get('income_tax_percent', '20');
-        $tax = round(max(0, $profitJournal) * $taxRate / 100, 2);
+        $tax = round(max(0, $profit) * $taxRate / 100, 2);
 
         return [
             'revenue' => round($revenue, 2),
-            'cash' => round($cash, 2),
+            'revenue_visits' => round($revenueVisits, 2),
+            'revenue_certs' => round($revenueCerts, 2),
             'expenses_journal' => round($journal, 2),
-            'expenses_all' => round($all, 2),
-            'profit_journal' => $profitJournal,
-            'profit_full' => $profitFull,
+            'expenses_non_journal' => round($nonJournal, 2),
+            'profit' => $profit,
             'tax_rate' => $taxRate,
             'tax' => $tax,
-            'profit_after_tax' => round($profitFull - $tax, 2),
+            'profit_after_tax' => round($profit - $tax, 2),
         ];
     }
 }

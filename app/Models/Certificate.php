@@ -57,6 +57,19 @@ class Certificate extends Model
     }
 
     /**
+     * Сумма проданных сертификатов за период (по дате продажи) — живые деньги,
+     * пробитые по кассе. Входит в кассовую/налоговую базу.
+     * whereDate: sold_at хранится со временем, сравниваем только дату (кросс-СУБД).
+     */
+    public static function soldTotal(\DateTimeInterface $from, \DateTimeInterface $until): float
+    {
+        return (float) self::query()
+            ->whereDate('sold_at', '>=', $from->format('Y-m-d'))
+            ->whereDate('sold_at', '<=', $until->format('Y-m-d'))
+            ->sum('initial_amount');
+    }
+
+    /**
      * @return HasMany<Visit>
      */
     public function visits(): HasMany

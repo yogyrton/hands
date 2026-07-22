@@ -19,7 +19,7 @@ class ExpensePeriodsTable
                     ->state(fn (ExpensePeriod $record): string => $record->label())
                     ->weight('bold'),
                 TextColumn::make('revenue')
-                    ->label('Выручка (услуги)')
+                    ->label('Выручка')
                     ->state(fn (ExpensePeriod $record): float => $record->pnl()['revenue'])
                     ->numeric(decimalPlaces: 2)
                     ->suffix(' р'),
@@ -28,12 +28,12 @@ class ExpensePeriodsTable
                     ->state(fn (ExpensePeriod $record): float => $record->pnl()['expenses_journal'])
                     ->numeric(decimalPlaces: 2)
                     ->suffix(' р'),
-                TextColumn::make('profit_journal')
-                    ->label('Прибыль по журналу')
-                    ->state(fn (ExpensePeriod $record): float => $record->pnl()['profit_journal'])
+                TextColumn::make('profit')
+                    ->label('Прибыль')
+                    ->state(fn (ExpensePeriod $record): float => $record->pnl()['profit'])
                     ->numeric(decimalPlaces: 2)
                     ->suffix(' р')
-                    ->color(fn (ExpensePeriod $record): string => $record->pnl()['profit_journal'] >= 0 ? 'success' : 'danger'),
+                    ->color(fn (ExpensePeriod $record): string => $record->pnl()['profit'] >= 0 ? 'success' : 'danger'),
                 TextColumn::make('tax')
                     ->label('Налог')
                     ->state(fn (ExpensePeriod $record): float => $record->pnl()['tax'])

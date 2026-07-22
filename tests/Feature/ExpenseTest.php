@@ -4,12 +4,15 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\CertificateStatus;
+use App\Enums\CertificateType;
 use App\Enums\PaymentType;
 use App\Enums\UserRole;
 use App\Filament\Resources\ExpensePeriods\ExpensePeriodResource;
 use App\Filament\Resources\ExpensePeriods\Pages\CreateExpensePeriod;
 use App\Filament\Resources\ExpensePeriods\Pages\ViewExpensePeriod;
 use App\Filament\Resources\ExpensePeriods\RelationManagers\ExpensesRelationManager;
+use App\Models\Certificate;
 use App\Models\ExpensePeriod;
 use App\Models\Master;
 use App\Models\Service;
@@ -78,52 +81,60 @@ class ExpenseTest extends TestCase
         $this->assertStringContainsString('Анна', $salary->details);
     }
 
-    public function test_pnl_two_profits_and_tax(): void
+    public function test_pnl_profit_uses_journal_expenses_only_and_tax(): void
     {
         Setting::create(['key' => 'income_tax_percent', 'value' => '20']);
 
         $master = $this->master(35);
-        $this->visit($master, 5000, Carbon::create(2026, 7, 10, 12));   // выручка 5000
+        $this->visit($master, 9000, Carbon::create(2026, 7, 10, 12));   // деньги 9000
 
         $period = ExpensePeriod::create(['year' => 2026, 'month' => 7]);
-        $period->expenses()->create(['title' => 'Аренда', 'amount' => 1000, 'in_journal' => true]);
-        $period->expenses()->create(['title' => 'Нал без чека', 'amount' => 500, 'in_journal' => false]);
+        $period->expenses()->create(['title' => 'Расходы', 'amount' => 6700, 'in_journal' => true]);
+        $period->expenses()->create(['title' => 'Расходники', 'amount' => 300, 'in_journal' => false]);
 
         $pnl = $period->pnl();
-        $this->assertEquals(5000, $pnl['revenue']);
-        $this->assertEquals(1000, $pnl['expenses_journal']);
-        $this->assertEquals(1500, $pnl['expenses_all']);
-        $this->assertEquals(4000, $pnl['profit_journal']);   // 5000 − 1000
-        $this->assertEquals(3500, $pnl['profit_full']);      // 5000 − 1500
-        $this->assertEquals(800, $pnl['tax']);               // 20% от 4000 (по журналу)
-        $this->assertEquals(2700, $pnl['profit_after_tax']); // 3500 − 800
+        $this->assertEquals(9000, $pnl['revenue']);
+        $this->assertEquals(6700, $pnl['expenses_journal']);
+        $this->assertEquals(300, $pnl['expenses_non_journal']);   // только видно, в расчёт не идёт
+        $this->assertEquals(2300, $pnl['profit']);                // 9000 − 6700
+        $this->assertEquals(460, $pnl['tax']);                    // 20% от 2300
+        $this->assertEquals(1840, $pnl['profit_after_tax']);      // 2300 − 460
     }
 
-    public function test_revenue_counts_services_including_certificate_visits(): void
+    public function test_revenue_counts_paid_visits_plus_certificate_sales(): void
     {
         $master = $this->master(35);
-        // Наличными на 100 (деньги пришли) + по сертификату на 200 (услуга оказана,
-        // денег в этот визит нет). Выручка для прибыли = 100 + 200 = 300.
+        // Наличными на 100 (деньги пришли) + визит по сертификату на 200 (денег
+        // в этот визит нет — оплачен при продаже). В выручку из визитов = 100.
         $this->visit($master, 100, Carbon::create(2026, 7, 5, 12), PaymentType::Cash);
         $certVisit = $this->visit($master, 200, Carbon::create(2026, 7, 6, 12), PaymentType::Certificate);
         $certVisit->update(['paid_amount' => 0]);
 
+        // Продан сертификат на 300 в этом же месяце → +300 в выручку.
+        Certificate::create([
+            'number' => 'C-1', 'type' => CertificateType::Money,
+            'initial_amount' => 300, 'remaining_amount' => 300,
+            'sold_at' => Carbon::create(2026, 7, 3)->toDateString(),
+            'expires_at' => Carbon::create(2026, 10, 3)->toDateString(),
+            'status' => CertificateStatus::Active,
+        ]);
+
         $period = ExpensePeriod::create(['year' => 2026, 'month' => 7]);
         $pnl = $period->pnl();
 
-        $this->assertEquals(300, $pnl['revenue']);   // сумма услуг (обе)
-        $this->assertEquals(100, $pnl['cash']);      // деньгами — только наличные
-        $this->assertEquals(300, $pnl['profit_full']); // расходов пока нет
+        $this->assertEquals(100, $pnl['revenue_visits']);   // только оплаченный визит
+        $this->assertEquals(300, $pnl['revenue_certs']);    // продажа сертификата
+        $this->assertEquals(400, $pnl['revenue']);          // 100 + 300
     }
 
-    public function test_tax_not_negative_when_journal_profit_negative(): void
+    public function test_tax_not_negative_when_profit_negative(): void
     {
         $period = ExpensePeriod::create(['year' => 2026, 'month' => 7]);
         $period->expenses()->create(['title' => 'Аренда', 'amount' => 1000, 'in_journal' => true]);
 
-        // Выручки нет → прибыль по журналу −1000, налог не берётся.
+        // Выручки нет → прибыль −1000, налог не берётся.
         $pnl = $period->pnl();
-        $this->assertEquals(-1000, $pnl['profit_journal']);
+        $this->assertEquals(-1000, $pnl['profit']);
         $this->assertEquals(0, $pnl['tax']);
     }
 

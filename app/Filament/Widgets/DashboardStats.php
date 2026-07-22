@@ -34,25 +34,22 @@ class DashboardStats extends StatsOverviewWidget
         $until = Carbon::now()->endOfMonth();
 
         $visitsCount = $this->visits($from, $until)->count();
-        $revenue = Visit::moneyRevenue($from, $until);
 
         $period = ExpensePeriod::where('year', $from->year)->where('month', $from->month)->first();
         $pnl = ExpensePeriod::pnlFor($from->year, $from->month, $period?->expenses ?? new Collection);
         $taxLabel = rtrim(rtrim(number_format($pnl['tax_rate'], 2, '.', ''), '0'), '.');
-        $average = $visitsCount > 0 ? round($pnl['revenue'] / $visitsCount, 2) : 0.0;
 
         return [
-            Stat::make('Выручка (услуги)', $this->money($pnl['revenue']))
-                ->description('деньгами '.$this->money($revenue['total']).' (нал '.$this->money($revenue['cash']).' · карта '.$this->money($revenue['card']).')')
+            Stat::make('Выручка за месяц', $this->money($pnl['revenue']))
+                ->description('визиты '.$this->money($pnl['revenue_visits']).' + сертификаты '.$this->money($pnl['revenue_certs']))
                 ->color('success'),
-            Stat::make('Прибыль по журналу', $this->money($pnl['profit_journal']))
-                ->description('налог '.$taxLabel.'%: '.$this->money($pnl['tax']))
-                ->color($pnl['profit_journal'] >= 0 ? 'success' : 'danger'),
-            Stat::make('Прибыль полная', $this->money($pnl['profit_full']))
+            Stat::make('Прибыль', $this->money($pnl['profit']))
                 ->description('после налога: '.$this->money($pnl['profit_after_tax']))
-                ->color($pnl['profit_full'] >= 0 ? 'success' : 'danger'),
-            Stat::make('Визитов за месяц', (string) $visitsCount)
-                ->description('средний чек '.$this->money($average)),
+                ->color($pnl['profit'] >= 0 ? 'success' : 'danger'),
+            Stat::make('Налог ('.$taxLabel.'%)', $this->money($pnl['tax']))
+                ->description('расходы в журнале: '.$this->money($pnl['expenses_journal']))
+                ->color('warning'),
+            Stat::make('Визитов за месяц', (string) $visitsCount),
             Stat::make('Истекающие сертификаты', (string) $this->expiringCertificates())
                 ->description('заканчиваются в течение месяца')
                 ->color('danger'),

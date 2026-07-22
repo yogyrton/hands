@@ -18,25 +18,22 @@ class ExpensePeriodInfolist
     {
         return $schema->components([
             Section::make('Итоги за месяц')
-                ->description('Выручка — сумма оказанных услуг (заработок студии, в т.ч. по сертификатам). «По журналу» — только официальные расходы (с ним считается налог). «Полная» — с учётом всех расходов.')
-                ->columns(4)
+                ->description('Выручка = оплаченные визиты + продажи сертификатов. Прибыль = выручка − расходы «в журнале». Расходы не в журнале — только для справки, в расчёт не идут.')
+                ->columns(3)
                 ->schema([
                     TextEntry::make('revenue')
-                        ->label('Выручка (услуги)')
+                        ->label('Выручка')
                         ->state(fn (ExpensePeriod $record): string => self::money($record->pnl()['revenue']))
-                        ->helperText(fn (ExpensePeriod $record): string => 'деньгами: '.self::money($record->pnl()['cash'])),
-                    TextEntry::make('expenses')
-                        ->label('Расходы (журнал / все)')
-                        ->state(fn (ExpensePeriod $record): string => self::money($record->pnl()['expenses_journal'])
-                            .' / '.self::money($record->pnl()['expenses_all'])),
-                    TextEntry::make('profit_journal')
-                        ->label('Прибыль по журналу')
-                        ->state(fn (ExpensePeriod $record): string => self::money($record->pnl()['profit_journal']))
-                        ->color(fn (ExpensePeriod $record): string => $record->pnl()['profit_journal'] >= 0 ? 'success' : 'danger'),
-                    TextEntry::make('profit_full')
-                        ->label('Прибыль полная')
-                        ->state(fn (ExpensePeriod $record): string => self::money($record->pnl()['profit_full']))
-                        ->color(fn (ExpensePeriod $record): string => $record->pnl()['profit_full'] >= 0 ? 'success' : 'danger'),
+                        ->helperText(fn (ExpensePeriod $record): string => 'визиты '.self::money($record->pnl()['revenue_visits'])
+                            .' + сертификаты '.self::money($record->pnl()['revenue_certs'])),
+                    TextEntry::make('expenses_journal')
+                        ->label('Расходы (в журнале)')
+                        ->state(fn (ExpensePeriod $record): string => self::money($record->pnl()['expenses_journal']))
+                        ->helperText(fn (ExpensePeriod $record): string => 'не в журнале (справочно): '.self::money($record->pnl()['expenses_non_journal'])),
+                    TextEntry::make('profit')
+                        ->label('Прибыль')
+                        ->state(fn (ExpensePeriod $record): string => self::money($record->pnl()['profit']))
+                        ->color(fn (ExpensePeriod $record): string => $record->pnl()['profit'] >= 0 ? 'success' : 'danger'),
                     TextEntry::make('tax')
                         ->label(fn (ExpensePeriod $record): string => 'Налог ('.rtrim(rtrim(number_format($record->pnl()['tax_rate'], 2, '.', ''), '0'), '.').'%)')
                         ->state(fn (ExpensePeriod $record): string => self::money($record->pnl()['tax']))
