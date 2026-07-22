@@ -105,6 +105,36 @@ class ManageStudioSettings extends Page
                         ->email(),
                 ]),
 
+            Section::make('Расходы и взносы')
+                ->description('Значения по умолчанию для авто-создания месяца расходов и ставки взносов/налога. Проценты уточните у бухгалтера — закон меняется.')
+                ->columns(3)
+                ->schema([
+                    TextInput::make('expense_rent')
+                        ->label('Аренда, р')
+                        ->numeric()
+                        ->placeholder('1880'),
+                    TextInput::make('expense_utilities')
+                        ->label('Квартплата, р')
+                        ->numeric()
+                        ->placeholder('200'),
+                    TextInput::make('expense_accountant')
+                        ->label('Услуги бухгалтера, р')
+                        ->numeric()
+                        ->placeholder('250'),
+                    TextInput::make('contrib_fszn_percent')
+                        ->label('ФСЗН (наниматель), %')
+                        ->numeric()
+                        ->placeholder('34'),
+                    TextInput::make('contrib_belgosstrakh_percent')
+                        ->label('Белгосстрах, %')
+                        ->numeric()
+                        ->placeholder('0.6'),
+                    TextInput::make('income_tax_percent')
+                        ->label('Подоходный налог, %')
+                        ->numeric()
+                        ->placeholder('20'),
+                ]),
+
             Section::make('Оплата')
                 ->description('Образец документа об оплате — ссылка появится в футере в разделе «Документы»')
                 ->schema([

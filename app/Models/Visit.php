@@ -103,4 +103,27 @@ class Visit extends Model
 
         return round((float) $this->service_price * $rate / 100, 2);
     }
+
+    /**
+     * Выручка деньгами за период: прямая оплата нал/картой + доплаты по
+     * сертификатам (обычный с доплатой и «старый»), разложенные по методу доплаты.
+     * Единый источник для отчётов, дашборда и P&L расходов.
+     *
+     * @return array{cash: float, card: float, total: float}
+     */
+    public static function moneyRevenue(\DateTimeInterface $from, \DateTimeInterface $until): array
+    {
+        $base = static fn () => self::query()->whereBetween('performed_at', [$from, $until]);
+
+        $cash = (float) $base()->where('payment_type', 'cash')->sum('paid_amount');
+        $card = (float) $base()->where('payment_type', 'card')->sum('paid_amount');
+
+        $surchargeTypes = ['certificate_surcharge', 'certificate_external'];
+        $cash += (float) $base()->whereIn('payment_type', $surchargeTypes)
+            ->where('surcharge_payment_type', 'cash')->sum('paid_amount');
+        $card += (float) $base()->whereIn('payment_type', $surchargeTypes)
+            ->where('surcharge_payment_type', 'card')->sum('paid_amount');
+
+        return ['cash' => $cash, 'card' => $card, 'total' => $cash + $card];
+    }
 }

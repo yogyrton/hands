@@ -85,17 +85,20 @@ class PayoutsRelationManager extends RelationManager
     public function table(Table $table): Table
     {
         return $table
+            ->description('Начислено — 35% от суммы услуг, грязными (до вычета налогов). Долг — начислено минус выплаченное (аванс + выплата). Налоги и взносы за мастеров — в разделе «Расходы».')
             ->columns([
                 TextColumn::make('master.name')
                     ->label('Мастер')
                     ->weight('bold'),
                 TextColumn::make('earned')
                     ->label('Заработано')
+                    ->tooltip('Сумма оказанных услуг клиентам за месяц.')
                     ->state(fn (MasterPayout $record): float => $record->earned())
                     ->numeric(decimalPlaces: 2)
                     ->suffix(' р'),
                 TextColumn::make('accrued')
-                    ->label('Начислено')
+                    ->label('Начислено (35%, грязными)')
+                    ->tooltip('35% от суммы услуг, до вычета налогов.')
                     ->state(fn (MasterPayout $record): float => $record->accrued())
                     ->numeric(decimalPlaces: 2)
                     ->suffix(' р'),
@@ -106,7 +109,8 @@ class PayoutsRelationManager extends RelationManager
                     ->description(fn (MasterPayout $record): ?string => $record->advance_date?->format('d.m.Y'))
                     ->placeholder('—'),
                 TextColumn::make('salary_amount')
-                    ->label('Зарплата')
+                    ->label('Выплачено')
+                    ->tooltip('Окончательная выплата зарплаты (без учёта аванса).')
                     ->numeric(decimalPlaces: 2)
                     ->suffix(' р')
                     ->description(fn (MasterPayout $record): ?string => $record->salary_date?->format('d.m.Y'))

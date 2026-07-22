@@ -48,7 +48,8 @@ class DashboardStatsTest extends TestCase
         Livewire::test(DashboardStats::class)
             ->assertOk()
             ->assertSee('Выручка за месяц')
-            ->assertSee('Начислено мастерам')
+            ->assertSee('Прибыль по журналу')
+            ->assertSee('Прибыль полная')
             ->assertSee('Истекающие сертификаты');
     }
 }
