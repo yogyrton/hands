@@ -14,6 +14,7 @@
 
 @section('content')
     @include('partials.home.jsonld')
+    @include('partials.home.faq-jsonld')
     @include('partials.home.hero')
     @include('partials.home.strip')
     @include('partials.home.services')

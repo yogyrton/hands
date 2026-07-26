@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Models\Faq;
 use App\Models\Master;
 use App\Models\Service;
 use App\Models\Setting;
@@ -38,6 +39,19 @@ class SeoTest extends TestCase
             // H1 сохраняет ключ «в Могилёве» и эмоциональный якорь
             ->assertSee('Массажная студия в Могилёве', false)
             ->assertSee('наконец выдыхает', false);
+    }
+
+    public function test_home_has_faqpage_jsonld_when_faqs_exist(): void
+    {
+        Faq::create([
+            'slug' => 'q1', 'question' => 'Нужна ли предварительная запись?',
+            'answer' => 'Да, приём только по записи через YClients.', 'is_active' => true,
+        ]);
+
+        $this->get('/')
+            ->assertOk()
+            ->assertSee('"@type":"FAQPage"', false)
+            ->assertSee('Нужна ли предварительная запись?', false);
     }
 
     public function test_home_has_main_landmark_and_deferred_map(): void
