@@ -4,8 +4,10 @@
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
     <link rel="icon" type="image/svg+xml" href="{{ asset('images/hands-logo.svg') }}">
-    <title>@yield('title', 'HANDS — массажная студия в Могилёве · запись онлайн')</title>
-    <meta name="description" content="@yield('meta_description', 'HANDS — массажная студия в Могилёве, переулок Пожарный, 3Б. Классический, спортивный, релакс, массаж спины и лица, коррекция фигуры. Только по предварительной записи через YClients.')">
+    @php($seoDefaultTitle = 'HANDS — массажная студия в Могилёве · запись онлайн')
+    @php($seoDefaultDescription = 'HANDS — массажная студия в Могилёве, переулок Пожарный, 3Б. Классический, спортивный, релакс, массаж спины и лица, коррекция фигуры. Только по предварительной записи через YClients.')
+    <title>@yield('title', $seoDefaultTitle)</title>
+    <meta name="description" content="@yield('meta_description', $seoDefaultDescription)">
 
     <link rel="canonical" href="{{ url()->current() }}">
 
@@ -14,8 +16,8 @@
     <meta property="og:site_name" content="HANDS">
     <meta property="og:locale" content="ru_RU">
     <meta property="og:url" content="{{ url()->current() }}">
-    <meta property="og:title" content="@yield('title', 'HANDS — массажная студия в Могилёве · запись онлайн')">
-    <meta property="og:description" content="@yield('meta_description', 'HANDS — массажная студия в Могилёве. Классический, спортивный, релакс, массаж спины и лица, коррекция фигуры. Запись онлайн.')">
+    <meta property="og:title" content="@yield('title', $seoDefaultTitle)">
+    <meta property="og:description" content="@yield('meta_description', $seoDefaultDescription)">
     <meta property="og:image" content="{{ $seoOg }}">
     <meta name="twitter:card" content="summary_large_image">
     @if(! empty($studio['google_verification']))

@@ -7,6 +7,7 @@ namespace App\Http\Controllers\Site;
 use App\Http\Controllers\Controller;
 use App\Models\Master;
 use App\Models\Service;
+use App\Models\SiteContent;
 use Illuminate\Http\Request;
 use Spatie\Sitemap\Sitemap;
 use Spatie\Sitemap\Tags\Url;
@@ -22,6 +23,7 @@ class SitemapController extends Controller
         $sitemap = Sitemap::create()
             ->add(
                 Url::create(route('home'))
+                    ->setLastModificationDate(SiteContent::current()->updated_at ?? now())
                     ->setChangeFrequency(Url::CHANGE_FREQUENCY_WEEKLY)
                     ->setPriority(1.0)
             );
