@@ -83,23 +83,7 @@ class SeoTest extends TestCase
             ->assertSee('"priceCurrency":"BYN"', false);
     }
 
-    public function test_master_page_uses_seo_override_and_has_person_jsonld(): void
-    {
-        Master::create([
-            'slug' => 'anna', 'name' => 'Анна', 'name_dative' => 'Анне', 'role' => 'Массажист',
-            'yclients_url' => 'https://e.com', 'bio1' => 'a', 'bio2' => 'b', 'is_active' => true,
-            'seo_title' => 'КастомныйТайтлМастера', 'seo_description' => 'КастомноеОписаниеМастера',
-        ]);
-
-        $this->get('/masters/anna')
-            ->assertOk()
-            ->assertSee('<title>КастомныйТайтлМастера</title>', false)
-            ->assertSee('КастомноеОписаниеМастера', false)
-            ->assertSee('"@type":"Person"', false)
-            ->assertSee('"@type":"BreadcrumbList"', false);
-    }
-
-    public function test_master_seo_falls_back_when_override_empty(): void
+    public function test_master_page_has_title_person_and_breadcrumb_jsonld(): void
     {
         Master::create([
             'slug' => 'dmitriy', 'name' => 'Дмитрий', 'name_dative' => 'Дмитрию', 'role' => 'Массажист',
@@ -108,7 +92,9 @@ class SeoTest extends TestCase
 
         $this->get('/masters/dmitriy')
             ->assertOk()
-            ->assertSee('Дмитрий — мастер студии HANDS, Могилёв', false);
+            ->assertSee('Дмитрий — мастер студии HANDS, Могилёв', false)
+            ->assertSee('"@type":"Person"', false)
+            ->assertSee('"@type":"BreadcrumbList"', false);
     }
 
     public function test_sitemap_route_returns_xml_with_pages(): void

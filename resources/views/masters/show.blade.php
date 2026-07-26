@@ -1,7 +1,7 @@
 @extends('layouts.app')
 
-@section('title', $master->seo_title ?: $master->name . ' — мастер студии HANDS, Могилёв')
-@section('meta_description', $master->seo_description ?: $master->name . ', ' . \Illuminate\Support\Str::lower($master->role) . ' студии HANDS, Могилёв. ' . \Illuminate\Support\Str::limit($master->bio1, 120))
+@section('title', $master->name . ' — мастер студии HANDS, Могилёв')
+@section('meta_description', $master->name . ', ' . \Illuminate\Support\Str::lower($master->role) . ' студии HANDS, Могилёв. ' . \Illuminate\Support\Str::limit($master->bio1, 120))
 
 @php($book = $master->yclients_url)
 @php($mainImg = $master->mainUrl())

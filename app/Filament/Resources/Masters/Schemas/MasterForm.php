@@ -96,19 +96,6 @@ class MasterForm
                         ->preload(),
                 ]),
 
-            Section::make('SEO')
-                ->schema([
-                    TextInput::make('seo_title')
-                        ->label('SEO title')
-                        ->maxLength(255)
-                        ->helperText('Если пусто — берётся «Имя — мастер студии HANDS, Могилёв»'),
-                    Textarea::make('seo_description')
-                        ->label('SEO description')
-                        ->rows(4)
-                        ->maxLength(255)
-                        ->helperText('Если пусто — собирается из имени, специализации и биографии. Заполните вручную, чтобы у мастеров не было одинаковых описаний.'),
-                ]),
-
             Section::make('Фотографии')
                 ->columns(2)
                 ->schema([
