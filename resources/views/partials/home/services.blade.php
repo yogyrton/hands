@@ -13,7 +13,7 @@
                 <div class="promo" data-promo-slide @if($i > 0) hidden @endif>
                     <span class="promo__badge">−{{ $promo->discount_percent }}%</span>
                     <div>
-                        <div class="promo__eyebrow">Акция</div>
+                        <div class="promo__eyebrow">Акции (не суммируются)</div>
                         <div class="promo__title">{{ $promo->title }}</div>
                         @if($promo->description)
                             <div class="promo__desc">{{ $promo->description }}</div>
