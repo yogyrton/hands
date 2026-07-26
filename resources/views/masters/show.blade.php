@@ -1,11 +1,20 @@
 @extends('layouts.app')
 
-@section('title', $master->name . ' — мастер студии HANDS, Могилёв')
-@section('meta_description', $master->name . ', ' . \Illuminate\Support\Str::lower($master->role) . ' студии HANDS, Могилёв. ' . \Illuminate\Support\Str::limit($master->bio1, 120))
+@section('title', $master->seo_title ?: $master->name . ' — мастер студии HANDS, Могилёв')
+@section('meta_description', $master->seo_description ?: $master->name . ', ' . \Illuminate\Support\Str::lower($master->role) . ' студии HANDS, Могилёв. ' . \Illuminate\Support\Str::limit($master->bio1, 120))
 
 @php($book = $master->yclients_url)
 @php($mainImg = $master->mainUrl())
 @php($gallery = $master->getMedia('gallery'))
+
+@push('head')
+    @include('partials.masters.jsonld')
+    @include('partials.jsonld.breadcrumbs', ['items' => [
+        ['name' => 'Главная', 'url' => route('home')],
+        ['name' => 'Мастера', 'url' => route('home') . '#masters'],
+        ['name' => $master->name, 'url' => route('masters.show', $master->slug)],
+    ]])
+@endpush
 
 @section('content')
     <div class="breadcrumb">

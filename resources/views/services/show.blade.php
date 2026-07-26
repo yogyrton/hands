@@ -6,6 +6,15 @@
 @php($yclients = $studio['yclients_main'] ?? 'https://n1865142.yclients.com')
 @php($heroImg = $service->heroUrl())
 
+@push('head')
+    @include('partials.services.jsonld')
+    @include('partials.jsonld.breadcrumbs', ['items' => [
+        ['name' => 'Главная', 'url' => route('home')],
+        ['name' => 'Услуги', 'url' => route('home') . '#services'],
+        ['name' => $service->name, 'url' => route('services.show', $service->slug)],
+    ]])
+@endpush
+
 @section('content')
     <div class="breadcrumb">
         <a href="{{ route('home') }}">Главная</a> &nbsp;·&nbsp;

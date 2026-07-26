@@ -38,6 +38,8 @@ class Master extends Model implements HasMedia
         'experience_label',
         'bio1',
         'bio2',
+        'seo_title',
+        'seo_description',
         'principles',
         'salary_rate',
         'sort_order',
