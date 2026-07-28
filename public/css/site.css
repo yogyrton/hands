@@ -499,7 +499,8 @@ details p { padding: 0 4px 26px; font-size: 15px; line-height: 1.7; color: var(-
     .booking select, .booking .btn { grid-column: span 1; }
     .header { padding: 14px 20px; }
     .header__nav { display: none; }
-    .header__hours { display: none; }
+    .header__phone { font-size: 13px; }
+    .header__hours { font-size: 10px; }
     .about__grid { grid-template-columns: 1fr; gap: 30px; }
     .footer { padding: 48px 24px; }
 }
@@ -511,5 +512,10 @@ details p { padding: 0 4px 26px; font-size: 15px; line-height: 1.7; color: var(-
     .giftcard { aspect-ratio: auto; }
     .giftcard .inner { position: relative; inset: auto; padding: 28px; gap: 24px; }
     .giftcard .title { font-size: 30px; }
-    .header__contact { display: none; }
+    .header { gap: 12px; }
+    .header__actions { gap: 12px; }
+    .header .btn { padding: 10px 15px; font-size: 11px; letter-spacing: .04em; }
+    .header__phone { font-size: 12.5px; }
+    .header__hours { font-size: 9.5px; }
+    .logo__text { display: none; }
 }

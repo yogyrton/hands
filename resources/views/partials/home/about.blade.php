@@ -3,6 +3,10 @@
 @php($phone = $studio['phone'] ?? '')
 @php($workHours = $studio['work_hours'] ?? '')
 @php($address = $studio['address'] ?? 'переулок Пожарный, 3Б, Могилёв')
+@php($mapsUrl = 'https://yandex.ru/maps/?text=' . urlencode($address . ', Могилёв'))
+@if(preg_match('/ll=([\d.]+)(?:%2C|,)([\d.]+)/', $studio['yandex_map_embed'] ?? '', $mm))
+    @php($mapsUrl = 'https://yandex.ru/maps/?ll=' . $mm[1] . ',' . $mm[2] . '&z=17&pt=' . $mm[1] . ',' . $mm[2])
+@endif
 <section id="about" class="about">
     <div class="about__media @if(! $aboutImg) ph @endif">
         @if($aboutImg)
@@ -24,7 +28,7 @@
             <aside class="about__card">
                 <span class="about__card-eyebrow">Студия HANDS</span>
                 <ul class="about__facts">
-                    <li><span class="k">Адрес</span><span class="v">{{ $address }}</span></li>
+                    <li><span class="k">Адрес</span><a class="v" href="{{ $mapsUrl }}" target="_blank" rel="noopener">{{ $address }}</a></li>
                     @if($workHours)
                         <li><span class="k">Часы работы</span><span class="v">{{ $workHours }}</span></li>
                     @endif

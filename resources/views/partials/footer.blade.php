@@ -2,6 +2,10 @@
 @php($instagram = $studio['instagram_url'] ?? 'https://www.instagram.com/hands.mg/')
 @php($address = $studio['address'] ?? 'переулок Пожарный, 3Б, Могилёв')
 @php($phone = $studio['phone'] ?? '')
+@php($mapsUrl = 'https://yandex.ru/maps/?text=' . urlencode($address . ', Могилёв'))
+@if(preg_match('/ll=([\d.]+)(?:%2C|,)([\d.]+)/', $studio['yandex_map_embed'] ?? '', $mm))
+    @php($mapsUrl = 'https://yandex.ru/maps/?ll=' . $mm[1] . ',' . $mm[2] . '&z=17&pt=' . $mm[1] . ',' . $mm[2])
+@endif
 @php($legalName = $studio['legal_name'] ?? '')
 @php($legalUnp = $studio['legal_unp'] ?? '')
 @php($legalAuthority = $studio['legal_reg_authority'] ?? '')
@@ -39,7 +43,7 @@
             </div>
             <div class="footer__col">
                 <span class="h">Контакты</span>
-                <span>{{ $address }}</span>
+                <a href="{{ $mapsUrl }}" target="_blank" rel="noopener">{{ $address }}</a>
                 @if($phone)
                     <a href="tel:{{ preg_replace('/[^\d+]/', '', $phone) }}">{{ $phone }}</a>
                 @endif
