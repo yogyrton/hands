@@ -3,9 +3,12 @@
 @php($phone = $studio['phone'] ?? '')
 @php($workHours = $studio['work_hours'] ?? '')
 @php($address = $studio['address'] ?? 'переулок Пожарный, 3Б, Могилёв')
-@php($mapsUrl = 'https://yandex.ru/maps/?text=' . urlencode($address . ', Могилёв'))
-@if(preg_match('/ll=([\d.]+)(?:%2C|,)([\d.]+)/', $studio['yandex_map_embed'] ?? '', $mm))
-    @php($mapsUrl = 'https://yandex.ru/maps/?ll=' . $mm[1] . ',' . $mm[2] . '&z=17&pt=' . $mm[1] . ',' . $mm[2])
+@php($mapsUrl = $studio['yandex_maps_url'] ?? '')
+@if(! $mapsUrl)
+    @php($mapsUrl = 'https://yandex.ru/maps/?text=' . urlencode($address . ', Могилёв'))
+    @if(preg_match('/ll=([\d.]+)(?:%2C|,)([\d.]+)/', $studio['yandex_map_embed'] ?? '', $mm))
+        @php($mapsUrl = 'https://yandex.ru/maps/?ll=' . $mm[1] . ',' . $mm[2] . '&z=17&pt=' . $mm[1] . ',' . $mm[2])
+    @endif
 @endif
 <section id="about" class="about">
     <div class="about__media @if(! $aboutImg) ph @endif">

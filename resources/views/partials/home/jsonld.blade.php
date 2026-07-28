@@ -13,6 +13,7 @@
         'taxID' => $studio['legal_unp'] ?? '',
         'description' => 'Массажная студия в Могилёве — классический, спортивный, релакс-массаж, массаж спины и лица, коррекция фигуры',
         'url' => $siteUrl,
+        'logo' => asset('images/hands-logo.svg'),
         'image' => $ogImage,
         'telephone' => $studio['phone'] ?? '',
         'address' => [

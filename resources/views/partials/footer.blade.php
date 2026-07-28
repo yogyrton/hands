@@ -2,9 +2,12 @@
 @php($instagram = $studio['instagram_url'] ?? 'https://www.instagram.com/hands.mg/')
 @php($address = $studio['address'] ?? 'переулок Пожарный, 3Б, Могилёв')
 @php($phone = $studio['phone'] ?? '')
-@php($mapsUrl = 'https://yandex.ru/maps/?text=' . urlencode($address . ', Могилёв'))
-@if(preg_match('/ll=([\d.]+)(?:%2C|,)([\d.]+)/', $studio['yandex_map_embed'] ?? '', $mm))
-    @php($mapsUrl = 'https://yandex.ru/maps/?ll=' . $mm[1] . ',' . $mm[2] . '&z=17&pt=' . $mm[1] . ',' . $mm[2])
+@php($mapsUrl = $studio['yandex_maps_url'] ?? '')
+@if(! $mapsUrl)
+    @php($mapsUrl = 'https://yandex.ru/maps/?text=' . urlencode($address . ', Могилёв'))
+    @if(preg_match('/ll=([\d.]+)(?:%2C|,)([\d.]+)/', $studio['yandex_map_embed'] ?? '', $mm))
+        @php($mapsUrl = 'https://yandex.ru/maps/?ll=' . $mm[1] . ',' . $mm[2] . '&z=17&pt=' . $mm[1] . ',' . $mm[2])
+    @endif
 @endif
 @php($legalName = $studio['legal_name'] ?? '')
 @php($legalUnp = $studio['legal_unp'] ?? '')

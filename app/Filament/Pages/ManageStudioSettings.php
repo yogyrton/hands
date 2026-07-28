@@ -76,6 +76,10 @@ class ManageStudioSettings extends Page
                     Textarea::make('yandex_map_embed')
                         ->label('URL встраивания Яндекс-карты')
                         ->rows(3),
+                    TextInput::make('yandex_maps_url')
+                        ->label('Ссылка на карточку в Яндекс.Картах')
+                        ->helperText('Открывается при клике на адрес (футер, блок «О студии»). Например: https://yandex.by/maps/org/hands/160529978134/')
+                        ->url(),
                 ]),
 
             Section::make('Реквизиты (ИП)')
