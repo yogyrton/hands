@@ -1,4 +1,5 @@
 @php($aboutImg = $site->aboutUrl())
+@php($aboutSrcset = $site->aboutSrcset())
 @php($yclients = $studio['yclients_main'] ?? 'https://n1865142.yclients.com')
 @php($phone = $studio['phone'] ?? '')
 @php($workHours = $studio['work_hours'] ?? '')
@@ -13,7 +14,7 @@
 <section id="about" class="about">
     <div class="about__media @if(! $aboutImg) ph @endif">
         @if($aboutImg)
-            <img src="{{ $aboutImg }}" alt="Массажная студия HANDS в Могилёве" loading="lazy" decoding="async">
+            <img src="{{ $aboutImg }}"@if($aboutSrcset) srcset="{{ $aboutSrcset }}" sizes="(max-width: 980px) 100vw, 45vw"@endif alt="Массажная студия HANDS в Могилёве" loading="lazy" decoding="async">
         @endif
     </div>
     <div class="about__text">

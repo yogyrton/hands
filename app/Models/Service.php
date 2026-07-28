@@ -104,6 +104,13 @@ class Service extends Model implements HasMedia
             ->format('webp')
             ->quality(82)
             ->nonQueued();
+
+        // Уменьшенный вариант для мобильных (адаптивный srcset).
+        $this->addMediaConversion('webp_sm')
+            ->fit(Fit::Max, 700, 700)
+            ->format('webp')
+            ->quality(80)
+            ->nonQueued();
     }
 
     public function cardUrl(): string
@@ -111,10 +118,20 @@ class Service extends Model implements HasMedia
         return $this->mediaUrl('card');
     }
 
+    public function cardSrcset(): string
+    {
+        return $this->mediaSrcset('card');
+    }
+
     public function heroUrl(): string
     {
         // Шапка страницы услуги использует то же фото, что и карточка.
         return $this->mediaUrl('card');
+    }
+
+    public function heroSrcset(): string
+    {
+        return $this->mediaSrcset('card');
     }
 
     /**
@@ -131,5 +148,29 @@ class Service extends Model implements HasMedia
         return $media->hasGeneratedConversion('webp')
             ? $media->getUrl('webp')
             : $media->getUrl();
+    }
+
+    /**
+     * srcset (мелкий + крупный webp) для адаптивной загрузки. Пусто, если конверсий нет.
+     */
+    private function mediaSrcset(string $collection): string
+    {
+        $media = $this->getFirstMedia($collection);
+
+        if (! $media) {
+            return '';
+        }
+
+        $set = [];
+
+        if ($media->hasGeneratedConversion('webp_sm')) {
+            $set[] = $media->getUrl('webp_sm').' 700w';
+        }
+
+        if ($media->hasGeneratedConversion('webp')) {
+            $set[] = $media->getUrl('webp').' 1600w';
+        }
+
+        return implode(', ', $set);
     }
 }

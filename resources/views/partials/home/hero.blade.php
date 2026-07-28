@@ -1,5 +1,6 @@
 @php($yclients = $studio['yclients_main'] ?? 'https://n1865142.yclients.com')
 @php($heroImg = $site->heroUrl())
+@php($heroSrcset = $site->heroSrcset())
 <section class="hero">
     <div class="hero__text">
         <div class="eyebrow hero__eyebrow">Массаж в Могилёве · переулок Пожарный, 3Б</div>
@@ -17,7 +18,7 @@
     </div>
     <div class="hero__media @if(! $heroImg) ph @endif">
         @if($heroImg)
-            <img src="{{ $heroImg }}" alt="Массаж в студии HANDS в Могилёве" fetchpriority="high" decoding="async">
+            <img src="{{ $heroImg }}"@if($heroSrcset) srcset="{{ $heroSrcset }}" sizes="(max-width: 980px) 100vw, 50vw"@endif alt="Массаж в студии HANDS в Могилёве" fetchpriority="high" decoding="async">
         @endif
     </div>
 </section>

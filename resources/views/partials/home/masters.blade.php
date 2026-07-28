@@ -6,10 +6,11 @@
     <div class="grid-masters">
         @foreach($masters as $master)
             @php($img = $master->mainUrl())
+            @php($cardSrcset = $master->mainSrcset())
             <a href="{{ route('masters.show', $master->slug) }}" class="card-master">
                 <div class="card-master__photo @if(! $img) ph @endif">
                     @if($img)
-                        <img src="{{ $img }}" alt="{{ $master->name }} — мастер студии HANDS" loading="lazy" decoding="async">
+                        <img src="{{ $img }}"@if($cardSrcset) srcset="{{ $cardSrcset }}" sizes="(max-width: 640px) 100vw, (max-width: 980px) 50vw, 33vw"@endif alt="{{ $master->name }} — мастер студии HANDS" loading="lazy" decoding="async">
                     @endif
                 </div>
                 <div class="card-master__body">

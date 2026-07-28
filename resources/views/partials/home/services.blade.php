@@ -56,9 +56,10 @@
     <div class="grid-3">
         @foreach($services as $service)
             @php($img = $service->cardUrl())
+            @php($cardSrcset = $service->cardSrcset())
             <a href="{{ route('services.show', $service->slug) }}" class="card-service @if(! $img) ph @endif">
                 @if($img)
-                    <img src="{{ $img }}" alt="{{ $service->name }} в студии HANDS" loading="lazy" decoding="async">
+                    <img src="{{ $img }}"@if($cardSrcset) srcset="{{ $cardSrcset }}" sizes="(max-width: 640px) 100vw, (max-width: 980px) 50vw, 33vw"@endif alt="{{ $service->name }} в студии HANDS" loading="lazy" decoding="async">
                 @endif
                 <span class="veil"></span>
                 <span class="badge">Проработка {{ $service->level }}/5</span>

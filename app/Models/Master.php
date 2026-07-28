@@ -126,6 +126,13 @@ class Master extends Model implements HasMedia
             ->format('webp')
             ->quality(82)
             ->nonQueued();
+
+        // Уменьшенный вариант для мобильных (адаптивный srcset).
+        $this->addMediaConversion('webp_sm')
+            ->fit(Fit::Max, 700, 700)
+            ->format('webp')
+            ->quality(80)
+            ->nonQueued();
     }
 
     public function mainUrl(): string
@@ -139,5 +146,29 @@ class Master extends Model implements HasMedia
         return $media->hasGeneratedConversion('webp')
             ? $media->getUrl('webp')
             : $media->getUrl();
+    }
+
+    /**
+     * srcset (мелкий + крупный webp) для главного фото. Пусто, если конверсий нет.
+     */
+    public function mainSrcset(): string
+    {
+        $media = $this->getFirstMedia('main');
+
+        if (! $media) {
+            return '';
+        }
+
+        $set = [];
+
+        if ($media->hasGeneratedConversion('webp_sm')) {
+            $set[] = $media->getUrl('webp_sm').' 700w';
+        }
+
+        if ($media->hasGeneratedConversion('webp')) {
+            $set[] = $media->getUrl('webp').' 1600w';
+        }
+
+        return implode(', ', $set);
     }
 }
