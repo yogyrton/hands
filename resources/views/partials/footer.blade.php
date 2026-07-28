@@ -19,7 +19,7 @@
 <footer class="footer">
     <div class="footer__top">
         <div>
-            <a href="{{ route('home') }}" class="logo">
+            <a href="{{ route('home') }}" class="logo" aria-label="HANDS — на главную">
                 <img src="{{ asset('images/hands-logo.svg') }}" alt="" class="logo__mark" width="38" height="38">
                 <span class="logo__text">HANDS</span>
             </a>
