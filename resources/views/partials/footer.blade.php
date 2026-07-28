@@ -43,7 +43,7 @@
                 @if($phone)
                     <a href="tel:{{ preg_replace('/[^\d+]/', '', $phone) }}">{{ $phone }}</a>
                 @endif
-                <a href="{{ $instagram }}" target="_blank" rel="noopener">@hands.mg</a>
+                <a href="{{ $instagram }}" target="_blank" rel="noopener">Instagram</a>
                 <a href="{{ $yclients }}" target="_blank" rel="noopener" class="gold">Записаться онлайн</a>
             </div>
             <div class="footer__col">
