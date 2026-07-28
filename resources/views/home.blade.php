@@ -8,7 +8,10 @@
          действительно LCP. На десктопе hero — боковая колонка, а LCP — текст H1,
          поэтому там preload только тормозил бы CSS/шрифт. --}}
     @if($heroImg = $site->heroUrl())
-        <link rel="preload" as="image" href="{{ $heroImg }}" media="(max-width: 980px)" fetchpriority="high">
+        @php($heroPreloadSrcset = $site->heroSrcset())
+        {{-- imagesrcset/imagesizes — чтобы preload выбрал тот же файл, что и <img>
+             (иначе на мобиле качается и крупный из preload, и мелкий из srcset). --}}
+        <link rel="preload" as="image" href="{{ $heroImg }}"@if($heroPreloadSrcset) imagesrcset="{{ $heroPreloadSrcset }}" imagesizes="100vw"@endif media="(max-width: 980px)" fetchpriority="high">
     @endif
 @endpush
 
