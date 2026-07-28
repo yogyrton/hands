@@ -1,6 +1,7 @@
 @php($yclients = $studio['yclients_main'] ?? 'https://n1865142.yclients.com')
 @php($instagram = $studio['instagram_url'] ?? 'https://www.instagram.com/hands.mg/')
 @php($address = $studio['address'] ?? 'переулок Пожарный, 3Б, Могилёв')
+@php($phone = $studio['phone'] ?? '')
 @php($legalName = $studio['legal_name'] ?? '')
 @php($legalUnp = $studio['legal_unp'] ?? '')
 @php($legalAuthority = $studio['legal_reg_authority'] ?? '')
@@ -39,6 +40,9 @@
             <div class="footer__col">
                 <span class="h">Контакты</span>
                 <span>{{ $address }}</span>
+                @if($phone)
+                    <a href="tel:{{ preg_replace('/[^\d+]/', '', $phone) }}">{{ $phone }}</a>
+                @endif
                 <a href="{{ $instagram }}" target="_blank" rel="noopener">@hands.mg</a>
                 <a href="{{ $yclients }}" target="_blank" rel="noopener" class="gold">Записаться онлайн</a>
             </div>
