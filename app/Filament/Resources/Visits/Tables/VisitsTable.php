@@ -20,6 +20,8 @@ class VisitsTable
     {
         return $table
             ->defaultSort('performed_at', 'desc')
+            // По умолчанию показываем 25 записей на страницу.
+            ->defaultPaginationPageOption(25)
             // Клик по строке открывает просмотр посещения (отдельная кнопка не нужна).
             ->recordUrl(fn (Visit $record): string => VisitResource::getUrl('view', ['record' => $record]))
             ->columns([
@@ -58,10 +60,21 @@ class VisitsTable
                     ->label('Мастер')
                     ->relationship('master', 'name'),
                 Filter::make('period')
+                    // По умолчанию — только сегодняшний день (можно изменить/очистить в фильтре).
                     ->schema([
-                        DatePicker::make('from')->label('С'),
-                        DatePicker::make('until')->label('По'),
+                        DatePicker::make('from')->label('С')->default(today()),
+                        DatePicker::make('until')->label('По')->default(today()),
                     ])
+                    ->indicateUsing(function (array $data): ?string {
+                        $from = $data['from'] ?? null;
+                        $until = $data['until'] ?? null;
+                        if (! $from && ! $until) {
+                            return null;
+                        }
+                        $fmt = fn ($d) => $d ? \Illuminate\Support\Carbon::parse($d)->format('d.m.Y') : '…';
+
+                        return $from === $until ? 'Дата: '.$fmt($from) : 'Период: '.$fmt($from).' — '.$fmt($until);
+                    })
                     ->query(function (Builder $query, array $data): Builder {
                         return $query
                             ->when($data['from'] ?? null, fn (Builder $q, $date) => $q->whereDate('performed_at', '>=', $date))
