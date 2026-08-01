@@ -126,6 +126,8 @@ class VisitForm
                         ->label('Оплата сертификатом')
                         ->live()
                         ->dehydrated(false)
+                        // Оплату сертификатом при редактировании не меняем (правится удалением+созданием).
+                        ->hiddenOn('edit')
                         ->afterStateUpdated(function (bool $state, Set $set): void {
                             if ($state) {
                                 $set('use_external_certificate', false);
@@ -137,6 +139,7 @@ class VisitForm
                         ->helperText('Старый бумажный сертификат, которого нет в базе — номер вводится вручную.')
                         ->live()
                         ->dehydrated(false)
+                        ->hiddenOn('edit')
                         ->afterStateUpdated(function (bool $state, Set $set): void {
                             if ($state) {
                                 $set('use_certificate', false);

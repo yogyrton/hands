@@ -16,6 +16,9 @@ use App\Filament\Pages\Reports;
 use App\Filament\Resources\Certificates\Pages\ViewCertificate;
 use App\Filament\Resources\Certificates\RelationManagers\OperationsRelationManager;
 use App\Filament\Resources\Visits\Pages\CreateVisit;
+use App\Filament\Resources\Visits\Pages\EditVisit;
+use App\Filament\Resources\Visits\Pages\ListVisits;
+use App\Filament\Resources\Visits\VisitResource;
 use App\Models\Certificate;
 use App\Models\Master;
 use App\Models\Promotion;
@@ -889,6 +892,109 @@ class AccountingScenariosTest extends TestCase
         $this->assertEquals(35, $visit->paid_amount);
         $this->assertEquals(35, $visit->salaryAmount());
         $this->assertSame('Массаж себе', $visit->discount_reason);
+    }
+
+    // ───────────────────────── Редактирование посещения (исправление опечатки) ─────────────────────────
+
+    /**
+     * Ключевой сценарий: мастер пробил 84 вместо 85. Админ правит «Итоговую» на 85.
+     * Ожидаем: service_price 85, оплата 85, зарплата 35% = 29.75; и выручка, и
+     * зарплата в отчёте пересчитались от исправленных 85.
+     */
+    public function test_admin_edits_visit_price_and_reports_follow(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $anna = $this->master(35, 'Анна');
+
+        $visit = $this->visits()->register(VisitData::from([
+            'master_id' => $anna->id, 'service_id' => $this->service(85)->id,
+            'base_price' => 85, 'service_price' => 84,   // опечатка оператора
+            'payment_type' => PaymentType::Cash,
+        ]));
+        $this->assertEquals(84, $visit->paid_amount);
+
+        Livewire::test(EditVisit::class, ['record' => $visit->id])
+            ->fillForm(['service_price' => 85])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $visit->refresh();
+        $this->assertEquals(85, $visit->service_price);
+        $this->assertEquals(85, $visit->paid_amount);        // оплата подтянулась
+        $this->assertEquals(29.75, $visit->salaryAmount());  // 35% от 85
+
+        $report = $this->report(now()->startOfMonth()->toDateString(), now()->toDateString());
+        $this->assertEquals(85, $report->revenue()['cash']);
+        $byMaster = collect($report->byMaster())->firstWhere('name', 'Анна');
+        $this->assertEquals(85, $byMaster['sum']);
+        $this->assertEquals(29.75, $byMaster['salary']);
+    }
+
+    /**
+     * Правка сохраняет исходные дату/время посещения (а не ставит «сейчас»).
+     */
+    public function test_edit_keeps_original_performed_at(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $visit = Visit::create([
+            'master_id' => $this->master()->id, 'service_id' => $this->service(50)->id,
+            'base_price' => 50, 'service_price' => 50, 'paid_amount' => 50,
+            'payment_type' => PaymentType::Cash,
+            'performed_at' => Carbon::create(2026, 7, 15, 13, 35),
+        ]);
+
+        Livewire::test(EditVisit::class, ['record' => $visit->id])
+            ->fillForm(['service_price' => 55])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $visit->refresh();
+        $this->assertEquals(55, $visit->service_price);
+        $this->assertSame('2026-07-15 13:35:00', $visit->performed_at->format('Y-m-d H:i:s'));
+    }
+
+    /**
+     * Посещение по сертификату НЕ редактируется: кнопка правки скрыта, а сервис
+     * на прямой вызов update() бросает исключение (правится удалением + созданием).
+     */
+    public function test_certificate_visit_is_not_editable(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $cert = $this->certificates()->issue(CertificateData::from([
+            'type' => CertificateType::Money, 'initial_amount' => 100,
+        ]));
+        $visit = $this->visits()->register(VisitData::from([
+            'master_id' => $this->master()->id, 'service_id' => $this->service(60)->id,
+            'base_price' => 60, 'service_price' => 60, 'certificate_id' => $cert->id,
+        ]));
+
+        $this->assertFalse(VisitResource::canEdit($visit));
+
+        Livewire::test(ListVisits::class)->assertTableActionHidden('edit', $visit);
+
+        $this->expectException(\RuntimeException::class);
+        $this->visits()->edit($visit, VisitData::from([
+            'master_id' => $visit->master_id, 'service_id' => $visit->service_id,
+            'base_price' => 60, 'service_price' => 70,
+        ]));
+    }
+
+    /**
+     * Редактировать может только админ (мастеру кнопка недоступна).
+     */
+    public function test_only_admin_can_edit_visit(): void
+    {
+        $visit = Visit::create([
+            'master_id' => $this->master()->id, 'service_id' => $this->service(50)->id,
+            'base_price' => 50, 'service_price' => 50, 'paid_amount' => 50,
+            'payment_type' => PaymentType::Cash, 'performed_at' => now(),
+        ]);
+
+        $this->actingAs(User::factory()->create(['role' => UserRole::Master]));
+        $this->assertFalse(VisitResource::canEdit($visit));
+
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $this->assertTrue(VisitResource::canEdit($visit));
     }
 
     // ───────────────────────── Авто-подстановка «Итоговой» от «Базовой» ─────────────────────────

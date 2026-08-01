@@ -13,6 +13,7 @@ use Filament\Tables\Filters\Filter;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
 use Illuminate\Contracts\Database\Eloquent\Builder;
+use Illuminate\Support\Carbon;
 
 class VisitsTable
 {
@@ -71,7 +72,7 @@ class VisitsTable
                         if (! $from && ! $until) {
                             return null;
                         }
-                        $fmt = fn ($d) => $d ? \Illuminate\Support\Carbon::parse($d)->format('d.m.Y') : '…';
+                        $fmt = fn ($d) => $d ? Carbon::parse($d)->format('d.m.Y') : '…';
 
                         return $from === $until ? 'Дата: '.$fmt($from) : 'Период: '.$fmt($from).' — '.$fmt($until);
                     })
@@ -82,6 +83,11 @@ class VisitsTable
                     }),
             ])
             ->recordActions([
+                Action::make('edit')
+                    ->label('Изменить')
+                    ->icon('heroicon-o-pencil-square')
+                    ->url(fn (Visit $record): string => VisitResource::getUrl('edit', ['record' => $record]))
+                    ->visible(fn (Visit $record): bool => VisitResource::canEdit($record)),
                 Action::make('delete')
                     ->label('Удалить')
                     ->icon('heroicon-o-trash')

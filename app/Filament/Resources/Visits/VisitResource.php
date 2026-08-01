@@ -3,6 +3,7 @@
 namespace App\Filament\Resources\Visits;
 
 use App\Filament\Resources\Visits\Pages\CreateVisit;
+use App\Filament\Resources\Visits\Pages\EditVisit;
 use App\Filament\Resources\Visits\Pages\ListVisits;
 use App\Filament\Resources\Visits\Pages\ViewVisit;
 use App\Filament\Resources\Visits\Schemas\VisitForm;
@@ -14,6 +15,7 @@ use Filament\Resources\Resource;
 use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
 use Filament\Tables\Table;
+use Illuminate\Database\Eloquent\Model;
 
 class VisitResource extends Resource
 {
@@ -65,12 +67,24 @@ class VisitResource extends Resource
         ];
     }
 
+    /**
+     * Редактировать может только админ и только визиты без сертификата
+     * (визиты по сертификату правятся через удаление с откатом + создание заново).
+     */
+    public static function canEdit(Model $record): bool
+    {
+        return (bool) auth()->user()?->isAdmin()
+            && $record->certificate_id === null
+            && $record->external_certificate_number === null;
+    }
+
     public static function getPages(): array
     {
         return [
             'index' => ListVisits::route('/'),
             'create' => CreateVisit::route('/create'),
             'view' => ViewVisit::route('/{record}'),
+            'edit' => EditVisit::route('/{record}/edit'),
         ];
     }
 }

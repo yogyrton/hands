@@ -118,6 +118,40 @@ class VisitService extends BaseQueryService implements VisitServiceInterface
         });
     }
 
+    /**
+     * Редактирование посещения без сертификата (исправление опечатки оператора).
+     * Меняются суммы/оплата/акция/особые условия; зарплата и выручка пересчитываются
+     * от новых значений автоматически (считаются от service_price / paid_amount).
+     *
+     * Визиты по сертификату сюда не пускаем: изменение суммы затронуло бы списание
+     * с сертификата — такие правим через удаление (с откатом) и создание заново.
+     */
+    public function edit(Visit $visit, VisitData $data): Visit
+    {
+        if ($visit->certificate_id !== null || $visit->external_certificate_number !== null) {
+            throw new \RuntimeException('Посещение по сертификату не редактируется — удалите его (списание вернётся на сертификат) и создайте заново.');
+        }
+
+        $servicePrice = round($data->service_price, 2);
+
+        $visit->update([
+            'master_id' => $data->master_id,
+            'service_id' => $data->service_id,
+            'base_price' => round($data->base_price, 2),
+            'service_price' => $servicePrice,
+            // Как и при создании: обычно оплачена вся стоимость; при «особых условиях»
+            // по кассе идёт заданная сумма, а зарплата — всё равно от service_price.
+            'paid_amount' => $data->special_paid_amount ?? $servicePrice,
+            'payment_type' => $data->payment_type,
+            'discount_reason' => $data->discount_reason,
+            'promotion_id' => $data->promotion_id,
+            'comment' => $data->comment,
+            // performed_at не трогаем — сохраняем исходную дату/время посещения.
+        ]);
+
+        return $visit->fresh();
+    }
+
     public function deleteWithReversal(Visit $visit): void
     {
         DB::transaction(function () use ($visit): void {

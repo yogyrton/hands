@@ -18,6 +18,12 @@ interface VisitServiceInterface extends BaseQueryServiceInterface
     public function register(VisitData $data): Visit;
 
     /**
+     * Отредактировать посещение БЕЗ сертификата (исправление ошибки ввода).
+     * Визиты по сертификату не редактируются — их удаляют с откатом и создают заново.
+     */
+    public function edit(Visit $visit, VisitData $data): Visit;
+
+    /**
      * Удалить посещение с откатом списания по сертификату.
      */
     public function deleteWithReversal(Visit $visit): void;
