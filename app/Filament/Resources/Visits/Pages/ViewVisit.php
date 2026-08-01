@@ -3,7 +3,9 @@
 namespace App\Filament\Resources\Visits\Pages;
 
 use App\Filament\Resources\Visits\VisitResource;
+use App\Models\Visit;
 use Filament\Actions\Action;
+use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewVisit extends ViewRecord
@@ -18,6 +20,10 @@ class ViewVisit extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
+            // Изменить посещение — только админ и только без сертификата.
+            EditAction::make()
+                ->label('Изменить')
+                ->visible(fn (Visit $record): bool => VisitResource::canEdit($record)),
             // Возврат туда, откуда пришли (например, к сертификату из истории операций).
             Action::make('back')
                 ->label('Назад')

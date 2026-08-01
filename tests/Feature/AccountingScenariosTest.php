@@ -21,6 +21,7 @@ use App\Filament\Resources\Certificates\RelationManagers\OperationsRelationManag
 use App\Filament\Resources\Visits\Pages\CreateVisit;
 use App\Filament\Resources\Visits\Pages\EditVisit;
 use App\Filament\Resources\Visits\Pages\ListVisits;
+use App\Filament\Resources\Visits\Pages\ViewVisit;
 use App\Filament\Resources\Visits\VisitResource;
 use App\Models\Certificate;
 use App\Models\Master;
@@ -998,6 +999,37 @@ class AccountingScenariosTest extends TestCase
 
         $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
         $this->assertTrue(VisitResource::canEdit($visit));
+    }
+
+    /**
+     * Кнопка «Изменить» есть и на странице ПРОСМОТРА (не только в списке):
+     * у визита без сертификата — видна, у визита по сертификату — скрыта,
+     * у сертификата (админу) — видна.
+     */
+    public function test_edit_action_on_view_pages(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+
+        $plain = Visit::create([
+            'master_id' => $this->master()->id, 'service_id' => $this->service(50)->id,
+            'base_price' => 50, 'service_price' => 50, 'paid_amount' => 50,
+            'payment_type' => PaymentType::Cash, 'performed_at' => now(),
+        ]);
+        Livewire::test(ViewVisit::class, ['record' => $plain->id])
+            ->assertActionVisible('edit');
+
+        $cert = $this->certificates()->issue(CertificateData::from([
+            'type' => CertificateType::Money, 'initial_amount' => 100,
+        ]));
+        $certVisit = $this->visits()->register(VisitData::from([
+            'master_id' => $this->master()->id, 'service_id' => $this->service(60)->id,
+            'base_price' => 60, 'service_price' => 60, 'certificate_id' => $cert->id,
+        ]));
+        Livewire::test(ViewVisit::class, ['record' => $certVisit->id])
+            ->assertActionHidden('edit');
+
+        Livewire::test(ViewCertificate::class, ['record' => $cert->id])
+            ->assertActionVisible('edit');
     }
 
     // ───────────────────────── Редактирование сертификата (метаданные) ─────────────────────────

@@ -5,6 +5,7 @@ namespace App\Filament\Resources\Certificates\Pages;
 use App\Filament\Resources\Certificates\CertificateResource;
 use App\Models\Certificate;
 use Filament\Actions\DeleteAction;
+use Filament\Actions\EditAction;
 use Filament\Resources\Pages\ViewRecord;
 
 class ViewCertificate extends ViewRecord
@@ -19,7 +20,11 @@ class ViewCertificate extends ViewRecord
     protected function getHeaderActions(): array
     {
         return [
-            // Изменять сертификат нельзя. Удалить можно, только если по нему ещё не было посещений.
+            // Изменить (метаданные всегда, суммы — пока серт не использован). Только админ.
+            EditAction::make()
+                ->label('Изменить')
+                ->visible(fn (Certificate $record): bool => CertificateResource::canEdit($record)),
+            // Удалить можно, только если по сертификату ещё не было посещений.
             DeleteAction::make()
                 ->label('Удалить')
                 ->visible(fn (Certificate $record): bool => (bool) auth()->user()?->isAdmin()
