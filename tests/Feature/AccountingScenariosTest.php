@@ -13,6 +13,8 @@ use App\Enums\CertificateType;
 use App\Enums\PaymentType;
 use App\Enums\UserRole;
 use App\Filament\Pages\Reports;
+use App\Filament\Resources\Certificates\CertificateResource;
+use App\Filament\Resources\Certificates\Pages\EditCertificate;
 use App\Filament\Resources\Certificates\Pages\ViewCertificate;
 use App\Filament\Resources\Certificates\RelationManagers\OperationsRelationManager;
 use App\Filament\Resources\Visits\Pages\CreateVisit;
@@ -995,6 +997,53 @@ class AccountingScenariosTest extends TestCase
 
         $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
         $this->assertTrue(VisitResource::canEdit($visit));
+    }
+
+    // ───────────────────────── Редактирование сертификата (метаданные) ─────────────────────────
+
+    /**
+     * Админ правит метаданные сертификата (описание, клиент), даже если он уже
+     * частично использован. Ожидаем: описание/клиент обновились, а сумма и остаток
+     * НЕ изменились (списания защищены).
+     */
+    public function test_admin_edits_certificate_metadata_without_touching_amounts(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $cert = $this->certificates()->issue(CertificateData::from([
+            'type' => CertificateType::Money, 'initial_amount' => 100, 'comment' => 'старое описание',
+        ]));
+        $this->visits()->register(VisitData::from([
+            'master_id' => $this->master()->id, 'service_id' => $this->service(60)->id,
+            'base_price' => 60, 'service_price' => 60, 'certificate_id' => $cert->id,
+        ]));
+        $this->assertEquals(40, $cert->refresh()->remaining_amount);
+
+        Livewire::test(EditCertificate::class, ['record' => $cert->id])
+            ->fillForm(['comment' => 'новое описание', 'client_first_name' => 'Иван'])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $cert->refresh();
+        $this->assertSame('новое описание', $cert->comment);
+        $this->assertSame('Иван', $cert->client_first_name);
+        $this->assertEquals(100, $cert->initial_amount);    // сумма не изменилась
+        $this->assertEquals(40, $cert->remaining_amount);   // остаток не тронут
+    }
+
+    /**
+     * Редактировать сертификат может только админ.
+     */
+    public function test_only_admin_can_edit_certificate(): void
+    {
+        $cert = $this->certificates()->issue(CertificateData::from([
+            'type' => CertificateType::Money, 'initial_amount' => 100,
+        ]));
+
+        $this->actingAs(User::factory()->create(['role' => UserRole::Master]));
+        $this->assertFalse(CertificateResource::canEdit($cert));
+
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $this->assertTrue(CertificateResource::canEdit($cert));
     }
 
     // ───────────────────────── Авто-подстановка «Итоговой» от «Базовой» ─────────────────────────
