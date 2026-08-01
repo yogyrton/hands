@@ -891,6 +891,64 @@ class AccountingScenariosTest extends TestCase
         $this->assertSame('Массаж себе', $visit->discount_reason);
     }
 
+    // ───────────────────────── Авто-подстановка «Итоговой» от «Базовой» ─────────────────────────
+
+    /**
+     * Проверяем авто-подстановку: меняем «Базовую цену» на 80 (напр. сеанс 90 мин) —
+     * «Итоговая» подхватывается такой же, без ручного ввода второго поля.
+     * Ожидаем: service_price 80, оплата 80, зарплата 35% = 28.
+     */
+    public function test_base_price_change_autofills_final_price(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $anna = $this->master(35);
+
+        Livewire::test(CreateVisit::class)
+            ->fillForm([
+                'master_id' => $anna->id,
+                'service_id' => $this->service(65)->id,   // база и итоговая = 65
+            ])
+            ->fillForm(['base_price' => 80])              // 90 мин: меняем только базовую
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $visit = Visit::query()->firstOrFail();
+        $this->assertEquals(80, $visit->base_price);
+        $this->assertEquals(80, $visit->service_price);   // подхватилась автоматически
+        $this->assertEquals(80, $visit->paid_amount);
+        $this->assertEquals(28, $visit->salaryAmount());  // 35% от 80
+    }
+
+    /**
+     * Проверяем авто-подстановку при активной акции: выбрали акцию −10%, затем сменили
+     * базовую на 80 — «Итоговая» пересчиталась со скидкой (а не осталась голой базой).
+     * Ожидаем: service_price 72, скидка 8.
+     */
+    public function test_base_price_change_applies_active_promotion(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $anna = $this->master(35);
+        $promo = Promotion::create(['title' => 'Ранняя пташка', 'discount_percent' => 10]);
+
+        Livewire::test(CreateVisit::class)
+            ->fillForm([
+                'master_id' => $anna->id,
+                'service_id' => $this->service(65)->id,
+            ])
+            ->fillForm([
+                'use_promotion' => true,
+                'promotion_id' => $promo->id,
+            ])
+            ->fillForm(['base_price' => 80])   // база меняется при уже выбранной акции
+            ->call('create')
+            ->assertHasNoFormErrors();
+
+        $visit = Visit::query()->firstOrFail();
+        $this->assertEquals(80, $visit->base_price);
+        $this->assertEquals(72, $visit->service_price);   // 80 − 10%
+        $this->assertEquals(8, $visit->discountAmount());
+    }
+
     /**
      * Хелпер: создаёт посещение на конкретную дату с заданной оплатой (для отчётов
      * за период). Прямые нал/карта посещения без сертификата пишем напрямую,

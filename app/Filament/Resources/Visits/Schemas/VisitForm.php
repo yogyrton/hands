@@ -47,10 +47,21 @@ class VisitForm
                         ->label('Базовая цена')
                         ->numeric()
                         ->default(0)
-                        ->suffix('р'),
+                        ->suffix('р')
+                        ->live(onBlur: true)
+                        ->afterStateUpdated(function (Get $get, Set $set, $state): void {
+                            // «Итоговая» по умолчанию равна базовой (при выбранной акции — со скидкой),
+                            // чтобы оператор не забыл поменять её вслед за базовой. Ручную правку
+                            // «Итоговой» после этого никто не отменяет.
+                            $base = (float) $state;
+                            $promotion = ($get('use_promotion') && $get('promotion_id'))
+                                ? Promotion::find($get('promotion_id'))
+                                : null;
+                            $set('service_price', $promotion ? $promotion->applyTo($base) : $base);
+                        }),
                     TextInput::make('service_price')
                         ->label('Итоговая стоимость')
-                        ->helperText('От неё считается зарплата мастера и списание с сертификата')
+                        ->helperText('От неё считается зарплата мастера и списание с сертификата. Меняется вслед за базовой; при ручной скидке можно переписать')
                         ->numeric()
                         ->default(0)
                         ->required()
