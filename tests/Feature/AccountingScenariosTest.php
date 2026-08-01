@@ -15,6 +15,7 @@ use App\Enums\PaymentType;
 use App\Enums\UserRole;
 use App\Filament\Pages\Reports;
 use App\Filament\Resources\Certificates\CertificateResource;
+use App\Filament\Resources\Certificates\Pages\CreateCertificate;
 use App\Filament\Resources\Certificates\Pages\EditCertificate;
 use App\Filament\Resources\Certificates\Pages\ViewCertificate;
 use App\Filament\Resources\Certificates\RelationManagers\OperationsRelationManager;
@@ -999,6 +1000,35 @@ class AccountingScenariosTest extends TestCase
 
         $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
         $this->assertTrue(VisitResource::canEdit($visit));
+    }
+
+    /**
+     * Модель доступа: мастер СОЗДАЁТ посещения и сертификаты (как и раньше), но
+     * НЕ может их редактировать — даже по прямой ссылке на страницу правки
+     * (доступ, а не только видимость кнопки). Меняет всё только админ.
+     */
+    public function test_master_can_create_but_not_edit(): void
+    {
+        $master = User::factory()->create(['role' => UserRole::Master]);
+
+        $visit = Visit::create([
+            'master_id' => $this->master()->id, 'service_id' => $this->service(50)->id,
+            'base_price' => 50, 'service_price' => 50, 'paid_amount' => 50,
+            'payment_type' => PaymentType::Cash, 'performed_at' => now(),
+        ]);
+        $cert = $this->certificates()->issue(CertificateData::from([
+            'type' => CertificateType::Money, 'initial_amount' => 100,
+        ]));
+
+        $this->actingAs($master);
+
+        // Создание — доступно мастеру.
+        Livewire::test(CreateVisit::class)->assertOk();
+        Livewire::test(CreateCertificate::class)->assertOk();
+
+        // Правка — запрещена мастеру (403 даже по прямому URL).
+        Livewire::test(EditVisit::class, ['record' => $visit->id])->assertForbidden();
+        Livewire::test(EditCertificate::class, ['record' => $cert->id])->assertForbidden();
     }
 
     /**
