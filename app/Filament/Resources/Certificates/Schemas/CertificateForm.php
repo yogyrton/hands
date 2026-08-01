@@ -42,15 +42,16 @@ class CertificateForm
                         ->minValue(1)
                         ->visible(fn (Get $get): bool => $get('type') === CertificateType::Visits->value)
                         ->required(fn (Get $get): bool => $get('type') === CertificateType::Visits->value)
-                        ->disabledOn('edit'),
+                        // Можно менять, пока по сертификату не было списаний.
+                        ->disabled(fn (?Certificate $record): bool => $record?->wasUsed() ?? false),
                     TextInput::make('initial_amount')
                         ->label('Сумма')
-                        ->helperText('Общая сумма сертификата (сколько заплатил клиент)')
+                        ->helperText('Общая сумма сертификата. Менять можно, пока сертификат не начали использовать (напр. клиент решил оформить на 300 вместо 200).')
                         ->numeric()
                         ->minValue(1)
                         ->suffix('р')
                         ->required()
-                        ->disabledOn('edit'),
+                        ->disabled(fn (?Certificate $record): bool => $record?->wasUsed() ?? false),
                     Textarea::make('comment')
                         ->label('Описание')
                         ->helperText('Для «на посещения» укажите разбивку, напр.: 6 классика по 45 + 6 спина по 63')

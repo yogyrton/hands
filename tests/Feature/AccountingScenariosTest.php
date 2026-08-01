@@ -8,6 +8,7 @@ use App\Contracts\Services\CertificateServiceInterface;
 use App\Contracts\Services\VisitServiceInterface;
 use App\Data\CertificateData;
 use App\Data\VisitData;
+use App\Enums\CertificateOperationType;
 use App\Enums\CertificateStatus;
 use App\Enums\CertificateType;
 use App\Enums\PaymentType;
@@ -1028,6 +1029,52 @@ class AccountingScenariosTest extends TestCase
         $this->assertSame('Иван', $cert->client_first_name);
         $this->assertEquals(100, $cert->initial_amount);    // сумма не изменилась
         $this->assertEquals(40, $cert->remaining_amount);   // остаток не тронут
+    }
+
+    /**
+     * Апселл: сертификат оформили на 200, клиент решил на 300. Пока серт не
+     * использован — сумму можно поднять. Ожидаем: номинал 300, остаток 300,
+     * запись о продаже 300, и в отчёте «продано» — 300.
+     */
+    public function test_admin_raises_unused_certificate_amount(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $cert = $this->certificates()->issue(CertificateData::from([
+            'type' => CertificateType::Money, 'initial_amount' => 200,
+        ]));
+
+        Livewire::test(EditCertificate::class, ['record' => $cert->id])
+            ->fillForm(['initial_amount' => 300])
+            ->call('save')
+            ->assertHasNoFormErrors();
+
+        $cert->refresh();
+        $this->assertEquals(300, $cert->initial_amount);
+        $this->assertEquals(300, $cert->remaining_amount);   // остаток подтянулся
+        $this->assertFalse($cert->wasUsed());
+
+        $sale = $cert->operations()->where('type', CertificateOperationType::Sale)->first();
+        $this->assertEquals(300, $sale->amount);             // запись продажи обновилась
+
+        $certs = $this->report(now()->startOfMonth()->toDateString(), now()->toDateString())->certsSold();
+        $this->assertEquals(300, $certs['money']);           // «продано сертификатов» — 300
+    }
+
+    /**
+     * После использования сумму менять нельзя — сертификат «тронут» (остаток < номинала),
+     * поле в форме блокируется, номинал/остаток защищены.
+     */
+    public function test_used_certificate_amount_is_locked(): void
+    {
+        $cert = $this->certificates()->issue(CertificateData::from([
+            'type' => CertificateType::Money, 'initial_amount' => 200,
+        ]));
+        $this->visits()->register(VisitData::from([
+            'master_id' => $this->master()->id, 'service_id' => $this->service(50)->id,
+            'base_price' => 50, 'service_price' => 50, 'certificate_id' => $cert->id,
+        ]));
+
+        $this->assertTrue($cert->refresh()->wasUsed());       // остаток 150 < 200
     }
 
     /**

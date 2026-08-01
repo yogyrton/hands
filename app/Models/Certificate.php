@@ -57,6 +57,17 @@ class Certificate extends Model
     }
 
     /**
+     * Было ли по сертификату хоть одно списание (остаток меньше номинала).
+     * Пока false — номинал ещё можно безопасно изменить.
+     */
+    public function wasUsed(): bool
+    {
+        return $this->type === CertificateType::Visits
+            ? (int) $this->remaining_visits < (int) $this->initial_visits
+            : (float) $this->remaining_amount < (float) $this->initial_amount;
+    }
+
+    /**
      * Сумма проданных сертификатов за период (по дате продажи) — живые деньги,
      * пробитые по кассе. Входит в кассовую/налоговую базу.
      * whereDate: sold_at хранится со временем, сравниваем только дату (кросс-СУБД).
