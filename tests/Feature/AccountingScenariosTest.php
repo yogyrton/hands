@@ -21,7 +21,6 @@ use App\Filament\Resources\Certificates\Pages\ViewCertificate;
 use App\Filament\Resources\Certificates\RelationManagers\OperationsRelationManager;
 use App\Filament\Resources\Visits\Pages\CreateVisit;
 use App\Filament\Resources\Visits\Pages\EditVisit;
-use App\Filament\Resources\Visits\Pages\ListVisits;
 use App\Filament\Resources\Visits\Pages\ViewVisit;
 use App\Filament\Resources\Visits\VisitResource;
 use App\Models\Certificate;
@@ -975,8 +974,6 @@ class AccountingScenariosTest extends TestCase
 
         $this->assertFalse(VisitResource::canEdit($visit));
 
-        Livewire::test(ListVisits::class)->assertTableActionHidden('edit', $visit);
-
         $this->expectException(\RuntimeException::class);
         $this->visits()->edit($visit, VisitData::from([
             'master_id' => $visit->master_id, 'service_id' => $visit->service_id,
@@ -1032,22 +1029,21 @@ class AccountingScenariosTest extends TestCase
     }
 
     /**
-     * Кнопка «Изменить» есть и на странице ПРОСМОТРА (не только в списке):
-     * у визита без сертификата — видна, у визита по сертификату — скрыта,
-     * у сертификата (админу) — видна.
+     * Изменить/Удалить живут только внутри карточки (в списках их убрали) и только
+     * у админа: у визита без серта админ видит и «Изменить», и «Удалить»; у визита
+     * по серту «Изменить» скрыто; у сертификата админ видит «Изменить». Мастер,
+     * открыв карточку, не видит ни «Изменить», ни «Удалить».
      */
-    public function test_edit_action_on_view_pages(): void
+    public function test_edit_and_delete_actions_only_in_card_and_admin_only(): void
     {
-        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $admin = User::factory()->create(['role' => UserRole::Admin]);
+        $master = User::factory()->create(['role' => UserRole::Master]);
 
         $plain = Visit::create([
             'master_id' => $this->master()->id, 'service_id' => $this->service(50)->id,
             'base_price' => 50, 'service_price' => 50, 'paid_amount' => 50,
             'payment_type' => PaymentType::Cash, 'performed_at' => now(),
         ]);
-        Livewire::test(ViewVisit::class, ['record' => $plain->id])
-            ->assertActionVisible('edit');
-
         $cert = $this->certificates()->issue(CertificateData::from([
             'type' => CertificateType::Money, 'initial_amount' => 100,
         ]));
@@ -1055,11 +1051,27 @@ class AccountingScenariosTest extends TestCase
             'master_id' => $this->master()->id, 'service_id' => $this->service(60)->id,
             'base_price' => 60, 'service_price' => 60, 'certificate_id' => $cert->id,
         ]));
-        Livewire::test(ViewVisit::class, ['record' => $certVisit->id])
-            ->assertActionHidden('edit');
 
+        // Админ в карточке визита без серта — есть и правка, и удаление.
+        $this->actingAs($admin);
+        Livewire::test(ViewVisit::class, ['record' => $plain->id])
+            ->assertActionVisible('edit')
+            ->assertActionVisible('delete');
+        // Визит по серту — правка скрыта (удаление доступно).
+        Livewire::test(ViewVisit::class, ['record' => $certVisit->id])
+            ->assertActionHidden('edit')
+            ->assertActionVisible('delete');
+        // Сертификат — правка видна админу.
         Livewire::test(ViewCertificate::class, ['record' => $cert->id])
             ->assertActionVisible('edit');
+
+        // Мастер в карточке не видит ни правки, ни удаления.
+        $this->actingAs($master);
+        Livewire::test(ViewVisit::class, ['record' => $plain->id])
+            ->assertActionHidden('edit')
+            ->assertActionHidden('delete');
+        Livewire::test(ViewCertificate::class, ['record' => $cert->id])
+            ->assertActionHidden('edit');
     }
 
     // ───────────────────────── Редактирование сертификата (метаданные) ─────────────────────────

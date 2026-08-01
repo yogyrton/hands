@@ -4,9 +4,8 @@ namespace App\Filament\Resources\Certificates\Tables;
 
 use App\Enums\CertificateStatus;
 use App\Enums\CertificateType;
+use App\Filament\Resources\Certificates\CertificateResource;
 use App\Models\Certificate;
-use Filament\Actions\EditAction;
-use Filament\Actions\ViewAction;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\SelectFilter;
 use Filament\Tables\Table;
@@ -18,6 +17,8 @@ class CertificatesTable
     {
         return $table
             ->defaultSort('id', 'desc')
+            // Клик по строке открывает сертификат; изменить/удалить — внутри карточки (админу).
+            ->recordUrl(fn (Certificate $record): string => CertificateResource::getUrl('view', ['record' => $record]))
             ->columns([
                 TextColumn::make('number')
                     ->label('№')
@@ -93,10 +94,6 @@ class CertificatesTable
                             default => $query,
                         };
                     }),
-            ])
-            ->recordActions([
-                ViewAction::make(),
-                EditAction::make(),
             ]);
     }
 }

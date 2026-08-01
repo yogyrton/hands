@@ -2,11 +2,9 @@
 
 namespace App\Filament\Resources\Visits\Tables;
 
-use App\Contracts\Services\VisitServiceInterface;
 use App\Enums\PaymentType;
 use App\Filament\Resources\Visits\VisitResource;
 use App\Models\Visit;
-use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\TextColumn;
 use Filament\Tables\Filters\Filter;
@@ -81,21 +79,8 @@ class VisitsTable
                             ->when($data['from'] ?? null, fn (Builder $q, $date) => $q->whereDate('performed_at', '>=', $date))
                             ->when($data['until'] ?? null, fn (Builder $q, $date) => $q->whereDate('performed_at', '<=', $date));
                     }),
-            ])
-            ->recordActions([
-                Action::make('edit')
-                    ->label('Изменить')
-                    ->icon('heroicon-o-pencil-square')
-                    ->url(fn (Visit $record): string => VisitResource::getUrl('edit', ['record' => $record]))
-                    ->visible(fn (Visit $record): bool => VisitResource::canEdit($record)),
-                Action::make('delete')
-                    ->label('Удалить')
-                    ->icon('heroicon-o-trash')
-                    ->color('danger')
-                    ->requiresConfirmation()
-                    ->modalDescription('Посещение будет удалено, а списание с сертификата — отменено.')
-                    ->visible(fn (): bool => (bool) auth()->user()?->isAdmin())
-                    ->action(fn (Visit $record) => app(VisitServiceInterface::class)->deleteWithReversal($record)),
             ]);
+        // Действия (просмотр/изменить/удалить) — не в списке: клик по строке
+        // открывает посещение, а изменить/удалить доступны внутри карточки (админу).
     }
 }
