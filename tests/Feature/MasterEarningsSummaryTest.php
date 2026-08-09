@@ -123,4 +123,37 @@ class MasterEarningsSummaryTest extends TestCase
             ->assertSee('2 визита')
             ->assertSee('Нал');              // разбивка снизу
     }
+
+    public function test_page_exposes_table_state_to_widgets(): void
+    {
+        // Без ExposesTableToWidgets реактивные свойства виджета получают null
+        // (падение на сбросе фильтра). Проверяем, что состояние таблицы прокинуто.
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+
+        $data = Livewire::test(ListVisits::class)->instance()->getWidgetData();
+
+        $this->assertArrayHasKey('tableColumnSearches', $data);
+        $this->assertIsArray($data['tableColumnSearches']);   // именно массив, не null
+        $this->assertArrayHasKey('tableFilters', $data);
+    }
+
+    public function test_widget_follows_period_filter(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $alex = $this->master('Алекс', 'aleks', 1, 35);
+        $this->visit($alex, 111, now());            // сегодня
+        $this->visit($alex, 222, now()->subDay());  // вчера
+
+        $component = Livewire::test(ListVisits::class)
+            ->assertSuccessful()
+            ->assertSee('111.00');   // период по умолчанию — сегодня
+
+        $yesterday = now()->subDay()->toDateString();
+
+        $component
+            ->set('tableFilters.period.from', $yesterday)
+            ->set('tableFilters.period.until', $yesterday)
+            ->assertSuccessful()
+            ->assertSee('222.00');   // виджет реагирует на смену периода
+    }
 }
