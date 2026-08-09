@@ -6,20 +6,28 @@ use App\Filament\Resources\Visits\Pages\ListVisits;
 use App\Models\Master;
 use App\Models\Visit;
 use Filament\Widgets\Concerns\InteractsWithPageTable;
-use Filament\Widgets\StatsOverviewWidget;
-use Filament\Widgets\StatsOverviewWidget\Stat;
+use Filament\Widgets\Widget;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\Facades\DB;
 
 /**
- * Сводка над списком посещений: сколько заработал каждый мастер за выбранный
- * в фильтре период (по умолчанию — сегодня). Показываются только мастера,
- * у которых есть посещения в этом периоде: добавилось посещение нового мастера —
- * появилась и его строка.
+ * Сводка над списком посещений за выбранный в фильтре период (по умолчанию — сегодня):
+ *  — общая заработанная сумма (наличные + безнал + сертификаты) крупно сверху;
+ *  — количество посещений помельче;
+ *  — разбивка живых денег: наличными / безналом / сертификатами;
+ *  — доля мастера «грязными» (стоимость услуг × ставка, по умолчанию 35%).
+ *
+ * Считается ровно по тому же отфильтрованному запросу, что и таблица, поэтому
+ * реагирует на смену периода/мастера/поиска.
  */
-class MasterEarningsSummary extends StatsOverviewWidget
+class MasterEarningsSummary extends Widget
 {
     use InteractsWithPageTable;
+
+    protected string $view = 'filament.resources.visits.widgets.master-earnings-summary';
+
+    protected int|string|array $columnSpan = 'full';
 
     // Не ленивый — сразу считаем от текущего фильтра и реагируем на его смену.
     protected static bool $isLazy = false;
@@ -29,32 +37,68 @@ class MasterEarningsSummary extends StatsOverviewWidget
         return ListVisits::class;
     }
 
-    protected function getStats(): array
+    /**
+     * Данные для представления: считаем по отфильтрованному запросу таблицы.
+     */
+    public function summary(): object
     {
-        // Тот же отфильтрованный запрос, что и у таблицы (дата/период, мастер, поиск).
-        return static::summarize($this->getPageTableQuery())
-            ->map(fn (object $row): Stat => Stat::make(
-                $row->name,
-                static::money($row->earned).' р',
-            )
-                ->description($row->count.' '.static::visitsWord($row->count).' · услуг на '.static::money($row->services).' р')
-                ->color('success'))
-            ->all();
+        return static::summarize($this->getPageTableQuery());
     }
 
     /**
-     * Заработок мастеров по переданному запросу посещений: группировка по мастеру,
-     * его доля = сумма услуг × ставка. Только мастера с посещениями, по порядку сортировки.
+     * Свод по переданному запросу посещений.
+     *
+     * @param  Builder<Visit>  $query
+     * @return object{total: float, count: int, cash: float, card: float, cert: float, cut: float, masters: Collection<int, object>}
+     */
+    public static function summarize(Builder $query): object
+    {
+        $count = (clone $query)->reorder()->count();
+
+        // Доплаты по сертификатам (обычный с доплатой и «старый») — живые деньги,
+        // разложенные по способу доплаты.
+        $surchargeTypes = ['certificate_surcharge', 'certificate_external'];
+
+        $cash = (float) (clone $query)->where('payment_type', 'cash')->sum('paid_amount')
+            + (float) (clone $query)->whereIn('payment_type', $surchargeTypes)
+                ->where('surcharge_payment_type', 'cash')->sum('paid_amount');
+
+        $card = (float) (clone $query)->where('payment_type', 'card')->sum('paid_amount')
+            + (float) (clone $query)->whereIn('payment_type', $surchargeTypes)
+                ->where('surcharge_payment_type', 'card')->sum('paid_amount');
+
+        // Сертификатами: полностью покрытая сертификатом стоимость + часть стоимости,
+        // закрытая сертификатом при доплате (итоговая − доплата).
+        $cert = (float) (clone $query)->where('payment_type', 'certificate')->sum('service_price')
+            + (float) (clone $query)->whereIn('payment_type', $surchargeTypes)
+                ->sum(DB::raw('service_price - paid_amount'));
+
+        $masters = static::masterCuts($query);
+
+        return (object) [
+            'total' => round($cash + $card + $cert, 2),
+            'count' => (int) $count,
+            'cash' => round($cash, 2),
+            'card' => round($card, 2),
+            'cert' => round($cert, 2),
+            'cut' => round((float) $masters->sum('earned'), 2),
+            'masters' => $masters,
+        ];
+    }
+
+    /**
+     * Доля каждого мастера «грязными»: сумма услуг × его ставка. Только мастера
+     * с посещениями в периоде, по порядку сортировки.
      *
      * @param  Builder<Visit>  $query
      * @return Collection<int, object>
      */
-    public static function summarize(Builder $query): Collection
+    public static function masterCuts(Builder $query): Collection
     {
-        $totals = $query
+        $totals = (clone $query)
             ->reorder()
             ->toBase()
-            ->selectRaw('master_id, COUNT(*) as cnt, COALESCE(SUM(service_price), 0) as services')
+            ->selectRaw('master_id, COALESCE(SUM(service_price), 0) as services')
             ->groupBy('master_id')
             ->get();
 
@@ -75,9 +119,8 @@ class MasterEarningsSummary extends StatsOverviewWidget
                 $services = (float) $row->services;
 
                 return (object) [
-                    'master_id' => $row->master_id,
                     'name' => $master?->name ?? 'Мастер',
-                    'count' => (int) $row->cnt,
+                    'rate' => $rate,
                     'services' => $services,
                     'earned' => round($services * $rate / 100, 2),
                     'sort' => $master?->sort_order ?? 999,
@@ -87,7 +130,7 @@ class MasterEarningsSummary extends StatsOverviewWidget
             ->values();
     }
 
-    public static function money(float $value): string
+    public function money(float $value): string
     {
         return number_format($value, 2, '.', ' ');
     }
@@ -95,7 +138,7 @@ class MasterEarningsSummary extends StatsOverviewWidget
     /**
      * Русское склонение слова «визит».
      */
-    public static function visitsWord(int $count): string
+    public function visitsWord(int $count): string
     {
         $mod10 = $count % 10;
         $mod100 = $count % 100;
