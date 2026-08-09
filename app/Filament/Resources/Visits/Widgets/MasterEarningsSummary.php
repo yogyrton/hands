@@ -58,9 +58,15 @@ class MasterEarningsSummary extends StatsOverviewWidget
     }
 
     /**
-     * Свод по каждому мастеру: общая сумма и разбивка живых денег по способу
-     * оплаты (наличные / безнал / сертификаты). Только мастера с посещениями,
+     * Свод по каждому мастеру: общая сумма и разбивка по способу оплаты
+     * (наличные / безнал / сертификаты). Только мастера с посещениями,
      * по порядку сортировки.
+     *
+     * Считаем от ИТОГОВОЙ стоимости услуги (service_price), а не от суммы по
+     * кассе (paid_amount): при «особых условиях» (бартер, бесплатно клиенту,
+     * владелец платит только долю мастера) по кассе идёт другая сумма, но
+     * заработок мастера считается от полной итоговой. Доплата по сертификату —
+     * живые деньги (нал/безнал), остаток итоговой закрывается сертификатом.
      *
      * @param  Builder<Visit>  $query
      * @return Collection<int, object>
@@ -72,8 +78,8 @@ class MasterEarningsSummary extends StatsOverviewWidget
             ->toBase()
             ->selectRaw('master_id')
             ->selectRaw('COUNT(*) as cnt')
-            ->selectRaw("COALESCE(SUM(CASE WHEN payment_type = 'cash' THEN paid_amount ELSE 0 END), 0) as cash_direct")
-            ->selectRaw("COALESCE(SUM(CASE WHEN payment_type = 'card' THEN paid_amount ELSE 0 END), 0) as card_direct")
+            ->selectRaw("COALESCE(SUM(CASE WHEN payment_type = 'cash' THEN service_price ELSE 0 END), 0) as cash_direct")
+            ->selectRaw("COALESCE(SUM(CASE WHEN payment_type = 'card' THEN service_price ELSE 0 END), 0) as card_direct")
             ->selectRaw("COALESCE(SUM(CASE WHEN payment_type IN ('certificate_surcharge', 'certificate_external') AND surcharge_payment_type = 'cash' THEN paid_amount ELSE 0 END), 0) as cash_sur")
             ->selectRaw("COALESCE(SUM(CASE WHEN payment_type IN ('certificate_surcharge', 'certificate_external') AND surcharge_payment_type = 'card' THEN paid_amount ELSE 0 END), 0) as card_sur")
             ->selectRaw("COALESCE(SUM(CASE WHEN payment_type = 'certificate' THEN service_price ELSE 0 END), 0) as cert_full")

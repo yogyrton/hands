@@ -74,6 +74,24 @@ class MasterEarningsSummaryTest extends TestCase
         $this->assertEqualsWithDelta(330.0, $rows[0]->total, 0.001);  // 120 + 80 + 130
     }
 
+    public function test_special_conditions_count_by_service_price_not_cash_paid(): void
+    {
+        $alex = $this->master('Александр', 'aleksandr', 1, 35);
+
+        // Бесплатно клиенту: итоговая 65, по кассе 0 (наличные). Заработок — 65.
+        $this->visit($alex, 65, now(), ['payment_type' => PaymentType::Cash, 'paid_amount' => 0]);
+        // Владелец платит только долю мастера картой: итоговая 80, по кассе 28. Заработок — 80.
+        $this->visit($alex, 80, now(), ['payment_type' => PaymentType::Card, 'paid_amount' => 28]);
+
+        $rows = MasterEarningsSummary::summarize(Visit::query()->whereDate('performed_at', today()));
+
+        $this->assertCount(1, $rows);
+        $this->assertEqualsWithDelta(65.0, $rows[0]->cash, 0.001);   // итоговая, не 0 по кассе
+        $this->assertEqualsWithDelta(80.0, $rows[0]->card, 0.001);   // итоговая, не 28 по кассе
+        $this->assertEqualsWithDelta(0.0, $rows[0]->cert, 0.001);
+        $this->assertEqualsWithDelta(145.0, $rows[0]->total, 0.001);
+    }
+
     public function test_only_masters_with_visits_ordered_by_sort(): void
     {
         $alex = $this->master('Александр', 'aleksandr', 1, 35);
