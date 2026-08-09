@@ -3,53 +3,65 @@
 namespace App\Filament\Resources\Visits\Widgets;
 
 use App\Filament\Resources\Visits\Pages\ListVisits;
-use App\Models\Master;
 use App\Models\Visit;
 use Filament\Widgets\Concerns\InteractsWithPageTable;
-use Filament\Widgets\Widget;
+use Filament\Widgets\StatsOverviewWidget;
+use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Collection;
 use Illuminate\Support\Facades\DB;
 
 /**
  * Сводка над списком посещений за выбранный в фильтре период (по умолчанию — сегодня):
- *  — общая заработанная сумма (наличные + безнал + сертификаты) крупно сверху;
- *  — количество посещений помельче;
- *  — разбивка живых денег: наличными / безналом / сертификатами;
- *  — доля мастера «грязными» (стоимость услуг × ставка, по умолчанию 35%).
+ *  — общая заработанная сумма и рядом количество заказов;
+ *  — отдельно разбивка: наличными / безналом / сертификатами.
  *
  * Считается ровно по тому же отфильтрованному запросу, что и таблица, поэтому
  * реагирует на смену периода/мастера/поиска.
  */
-class MasterEarningsSummary extends Widget
+class MasterEarningsSummary extends StatsOverviewWidget
 {
     use InteractsWithPageTable;
 
-    protected string $view = 'filament.resources.visits.widgets.master-earnings-summary';
-
-    protected int|string|array $columnSpan = 'full';
-
     // Не ленивый — сразу считаем от текущего фильтра и реагируем на его смену.
     protected static bool $isLazy = false;
+
+    // Заработано + заказы в первой строке, нал/безнал/серт — во второй.
+    protected function getColumns(): int
+    {
+        return 2;
+    }
 
     protected function getTablePage(): string
     {
         return ListVisits::class;
     }
 
-    /**
-     * Данные для представления: считаем по отфильтрованному запросу таблицы.
-     */
-    public function summary(): object
+    protected function getStats(): array
     {
-        return static::summarize($this->getPageTableQuery());
+        $s = static::summarize($this->getPageTableQuery());
+
+        return [
+            Stat::make('Заработано за период', static::money($s->total).' р')
+                ->description($s->count.' '.static::ordersWord($s->count))
+                ->color('success'),
+            Stat::make('Заказов', (string) $s->count)
+                ->description('за выбранный период')
+                ->color('gray'),
+            Stat::make('Наличными', static::money($s->cash).' р')
+                ->color('gray'),
+            Stat::make('Безналом', static::money($s->card).' р')
+                ->color('gray'),
+            Stat::make('Сертификатами', static::money($s->cert).' р')
+                ->color('gray'),
+        ];
     }
 
     /**
-     * Свод по переданному запросу посещений.
+     * Свод по переданному запросу посещений: общая сумма, количество и разбивка
+     * живых денег по способу оплаты (наличные / безнал / сертификаты).
      *
      * @param  Builder<Visit>  $query
-     * @return object{total: float, count: int, cash: float, card: float, cert: float, cut: float, masters: Collection<int, object>}
+     * @return object{total: float, count: int, cash: float, card: float, cert: float}
      */
     public static function summarize(Builder $query): object
     {
@@ -73,84 +85,36 @@ class MasterEarningsSummary extends Widget
             + (float) (clone $query)->whereIn('payment_type', $surchargeTypes)
                 ->sum(DB::raw('service_price - paid_amount'));
 
-        $masters = static::masterCuts($query);
-
         return (object) [
             'total' => round($cash + $card + $cert, 2),
             'count' => (int) $count,
             'cash' => round($cash, 2),
             'card' => round($card, 2),
             'cert' => round($cert, 2),
-            'cut' => round((float) $masters->sum('earned'), 2),
-            'masters' => $masters,
         ];
     }
 
-    /**
-     * Доля каждого мастера «грязными»: сумма услуг × его ставка. Только мастера
-     * с посещениями в периоде, по порядку сортировки.
-     *
-     * @param  Builder<Visit>  $query
-     * @return Collection<int, object>
-     */
-    public static function masterCuts(Builder $query): Collection
-    {
-        $totals = (clone $query)
-            ->reorder()
-            ->toBase()
-            ->selectRaw('master_id, COALESCE(SUM(service_price), 0) as services')
-            ->groupBy('master_id')
-            ->get();
-
-        if ($totals->isEmpty()) {
-            return collect();
-        }
-
-        $masters = Master::query()
-            ->whereIn('id', $totals->pluck('master_id'))
-            ->get()
-            ->keyBy('id');
-
-        return $totals
-            ->map(function (object $row) use ($masters): object {
-                /** @var Master|null $master */
-                $master = $masters->get($row->master_id);
-                $rate = (float) ($master?->salary_rate ?? 0);
-                $services = (float) $row->services;
-
-                return (object) [
-                    'name' => $master?->name ?? 'Мастер',
-                    'rate' => $rate,
-                    'services' => $services,
-                    'earned' => round($services * $rate / 100, 2),
-                    'sort' => $master?->sort_order ?? 999,
-                ];
-            })
-            ->sortBy('sort')
-            ->values();
-    }
-
-    public function money(float $value): string
+    public static function money(float $value): string
     {
         return number_format($value, 2, '.', ' ');
     }
 
     /**
-     * Русское склонение слова «визит».
+     * Русское склонение слова «заказ».
      */
-    public function visitsWord(int $count): string
+    public static function ordersWord(int $count): string
     {
         $mod10 = $count % 10;
         $mod100 = $count % 100;
 
         if ($mod10 === 1 && $mod100 !== 11) {
-            return 'визит';
+            return 'заказ';
         }
 
         if ($mod10 >= 2 && $mod10 <= 4 && ($mod100 < 10 || $mod100 >= 20)) {
-            return 'визита';
+            return 'заказа';
         }
 
-        return 'визитов';
+        return 'заказов';
     }
 }
