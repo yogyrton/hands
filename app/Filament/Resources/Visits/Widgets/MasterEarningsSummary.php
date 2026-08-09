@@ -3,17 +3,20 @@
 namespace App\Filament\Resources\Visits\Widgets;
 
 use App\Filament\Resources\Visits\Pages\ListVisits;
+use App\Models\Master;
 use App\Models\Visit;
 use Filament\Widgets\Concerns\InteractsWithPageTable;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Database\Eloquent\Builder;
-use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Collection;
 
 /**
  * Сводка над списком посещений за выбранный в фильтре период (по умолчанию — сегодня):
- *  — общая заработанная сумма и рядом количество заказов;
- *  — отдельно разбивка: наличными / безналом / сертификатами.
+ * по карточке на каждого мастера с посещениями. В карточке:
+ *  — общая заработанная сумма (наличные + безнал + сертификаты) сверху;
+ *  — количество визитов;
+ *  — снизу разбивка: наличными / безналом / сертификатами.
  *
  * Считается ровно по тому же отфильтрованному запросу, что и таблица, поэтому
  * реагирует на смену периода/мастера/поиска.
@@ -25,12 +28,6 @@ class MasterEarningsSummary extends StatsOverviewWidget
     // Не ленивый — сразу считаем от текущего фильтра и реагируем на его смену.
     protected static bool $isLazy = false;
 
-    // Заработано + заказы в первой строке, нал/безнал/серт — во второй.
-    protected function getColumns(): int
-    {
-        return 2;
-    }
-
     protected function getTablePage(): string
     {
         return ListVisits::class;
@@ -38,60 +35,82 @@ class MasterEarningsSummary extends StatsOverviewWidget
 
     protected function getStats(): array
     {
-        $s = static::summarize($this->getPageTableQuery());
+        $rows = static::summarize($this->getPageTableQuery());
 
-        return [
-            Stat::make('Заработано за период', static::money($s->total).' р')
-                ->description($s->count.' '.static::ordersWord($s->count))
-                ->color('success'),
-            Stat::make('Заказов', (string) $s->count)
-                ->description('за выбранный период')
-                ->color('gray'),
-            Stat::make('Наличными', static::money($s->cash).' р')
-                ->color('gray'),
-            Stat::make('Безналом', static::money($s->card).' р')
-                ->color('gray'),
-            Stat::make('Сертификатами', static::money($s->cert).' р')
-                ->color('gray'),
-        ];
+        if ($rows->isEmpty()) {
+            return [
+                Stat::make('Заработано за период', '0.00 р')
+                    ->description('0 визитов')
+                    ->color('gray'),
+            ];
+        }
+
+        return $rows
+            ->map(fn (object $row): Stat => Stat::make(
+                $row->name,
+                // 1-й ряд: общая сумма, справа — количество визитов.
+                static::money($row->total).' р · '.$row->count.' '.static::visitsWord($row->count),
+            )
+                // 2-й ряд: разбивка живых денег.
+                ->description('Нал '.static::money($row->cash).' · Безнал '.static::money($row->card).' · Серт '.static::money($row->cert))
+                ->color('success'))
+            ->all();
     }
 
     /**
-     * Свод по переданному запросу посещений: общая сумма, количество и разбивка
-     * живых денег по способу оплаты (наличные / безнал / сертификаты).
+     * Свод по каждому мастеру: общая сумма и разбивка живых денег по способу
+     * оплаты (наличные / безнал / сертификаты). Только мастера с посещениями,
+     * по порядку сортировки.
      *
      * @param  Builder<Visit>  $query
-     * @return object{total: float, count: int, cash: float, card: float, cert: float}
+     * @return Collection<int, object>
      */
-    public static function summarize(Builder $query): object
+    public static function summarize(Builder $query): Collection
     {
-        $count = (clone $query)->reorder()->count();
+        $rows = (clone $query)
+            ->reorder()
+            ->toBase()
+            ->selectRaw('master_id')
+            ->selectRaw('COUNT(*) as cnt')
+            ->selectRaw("COALESCE(SUM(CASE WHEN payment_type = 'cash' THEN paid_amount ELSE 0 END), 0) as cash_direct")
+            ->selectRaw("COALESCE(SUM(CASE WHEN payment_type = 'card' THEN paid_amount ELSE 0 END), 0) as card_direct")
+            ->selectRaw("COALESCE(SUM(CASE WHEN payment_type IN ('certificate_surcharge', 'certificate_external') AND surcharge_payment_type = 'cash' THEN paid_amount ELSE 0 END), 0) as cash_sur")
+            ->selectRaw("COALESCE(SUM(CASE WHEN payment_type IN ('certificate_surcharge', 'certificate_external') AND surcharge_payment_type = 'card' THEN paid_amount ELSE 0 END), 0) as card_sur")
+            ->selectRaw("COALESCE(SUM(CASE WHEN payment_type = 'certificate' THEN service_price ELSE 0 END), 0) as cert_full")
+            ->selectRaw("COALESCE(SUM(CASE WHEN payment_type IN ('certificate_surcharge', 'certificate_external') THEN service_price - paid_amount ELSE 0 END), 0) as cert_sur")
+            ->groupBy('master_id')
+            ->get();
 
-        // Доплаты по сертификатам (обычный с доплатой и «старый») — живые деньги,
-        // разложенные по способу доплаты.
-        $surchargeTypes = ['certificate_surcharge', 'certificate_external'];
+        if ($rows->isEmpty()) {
+            return collect();
+        }
 
-        $cash = (float) (clone $query)->where('payment_type', 'cash')->sum('paid_amount')
-            + (float) (clone $query)->whereIn('payment_type', $surchargeTypes)
-                ->where('surcharge_payment_type', 'cash')->sum('paid_amount');
+        $masters = Master::query()
+            ->whereIn('id', $rows->pluck('master_id'))
+            ->get()
+            ->keyBy('id');
 
-        $card = (float) (clone $query)->where('payment_type', 'card')->sum('paid_amount')
-            + (float) (clone $query)->whereIn('payment_type', $surchargeTypes)
-                ->where('surcharge_payment_type', 'card')->sum('paid_amount');
+        return $rows
+            ->map(function (object $row) use ($masters): object {
+                /** @var Master|null $master */
+                $master = $masters->get($row->master_id);
 
-        // Сертификатами: полностью покрытая сертификатом стоимость + часть стоимости,
-        // закрытая сертификатом при доплате (итоговая − доплата).
-        $cert = (float) (clone $query)->where('payment_type', 'certificate')->sum('service_price')
-            + (float) (clone $query)->whereIn('payment_type', $surchargeTypes)
-                ->sum(DB::raw('service_price - paid_amount'));
+                $cash = round((float) $row->cash_direct + (float) $row->cash_sur, 2);
+                $card = round((float) $row->card_direct + (float) $row->card_sur, 2);
+                $cert = round((float) $row->cert_full + (float) $row->cert_sur, 2);
 
-        return (object) [
-            'total' => round($cash + $card + $cert, 2),
-            'count' => (int) $count,
-            'cash' => round($cash, 2),
-            'card' => round($card, 2),
-            'cert' => round($cert, 2),
-        ];
+                return (object) [
+                    'name' => $master?->name ?? 'Мастер',
+                    'count' => (int) $row->cnt,
+                    'cash' => $cash,
+                    'card' => $card,
+                    'cert' => $cert,
+                    'total' => round($cash + $card + $cert, 2),
+                    'sort' => $master?->sort_order ?? 999,
+                ];
+            })
+            ->sortBy('sort')
+            ->values();
     }
 
     public static function money(float $value): string
@@ -100,21 +119,21 @@ class MasterEarningsSummary extends StatsOverviewWidget
     }
 
     /**
-     * Русское склонение слова «заказ».
+     * Русское склонение слова «визит».
      */
-    public static function ordersWord(int $count): string
+    public static function visitsWord(int $count): string
     {
         $mod10 = $count % 10;
         $mod100 = $count % 100;
 
         if ($mod10 === 1 && $mod100 !== 11) {
-            return 'заказ';
+            return 'визит';
         }
 
         if ($mod10 >= 2 && $mod10 <= 4 && ($mod100 < 10 || $mod100 >= 20)) {
-            return 'заказа';
+            return 'визита';
         }
 
-        return 'заказов';
+        return 'визитов';
     }
 }

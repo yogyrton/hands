@@ -46,7 +46,7 @@ class MasterEarningsSummaryTest extends TestCase
         ], $attributes));
     }
 
-    public function test_totals_split_cash_card_certificate_only_for_period(): void
+    public function test_per_master_card_totals_split_by_payment_for_period(): void
     {
         $alex = $this->master('Александр', 'aleksandr', 1, 35);
 
@@ -63,30 +63,35 @@ class MasterEarningsSummaryTest extends TestCase
         // Вчерашний визит — вне периода, не должен учитываться.
         $this->visit($alex, 500, now()->subDay(), ['payment_type' => PaymentType::Cash, 'paid_amount' => 500]);
 
-        $s = MasterEarningsSummary::summarize(Visit::query()->whereDate('performed_at', today()));
+        $rows = MasterEarningsSummary::summarize(Visit::query()->whereDate('performed_at', today()));
 
-        $this->assertSame(4, $s->count);
-        $this->assertEqualsWithDelta(120.0, $s->cash, 0.001);   // 100 + 20 доплата
-        $this->assertEqualsWithDelta(80.0, $s->card, 0.001);
-        $this->assertEqualsWithDelta(130.0, $s->cert, 0.001);   // 65 + (85 − 20)
-        $this->assertEqualsWithDelta(330.0, $s->total, 0.001);  // 120 + 80 + 130
+        $this->assertCount(1, $rows);
+        $this->assertSame('Александр', $rows[0]->name);
+        $this->assertSame(4, $rows[0]->count);
+        $this->assertEqualsWithDelta(120.0, $rows[0]->cash, 0.001);   // 100 + 20 доплата
+        $this->assertEqualsWithDelta(80.0, $rows[0]->card, 0.001);
+        $this->assertEqualsWithDelta(130.0, $rows[0]->cert, 0.001);   // 65 + (85 − 20)
+        $this->assertEqualsWithDelta(330.0, $rows[0]->total, 0.001);  // 120 + 80 + 130
     }
 
-    public function test_empty_period_gives_zeros(): void
+    public function test_only_masters_with_visits_ordered_by_sort(): void
     {
         $alex = $this->master('Александр', 'aleksandr', 1, 35);
-        $this->visit($alex, 100, now()->subDay());   // только вчера
+        $anna = $this->master('Анна', 'anna', 2, 35);
+        $this->master('Пётр', 'petr', 3, 35);   // без визитов — не показываем
 
-        $s = MasterEarningsSummary::summarize(Visit::query()->whereDate('performed_at', today()));
+        $this->visit($anna, 200, now());
+        $this->visit($alex, 100, now());
 
-        $this->assertSame(0, $s->count);
-        $this->assertEqualsWithDelta(0.0, $s->total, 0.001);
-        $this->assertEqualsWithDelta(0.0, $s->cash, 0.001);
-        $this->assertEqualsWithDelta(0.0, $s->card, 0.001);
-        $this->assertEqualsWithDelta(0.0, $s->cert, 0.001);
+        $rows = MasterEarningsSummary::summarize(Visit::query()->whereDate('performed_at', today()));
+
+        $this->assertCount(2, $rows);
+        $this->assertSame(['Александр', 'Анна'], $rows->pluck('name')->all()); // по sort_order
+        $this->assertEqualsWithDelta(100.0, $rows[0]->total, 0.001);
+        $this->assertEqualsWithDelta(200.0, $rows[1]->total, 0.001);
     }
 
-    public function test_page_renders_widget_with_totals(): void
+    public function test_page_renders_card_with_total_and_split(): void
     {
         $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
         $alex = $this->master('Александр Марков', 'aleksandr', 1, 35);
@@ -95,11 +100,9 @@ class MasterEarningsSummaryTest extends TestCase
 
         Livewire::test(ListVisits::class)
             ->assertSuccessful()
-            ->assertSee('Заработано за период')
-            ->assertSee('180.00')            // общая сумма
-            ->assertSee('Наличными')
-            ->assertSee('100.00')            // нал
-            ->assertSee('Безналом')
-            ->assertSee('80.00');            // безнал
+            ->assertSee('Александр Марков')
+            ->assertSee('180.00')            // общая сумма мастера
+            ->assertSee('2 визита')
+            ->assertSee('Нал');              // разбивка снизу
     }
 }
