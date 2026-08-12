@@ -9,6 +9,9 @@
                 <div style="font-size:1.875rem; font-weight:700; line-height:1.2; margin-top:.25rem;">
                     {{ $this->money($s->services) }} р
                 </div>
+                <div style="font-size:.75rem; opacity:.5; margin-top:.25rem;">
+                    для расчёта зарплаты мастеров · это не реальная оплата (касса — рядом)
+                </div>
             </div>
 
             {{-- Реально по кассе --}}

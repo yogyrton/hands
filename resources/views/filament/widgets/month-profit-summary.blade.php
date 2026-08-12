@@ -11,9 +11,9 @@
                     {{ $this->money($s->profit) }} р
                 </div>
                 <div style="font-size:.8rem; opacity:.6; margin-top:.35rem;">
-                    после налога {{ $this->money($s->after_tax) }} р
+                    по кассе (реально получено) − расходы
                     @if ($s->tax_rate > 0)
-                        · налог {{ $this->money($s->tax) }} ({{ $this->taxLabel($s->tax_rate) }}%)
+                        · после налога {{ $this->money($s->after_tax) }} р ({{ $this->taxLabel($s->tax_rate) }}%)
                     @endif
                 </div>
             </div>
