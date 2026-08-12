@@ -4,36 +4,38 @@
     <x-filament::section>
         <div style="display:flex; flex-wrap:wrap; gap:1.5rem 2.5rem; align-items:flex-start;">
             {{-- Полная стоимость (для зп) — с сертификатами --}}
-            <div style="min-width:13rem;">
+            <div style="min-width:12rem;">
                 <div style="font-size:.8rem; opacity:.6;">Визиты за месяц · полная стоимость (для расчёта зп мастеров)</div>
                 <div style="font-size:1.875rem; font-weight:700; line-height:1.2; margin-top:.25rem;">
                     {{ $this->money($s->active->services) }} р
                 </div>
-                <div style="font-size:.75rem; opacity:.5; margin-top:.25rem;">
-                    массаж {{ $this->money($s->active->money) }} + сертификаты {{ $this->money($s->active->cert) }}
-                </div>
+                <div style="font-size:.75rem; opacity:.5; margin-top:.25rem;">массаж {{ $this->money($s->active->money) }}</div>
+                <div style="font-size:.75rem; opacity:.5;">сертификаты {{ $this->money($s->active->cert) }}</div>
             </div>
 
-            {{-- Массаж за деньги (без сертификатов) — как в Excel --}}
-            <div style="min-width:11rem;">
-                <div style="font-size:.8rem; opacity:.6;">Массаж за деньги (без сертификатов, как в Excel)</div>
+            {{-- Выручка только за массаж (без сертификатов) — как в Excel --}}
+            <div style="min-width:10rem;">
+                <div style="font-size:.8rem; opacity:.6;">Выручка только за массаж (без сертификатов, как в Excel)</div>
                 <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem;">
                     {{ $this->money($s->active->money) }} р
                 </div>
-                <div style="font-size:.75rem; opacity:.5; margin-top:.25rem;">
-                    по кассе получено {{ $this->money($s->active->cash) }}
+            </div>
+
+            {{-- По кассе (реально) --}}
+            <div style="min-width:9rem;">
+                <div style="font-size:.8rem; opacity:.6;">По кассе (реально)</div>
+                <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem;">
+                    {{ $this->money($s->active->cash) }} р
                 </div>
             </div>
 
             {{-- Бартер / особые условия — недобор (минус) --}}
-            <div style="min-width:9rem;">
+            <div style="min-width:8rem;">
                 <div style="font-size:.8rem; opacity:.6;">Бартер (особые условия)</div>
                 <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem; color:{{ $s->active->barter > 0 ? '#f59e0b' : 'inherit' }};">
                     {{ $s->active->barter > 0 ? '−' : '' }}{{ $this->money($s->active->barter) }} р
                 </div>
-                <div style="font-size:.75rem; opacity:.5; margin-top:.25rem;">
-                    недобор по кассе
-                </div>
+                <div style="font-size:.75rem; opacity:.5; margin-top:.25rem;">недобор по кассе</div>
             </div>
         </div>
 
