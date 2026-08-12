@@ -43,18 +43,22 @@ class MonthProfitSummaryTest extends TestCase
         ]);
     }
 
-    public function test_masters_salary_by_own_rate(): void
+    public function test_masters_breakdown_full_service_value_per_master(): void
     {
         $now = Carbon::now()->startOfMonth()->addDays(3)->setHour(12);
         $a = $this->master(35);
         $b = $this->master(40);
-        $this->visit($a, 100, $now);   // 35
-        $this->visit($b, 200, $now);   // 80
+        $this->visit($a, 100, $now);
+        $this->visit($a, 100, $now);   // Александр: наработал 200
+        $this->visit($b, 200, $now);   // второй: 200
         $this->visit($a, 100, Carbon::now()->subMonthNoOverflow());   // вне месяца
 
-        $total = MonthProfitSummary::mastersSalary(Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth());
+        $rows = MonthProfitSummary::mastersBreakdown(Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth());
 
-        $this->assertEqualsWithDelta(115.0, $total, 0.001);
+        $this->assertCount(2, $rows);
+        $this->assertEqualsWithDelta(200.0, $rows[0]->amount, 0.001);   // полная стоимость, не 35%
+        $this->assertSame(2, $rows[0]->count);
+        $this->assertEqualsWithDelta(200.0, $rows[1]->amount, 0.001);
     }
 
     public function test_renders_profit_certs_and_master_split(): void
@@ -73,7 +77,8 @@ class MonthProfitSummaryTest extends TestCase
         Livewire::test(MonthProfitSummary::class)
             ->assertSuccessful()
             ->assertSee('Прибыль за месяц')
-            ->assertSee('Мастерам')
+            ->assertSee('Наработали мастера')
+            ->assertSee('Расходы за месяц')
             ->assertSee('Продано сертификатов за месяц')
             ->assertSee('№149')
             ->assertSee('300.00');

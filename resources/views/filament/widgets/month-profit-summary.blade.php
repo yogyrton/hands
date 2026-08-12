@@ -2,9 +2,10 @@
 
 <x-filament-widgets::widget>
     <x-filament::section>
+        {{-- Верх: прибыль · в кассу · сертификаты --}}
         <div style="display:flex; flex-wrap:wrap; gap:1.5rem 2.5rem; align-items:flex-start;">
             {{-- Прибыль --}}
-            <div style="min-width:12rem;">
+            <div style="min-width:11rem;">
                 <div style="font-size:.8rem; opacity:.6;">Прибыль за месяц</div>
                 <div style="font-size:1.875rem; font-weight:700; line-height:1.2; margin-top:.25rem; color:{{ $s->profit >= 0 ? '#22c55e' : '#ef4444' }};">
                     {{ $this->money($s->profit) }} р
@@ -14,12 +15,11 @@
                     @if ($s->tax_rate > 0)
                         · налог {{ $this->money($s->tax) }} ({{ $this->taxLabel($s->tax_rate) }}%)
                     @endif
-                    · расходы {{ $this->money($s->expenses) }}
                 </div>
             </div>
 
-            {{-- По кассе + по мастерам --}}
-            <div style="min-width:11rem;">
+            {{-- В кассу --}}
+            <div style="min-width:10rem;">
                 <div style="font-size:.8rem; opacity:.6;">В кассу за месяц</div>
                 <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem;">
                     {{ $this->money($s->revenue) }} р
@@ -27,14 +27,9 @@
                 <div style="font-size:.8rem; opacity:.6; margin-top:.35rem;">
                     визиты {{ $this->money($s->revenue_visits) }} + серт. {{ $this->money($s->revenue_certs) }}
                 </div>
-
-                <div style="font-size:.8rem; opacity:.6; margin-top:.75rem;">Мастерам (грязными)</div>
-                <div style="font-size:1.25rem; font-weight:600; margin-top:.15rem;">
-                    {{ $this->money($s->masters_total) }} р
-                </div>
             </div>
 
-            {{-- Сертификаты за месяц + список --}}
+            {{-- Сертификаты + список --}}
             <div style="min-width:15rem; flex:1;">
                 <div style="font-size:.8rem; opacity:.6;">Продано сертификатов за месяц</div>
                 <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem;">
@@ -55,6 +50,36 @@
                 @else
                     <div style="opacity:.55; font-size:.9rem; margin-top:.4rem;">за месяц продаж нет</div>
                 @endif
+            </div>
+        </div>
+
+        {{-- Низ: наработка по мастерам + расходы --}}
+        <div style="margin-top:1.25rem; padding-top:.9rem; border-top:1px solid rgba(128,128,128,.2);
+                    display:flex; flex-wrap:wrap; gap:1.25rem 2.5rem; align-items:flex-start; justify-content:space-between;">
+            {{-- По мастерам (наработали) --}}
+            <div style="min-width:14rem; flex:1;">
+                <div style="font-size:.8rem; opacity:.6; margin-bottom:.4rem;">Наработали мастера (полная стоимость услуг)</div>
+                @if ($s->masters->isNotEmpty())
+                    <div style="display:flex; flex-wrap:wrap; gap:.4rem 1.5rem;">
+                        @foreach ($s->masters as $m)
+                            <div style="display:flex; align-items:baseline; gap:.5rem; min-width:11rem;">
+                                <span>{{ $m->name }}</span>
+                                <span style="opacity:.5; font-size:.8rem;">· {{ $m->count }}</span>
+                                <span style="margin-left:auto; font-weight:600;">{{ $this->money($m->amount) }} р</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div style="opacity:.55; font-size:.9rem;">визитов за месяц нет</div>
+                @endif
+            </div>
+
+            {{-- Расходы --}}
+            <div style="min-width:9rem; text-align:right;">
+                <div style="font-size:.8rem; opacity:.6;">Расходы за месяц (в журнале)</div>
+                <div style="font-size:1.25rem; font-weight:600; margin-top:.15rem;">
+                    {{ $this->money($s->expenses) }} р
+                </div>
             </div>
         </div>
     </x-filament::section>

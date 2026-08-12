@@ -47,36 +47,45 @@ class MonthProfitSummary extends Widget
             'revenue_visits' => $pnl['revenue_visits'],
             'revenue_certs' => $pnl['revenue_certs'],
             'expenses' => $pnl['expenses_journal'],
-            'masters_total' => static::mastersSalary($from, $until),
+            'masters' => static::mastersBreakdown($from, $until),
             'certs' => static::soldCertificates($from, $until),
         ];
     }
 
     /**
-     * Доля мастеров за месяц «грязными»: сумма услуг × ставка каждого.
+     * Сколько наработал каждый мастер за месяц — полная стоимость его услуг
+     * (service_price), без зарплаты. Только мастера с визитами, по сортировке.
+     *
+     * @return \Illuminate\Support\Collection<int, object>
      */
-    public static function mastersSalary(\DateTimeInterface $from, \DateTimeInterface $until): float
+    public static function mastersBreakdown(\DateTimeInterface $from, \DateTimeInterface $until): \Illuminate\Support\Collection
     {
         $rows = Visit::query()
             ->whereBetween('performed_at', [$from, $until])
             ->toBase()
-            ->selectRaw('master_id, COALESCE(SUM(service_price), 0) as services')
+            ->selectRaw('master_id, COALESCE(SUM(service_price), 0) as services, COUNT(*) as cnt')
             ->groupBy('master_id')
             ->get();
 
         if ($rows->isEmpty()) {
-            return 0.0;
+            return collect();
         }
 
         $masters = Master::query()->whereIn('id', $rows->pluck('master_id'))->get()->keyBy('id');
 
-        $total = 0.0;
-        foreach ($rows as $row) {
-            $rate = (float) ($masters->get($row->master_id)?->salary_rate ?? 0);
-            $total += (float) $row->services * $rate / 100;
-        }
+        return $rows
+            ->map(function (object $row) use ($masters): object {
+                $master = $masters->get($row->master_id);
 
-        return round($total, 2);
+                return (object) [
+                    'name' => $master?->name ?? 'Мастер',
+                    'amount' => round((float) $row->services, 2),
+                    'count' => (int) $row->cnt,
+                    'sort' => $master?->sort_order ?? 999,
+                ];
+            })
+            ->sortBy('sort')
+            ->values();
     }
 
     /**
