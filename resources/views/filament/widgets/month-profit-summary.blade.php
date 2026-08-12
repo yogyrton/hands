@@ -59,7 +59,7 @@
             {{-- По мастерам (наработали) --}}
             <div style="min-width:14rem; flex:1;">
                 <div style="font-size:.8rem; opacity:.6; margin-bottom:.4rem;">
-                    Наработали мастера · полная стоимость услуг (выработка, не касса)
+                    Наработали мастера · полная стоимость (база зарплаты, вкл. визиты по сертификату; не касса)
                 </div>
                 @if ($s->masters->isNotEmpty())
                     <div style="display:flex; flex-wrap:wrap; gap:.4rem 1.5rem;">
