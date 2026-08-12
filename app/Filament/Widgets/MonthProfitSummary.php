@@ -62,8 +62,6 @@ class MonthProfitSummary extends Widget
     {
         $rows = Visit::query()
             ->whereBetween('performed_at', [$from, $until])
-            // Только активные мастера — ушедших не показываем и в базу зп не берём.
-            ->whereHas('master', fn ($q) => $q->where('is_active', true))
             ->toBase()
             ->selectRaw('master_id, COALESCE(SUM(service_price), 0) as services, COUNT(*) as cnt')
             ->groupBy('master_id')

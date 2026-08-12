@@ -47,10 +47,9 @@ class MonthRevenueSummary extends Widget
      */
     public static function monthSummary(\DateTimeInterface $from, \DateTimeInterface $until): object
     {
-        // Только активные мастера: ушедших/неактивных в расчёт зарплаты не берём.
-        $all = fn () => Visit::query()
-            ->whereBetween('performed_at', [$from, $until])
-            ->whereHas('master', fn ($q) => $q->where('is_active', true));
+        // Считаем всех мастеров, кто делал визиты в периоде: работа сделана —
+        // зарплата положена, даже если мастер потом стал неактивным.
+        $all = fn () => Visit::query()->whereBetween('performed_at', [$from, $until]);
         $certTypes = ['certificate', 'certificate_external', 'certificate_surcharge'];
 
         // Полная стоимость всех визитов — база зарплаты мастеров.
