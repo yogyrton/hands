@@ -17,11 +17,12 @@ class MonthRevenueSummaryTest extends TestCase
 {
     use RefreshDatabase;
 
-    private function master(): Master
+    private function master(bool $active = true): Master
     {
         return Master::create([
             'slug' => 'a-'.uniqid(), 'name' => 'Мастер', 'name_dative' => 'Мастеру', 'role' => 'Массажист',
             'yclients_url' => 'https://e.com', 'bio1' => 'a', 'bio2' => 'b', 'salary_rate' => 35, 'sort_order' => 1,
+            'is_active' => $active,
         ]);
     }
 
@@ -68,5 +69,21 @@ class MonthRevenueSummaryTest extends TestCase
         $this->assertEqualsWithDelta($s->services, $s->cash + $s->barter + $s->cert, 0.001);
         $this->assertCount(2, $s->bartes);
         $this->assertSame('Василий Парусов', $s->bartes[0]->discount_reason);
+    }
+
+    public function test_inactive_master_visits_excluded(): void
+    {
+        $now = Carbon::now()->startOfMonth()->addDays(4)->setHour(11);
+        $active = $this->master(true);
+        $gone = $this->master(false);
+
+        $this->visit($active, 100, 100, PaymentType::Cash, $now);
+        // Визит ушедшего мастера (по сертификату, 80) — в расчёт не идёт.
+        $this->visit($gone, 80, 0, PaymentType::Certificate, $now);
+
+        $s = MonthRevenueSummary::monthSummary(Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth());
+
+        $this->assertEqualsWithDelta(100.0, $s->services, 0.001);   // без 80 ушедшего
+        $this->assertEqualsWithDelta(0.0, $s->cert, 0.001);         // сертификатный визит ушедшего исключён
     }
 }
