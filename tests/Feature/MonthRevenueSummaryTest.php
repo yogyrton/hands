@@ -41,7 +41,7 @@ class MonthRevenueSummaryTest extends TestCase
         ], $attributes));
     }
 
-    public function test_services_cash_diff_and_bartes(): void
+    public function test_full_price_splits_into_cash_barter_and_cert(): void
     {
         $m = $this->master();
         $now = Carbon::now()->startOfMonth()->addDays(5)->setHour(12);
@@ -52,16 +52,20 @@ class MonthRevenueSummaryTest extends TestCase
         // Два бартера: по кассе меньше полной стоимости.
         $this->visit($m, 55, 23, PaymentType::Cash, $now, ['discount_reason' => 'Василий Парусов']);
         $this->visit($m, 65, 23, PaymentType::Cash, $now, ['discount_reason' => 'Парусова Оксана']);
-        // Визит по сертификату — в выручку деньгами не входит.
+        // Визит по сертификату — стоимость покрыта сертификатом (в кассу 0).
         $this->visit($m, 80, 0, PaymentType::Certificate, $now);
         // Прошлый месяц — вне периода.
         $this->visit($m, 100, 100, PaymentType::Cash, Carbon::now()->subMonthNoOverflow()->startOfMonth());
 
         $s = MonthRevenueSummary::monthSummary(Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth());
 
-        $this->assertEqualsWithDelta(240.0, $s->services, 0.001);  // 65+55+55+65 (без сертификата)
-        $this->assertEqualsWithDelta(166.0, $s->cash, 0.001);      // 65+55+23+23
-        $this->assertEqualsWithDelta(74.0, $s->diff, 0.001);       // 32 + 42
+        // Полная стоимость всех визитов (база зарплаты), включая по сертификату.
+        $this->assertEqualsWithDelta(320.0, $s->services, 0.001);  // 65+55+55+65+80
+        $this->assertEqualsWithDelta(166.0, $s->cash, 0.001);      // 65+55+23+23+0
+        $this->assertEqualsWithDelta(74.0, $s->barter, 0.001);     // 32 + 42
+        $this->assertEqualsWithDelta(80.0, $s->cert, 0.001);       // визит по сертификату
+        // Инвариант: касса + бартер + сертификаты = полная стоимость.
+        $this->assertEqualsWithDelta($s->services, $s->cash + $s->barter + $s->cert, 0.001);
         $this->assertCount(2, $s->bartes);
         $this->assertSame('Василий Парусов', $s->bartes[0]->discount_reason);
     }

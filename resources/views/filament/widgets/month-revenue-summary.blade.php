@@ -3,27 +3,38 @@
 <x-filament-widgets::widget>
     <x-filament::section>
         <div style="display:flex; flex-wrap:wrap; gap:1.5rem 2.5rem; align-items:flex-start;">
-            {{-- Полная стоимость услуг (как в Excel), массаж за деньги --}}
-            <div style="min-width:13rem;">
-                <div style="font-size:.8rem; opacity:.6;">Визиты за месяц · полная стоимость (как в Excel, для расчёта зп мастеров)</div>
+            {{-- Полная стоимость всех визитов — база зарплаты мастеров --}}
+            <div style="min-width:14rem;">
+                <div style="font-size:.8rem; opacity:.6;">Визиты за месяц · полная стоимость (для расчёта зп мастеров)</div>
                 <div style="font-size:1.875rem; font-weight:700; line-height:1.2; margin-top:.25rem;">
                     {{ $this->money($s->services) }} р
                 </div>
+                <div style="font-size:.75rem; opacity:.5; margin-top:.25rem;">
+                    = по кассе + бартер + сертификаты
+                </div>
             </div>
 
-            {{-- Реально по кассе --}}
-            <div style="min-width:9rem;">
+            {{-- По кассе --}}
+            <div style="min-width:8rem;">
                 <div style="font-size:.8rem; opacity:.6;">По кассе (реально получено)</div>
                 <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem;">
                     {{ $this->money($s->cash) }} р
                 </div>
             </div>
 
-            {{-- Разница --}}
-            <div style="min-width:9rem;">
-                <div style="font-size:.8rem; opacity:.6;">Разница (особые условия)</div>
-                <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem; color:{{ $s->diff > 0 ? '#f59e0b' : 'inherit' }};">
-                    {{ $s->diff > 0 ? '−' : '' }}{{ $this->money($s->diff) }} р
+            {{-- Бартер / особые условия --}}
+            <div style="min-width:8rem;">
+                <div style="font-size:.8rem; opacity:.6;">Бартер (особые условия)</div>
+                <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem; color:{{ $s->barter > 0 ? '#f59e0b' : 'inherit' }};">
+                    {{ $this->money($s->barter) }} р
+                </div>
+            </div>
+
+            {{-- Визиты по сертификату --}}
+            <div style="min-width:8rem;">
+                <div style="font-size:.8rem; opacity:.6;">По сертификатам (визиты)</div>
+                <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem;">
+                    {{ $this->money($s->cert) }} р
                 </div>
             </div>
         </div>
