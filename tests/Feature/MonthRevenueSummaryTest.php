@@ -66,6 +66,9 @@ class MonthRevenueSummaryTest extends TestCase
         $this->assertEqualsWithDelta(74.0, $s->active->barter, 0.001);     // 32 + 42
         $this->assertEqualsWithDelta(80.0, $s->active->cert, 0.001);       // визит по сертификату
         $this->assertEqualsWithDelta(240.0, $s->active->money, 0.001);     // массаж за деньги (касса+бартер, без серт)
+        $this->assertEqualsWithDelta(111.0, $s->active->nal, 0.001);       // 65 + 23 + 23
+        $this->assertEqualsWithDelta(55.0, $s->active->card, 0.001);       // 55
+        $this->assertEqualsWithDelta($s->active->cash, $s->active->nal + $s->active->card, 0.001);
         // Инвариант: касса + бартер + сертификаты = полная стоимость.
         $this->assertEqualsWithDelta($s->active->services, $s->active->cash + $s->active->barter + $s->active->cert, 0.001);
         $this->assertCount(2, $s->bartes);
