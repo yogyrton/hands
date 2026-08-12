@@ -18,14 +18,17 @@
                 </div>
             </div>
 
-            {{-- В кассу --}}
+            {{-- Выручка студии (реальные деньги) --}}
             <div style="min-width:10rem;">
-                <div style="font-size:.8rem; opacity:.6;">В кассу за месяц</div>
+                <div style="font-size:.8rem; opacity:.6;">Выручка студии за месяц</div>
                 <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem;">
                     {{ $this->money($s->revenue) }} р
                 </div>
                 <div style="font-size:.8rem; opacity:.6; margin-top:.35rem;">
-                    визиты {{ $this->money($s->revenue_visits) }} + серт. {{ $this->money($s->revenue_certs) }}
+                    визиты по кассе {{ $this->money($s->revenue_visits) }} + сертификаты {{ $this->money($s->revenue_certs) }}
+                </div>
+                <div style="font-size:.75rem; opacity:.5; margin-top:.15rem;">
+                    визиты по сертификату = 0 (деньги при продаже) · доплаты по серту учтены
                 </div>
             </div>
 
@@ -59,7 +62,7 @@
             {{-- По мастерам (наработали) --}}
             <div style="min-width:14rem; flex:1;">
                 <div style="font-size:.8rem; opacity:.6; margin-bottom:.4rem;">
-                    Наработали мастера · полная стоимость услуг (выработка, не касса)
+                    Наработали мастера · полная стоимость (база зарплаты, вкл. визиты по сертификату; не касса)
                 </div>
                 @if ($s->masters->isNotEmpty())
                     <div style="display:flex; flex-wrap:wrap; gap:.4rem 1.5rem;">
