@@ -58,7 +58,9 @@
                     display:flex; flex-wrap:wrap; gap:1.25rem 2.5rem; align-items:flex-start; justify-content:space-between;">
             {{-- По мастерам (наработали) --}}
             <div style="min-width:14rem; flex:1;">
-                <div style="font-size:.8rem; opacity:.6; margin-bottom:.4rem;">Наработали мастера (полная стоимость услуг)</div>
+                <div style="font-size:.8rem; opacity:.6; margin-bottom:.4rem;">
+                    Наработали мастера · полная стоимость услуг (выработка, не касса)
+                </div>
                 @if ($s->masters->isNotEmpty())
                     <div style="display:flex; flex-wrap:wrap; gap:.4rem 1.5rem;">
                         @foreach ($s->masters as $m)
@@ -68,6 +70,10 @@
                                 <span style="margin-left:auto; font-weight:600;">{{ $this->money($m->amount) }} р</span>
                             </div>
                         @endforeach
+                    </div>
+                    <div style="margin-top:.5rem; font-size:.9rem;">
+                        <span style="opacity:.6;">Итого наработали:</span>
+                        <span style="font-weight:700;">{{ $this->money($s->masters->sum('amount')) }} р</span>
                     </div>
                 @else
                     <div style="opacity:.55; font-size:.9rem;">визитов за месяц нет</div>
