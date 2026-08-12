@@ -39,6 +39,13 @@
             </div>
         </div>
 
+        {{-- Массаж за деньги (без сертификатов) — «как в Excel» --}}
+        <div style="margin-top:.6rem; font-size:.85rem; opacity:.6;">
+            Массаж за деньги (без сертификатов, как в Excel):
+            <span style="font-weight:700; opacity:1;">{{ $this->money($s->active->money) }} р</span>
+            <span style="opacity:.8;">(= касса {{ $this->money($s->active->cash) }} + бартер {{ $this->money($s->active->barter) }})</span>
+        </div>
+
         {{-- Второй подсчёт: с учётом ушедших, кто отработал в этом месяце --}}
         @if ($s->inactive->services > 0)
             <div style="margin-top:.6rem; font-size:.85rem; opacity:.6;">

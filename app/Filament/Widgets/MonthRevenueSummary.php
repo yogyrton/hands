@@ -88,12 +88,17 @@ class MonthRevenueSummary extends Widget
             ->whereHas('master', fn ($q) => $q->where('is_active', $active));
         $certTypes = ['certificate', 'certificate_external', 'certificate_surcharge'];
 
+        $cash = round((float) $all()->sum('paid_amount'), 2);
+        $barter = round((float) $all()
+            ->whereIn('payment_type', ['cash', 'card'])
+            ->sum(DB::raw('service_price - paid_amount')), 2);
+
         return (object) [
             'services' => round((float) $all()->sum('service_price'), 2),
-            'cash' => round((float) $all()->sum('paid_amount'), 2),
-            'barter' => round((float) $all()
-                ->whereIn('payment_type', ['cash', 'card'])
-                ->sum(DB::raw('service_price - paid_amount')), 2),
+            'cash' => $cash,
+            'barter' => $barter,
+            // Массаж за деньги, полная стоимость (без сертификатов) — «как в Excel».
+            'money' => round($cash + $barter, 2),
             'cert' => round((float) $all()
                 ->whereIn('payment_type', $certTypes)
                 ->sum(DB::raw('service_price - paid_amount')), 2),
