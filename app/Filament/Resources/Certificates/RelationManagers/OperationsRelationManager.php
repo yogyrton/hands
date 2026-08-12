@@ -46,10 +46,6 @@ class OperationsRelationManager extends RelationManager
                 TextColumn::make('visit.service.name')
                     ->label('Услуга')
                     ->placeholder('—'),
-                TextColumn::make('visit.performed_at')
-                    ->label('Посещение')
-                    ->dateTime('d.m.Y H:i')
-                    ->placeholder('—'),
             ]);
     }
 }
