@@ -3,57 +3,45 @@
 <x-filament-widgets::widget>
     <x-filament::section>
         <div style="display:flex; flex-wrap:wrap; gap:1.5rem 2.5rem; align-items:flex-start;">
-            {{-- Полная стоимость визитов активных мастеров — база зарплаты --}}
-            <div style="min-width:14rem;">
+            {{-- Полная стоимость (для зп) — с сертификатами --}}
+            <div style="min-width:13rem;">
                 <div style="font-size:.8rem; opacity:.6;">Визиты за месяц · полная стоимость (для расчёта зп мастеров)</div>
                 <div style="font-size:1.875rem; font-weight:700; line-height:1.2; margin-top:.25rem;">
                     {{ $this->money($s->active->services) }} р
                 </div>
                 <div style="font-size:.75rem; opacity:.5; margin-top:.25rem;">
-                    = по кассе + бартер + сертификаты
+                    массаж {{ $this->money($s->active->money) }} + сертификаты {{ $this->money($s->active->cert) }}
                 </div>
             </div>
 
-            {{-- По кассе --}}
-            <div style="min-width:8rem;">
-                <div style="font-size:.8rem; opacity:.6;">По кассе (реально получено)</div>
+            {{-- Массаж за деньги (без сертификатов) — как в Excel --}}
+            <div style="min-width:11rem;">
+                <div style="font-size:.8rem; opacity:.6;">Массаж за деньги (без сертификатов, как в Excel)</div>
                 <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem;">
-                    {{ $this->money($s->active->cash) }} р
+                    {{ $this->money($s->active->money) }} р
+                </div>
+                <div style="font-size:.75rem; opacity:.5; margin-top:.25rem;">
+                    по кассе получено {{ $this->money($s->active->cash) }}
                 </div>
             </div>
 
-            {{-- Бартер / особые условия --}}
-            <div style="min-width:8rem;">
+            {{-- Бартер / особые условия — недобор (минус) --}}
+            <div style="min-width:9rem;">
                 <div style="font-size:.8rem; opacity:.6;">Бартер (особые условия)</div>
                 <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem; color:{{ $s->active->barter > 0 ? '#f59e0b' : 'inherit' }};">
-                    {{ $this->money($s->active->barter) }} р
+                    {{ $s->active->barter > 0 ? '−' : '' }}{{ $this->money($s->active->barter) }} р
+                </div>
+                <div style="font-size:.75rem; opacity:.5; margin-top:.25rem;">
+                    недобор по кассе
                 </div>
             </div>
-
-            {{-- Визиты по сертификату --}}
-            <div style="min-width:8rem;">
-                <div style="font-size:.8rem; opacity:.6;">По сертификатам (визиты)</div>
-                <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem;">
-                    {{ $this->money($s->active->cert) }} р
-                </div>
-            </div>
-        </div>
-
-        {{-- Массаж за деньги (без сертификатов) — «как в Excel» --}}
-        <div style="margin-top:.6rem; font-size:.85rem; opacity:.6;">
-            Массаж за деньги (без сертификатов, как в Excel):
-            <span style="font-weight:700; opacity:1;">{{ $this->money($s->active->money) }} р</span>
-            <span style="opacity:.8;">(= касса {{ $this->money($s->active->cash) }} + бартер {{ $this->money($s->active->barter) }})</span>
         </div>
 
         {{-- Второй подсчёт: с учётом ушедших, кто отработал в этом месяце --}}
         @if ($s->inactive->services > 0)
-            <div style="margin-top:.6rem; font-size:.85rem; opacity:.6;">
+            <div style="margin-top:.75rem; font-size:.85rem; opacity:.6;">
                 С учётом ушедших мастеров (отработали в этом месяце):
                 <span style="font-weight:700; opacity:1;">{{ $this->money($s->total->services) }} р</span>
-                <span style="opacity:.8;">
-                    (касса {{ $this->money($s->total->cash) }} + бартер {{ $this->money($s->total->barter) }} + серт. {{ $this->money($s->total->cert) }})
-                </span>
                 · неактивные добавили {{ $this->money($s->inactive->services) }} р
             </div>
         @endif
