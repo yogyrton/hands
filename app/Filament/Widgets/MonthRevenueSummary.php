@@ -8,16 +8,18 @@ use App\Models\Visit;
 use Filament\Widgets\Widget;
 use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\DB;
 
 /**
- * Широкий блок выручки за месяц на главной. Показывает:
- *  — полную стоимость услуг деньгами (service_price) — как в Excel;
- *  — реально полученное по кассе (paid_amount);
- *  — разницу и её расшифровку по бартерам (визиты, где по кассе меньше полной цены).
+ * Широкий блок «полная стоимость визитов за месяц» — база для расчёта зарплаты
+ * мастеров (service_price по ВСЕМ визитам, включая по сертификату). Раскладывается
+ * ровно на три части, которые в сумме дают полную:
+ *  — по кассе (реально полученные деньги за визиты);
+ *  — бартер / особые условия (недобор по кассе на денежных визитах) + расшифровка;
+ *  — визиты по сертификату (стоимость, покрытая сертификатом; деньги — при продаже).
  *
- * Учитываются визиты живыми деньгами (нал/карта). Прибыль/налог считаются
- * отдельно и от кассы (см. DashboardStats) — этот блок только про выручку.
- * Финансы видит только администратор.
+ * Это НЕ выручка студии (выручка = деньги = касса + продажи сертификатов, см.
+ * блок «Итоги месяца»). Финансы видит только администратор.
  */
 class MonthRevenueSummary extends Widget
 {
@@ -38,25 +40,39 @@ class MonthRevenueSummary extends Widget
     }
 
     /**
-     * Свод по массажу (без сертификатов): полная стоимость услуг, реально по
-     * кассе и разница по особым условиям. Продажи сертификатов — отдельный блок.
+     * Полная стоимость визитов за месяц (база зарплаты) и её разложение на кассу,
+     * бартер и сертификаты. Инвариант: cash + barter + cert = services.
      *
-     * @return object{services: float, cash: float, diff: float, bartes: Collection<int, Visit>}
+     * @return object{services: float, cash: float, barter: float, cert: float, bartes: Collection<int, Visit>}
      */
     public static function monthSummary(\DateTimeInterface $from, \DateTimeInterface $until): object
     {
-        // Живые деньги за визиты: нал/карта (визиты по сертификату сюда не входят —
-        // деньги за них получены при продаже сертификата).
-        $money = fn () => Visit::query()
+        // Только активные мастера: ушедших/неактивных в расчёт зарплаты не берём.
+        $all = fn () => Visit::query()
             ->whereBetween('performed_at', [$from, $until])
-            ->whereIn('payment_type', ['cash', 'card']);
+            ->whereHas('master', fn ($q) => $q->where('is_active', true));
+        $certTypes = ['certificate', 'certificate_external', 'certificate_surcharge'];
 
-        $services = (float) $money()->sum('service_price');   // полная стоимость (как в Excel)
-        $cash = (float) $money()->sum('paid_amount');         // реально по кассе за визиты
+        // Полная стоимость всех визитов — база зарплаты мастеров.
+        $services = (float) $all()->sum('service_price');
 
-        // Особые условия: по кассе получено меньше полной стоимости услуги.
+        // Реально пришедшие за визиты деньги (нал/карта + доплаты).
+        $cash = (float) $all()->sum('paid_amount');
+
+        // Недобор по денежным визитам (бартер/особые условия).
+        $barter = (float) $all()
+            ->whereIn('payment_type', ['cash', 'card'])
+            ->sum(DB::raw('service_price - paid_amount'));
+
+        // Стоимость, покрытая сертификатами (визиты по сертификату).
+        $cert = (float) $all()
+            ->whereIn('payment_type', $certTypes)
+            ->sum(DB::raw('service_price - paid_amount'));
+
+        // Расшифровка бартеров: денежные визиты, где по кассе меньше полной стоимости.
         /** @var Collection<int, Visit> $bartes */
-        $bartes = $money()
+        $bartes = $all()
+            ->whereIn('payment_type', ['cash', 'card'])
             ->whereColumn('paid_amount', '<', 'service_price')
             ->with(['service', 'master'])
             ->orderBy('performed_at')
@@ -65,7 +81,8 @@ class MonthRevenueSummary extends Widget
         return (object) [
             'services' => round($services, 2),
             'cash' => round($cash, 2),
-            'diff' => round($services - $cash, 2),
+            'barter' => round($barter, 2),
+            'cert' => round($cert, 2),
             'bartes' => $bartes,
         ];
     }
