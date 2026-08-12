@@ -25,7 +25,7 @@ class MonthRevenueSummary extends Widget
 
     protected int|string|array $columnSpan = 'full';
 
-    protected static ?int $sort = -4;
+    protected static ?int $sort = -5;
 
     public static function canView(): bool
     {
@@ -38,19 +38,23 @@ class MonthRevenueSummary extends Widget
     }
 
     /**
+     * Свод по массажу (без сертификатов): полная стоимость услуг, реально по
+     * кассе и разница по особым условиям. Продажи сертификатов — отдельный блок.
+     *
      * @return object{services: float, cash: float, diff: float, bartes: Collection<int, Visit>}
      */
     public static function monthSummary(\DateTimeInterface $from, \DateTimeInterface $until): object
     {
-        // Живые деньги: нал/карта (визиты по сертификату сюда не входят).
+        // Живые деньги за визиты: нал/карта (визиты по сертификату сюда не входят —
+        // деньги за них получены при продаже сертификата).
         $money = fn () => Visit::query()
             ->whereBetween('performed_at', [$from, $until])
             ->whereIn('payment_type', ['cash', 'card']);
 
         $services = (float) $money()->sum('service_price');   // полная стоимость (как в Excel)
-        $cash = (float) $money()->sum('paid_amount');         // реально по кассе
+        $cash = (float) $money()->sum('paid_amount');         // реально по кассе за визиты
 
-        // Бартеры/договорные скидки: по кассе получено меньше полной стоимости.
+        // Особые условия: по кассе получено меньше полной стоимости услуги.
         /** @var Collection<int, Visit> $bartes */
         $bartes = $money()
             ->whereColumn('paid_amount', '<', 'service_price')
