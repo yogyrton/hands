@@ -41,7 +41,7 @@ class DashboardStats extends StatsOverviewWidget
 
         return [
             Stat::make('Прибыль', $this->money($pnl['profit']))
-                ->description('выручка по кассе '.$this->money($pnl['revenue']).' · после налога '.$this->money($pnl['profit_after_tax']))
+                ->description('в кассу '.$this->money($pnl['revenue']).' (визиты '.$this->money($pnl['revenue_visits']).' + серт. '.$this->money($pnl['revenue_certs']).') − расходы '.$this->money($pnl['expenses_journal']))
                 ->color($pnl['profit'] >= 0 ? 'success' : 'danger'),
             Stat::make('Продано сертификатов', $this->money($pnl['revenue_certs']))
                 ->description('за месяц, по дате продажи')

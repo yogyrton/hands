@@ -3,9 +3,9 @@
 <x-filament-widgets::widget>
     <x-filament::section>
         <div style="display:flex; flex-wrap:wrap; gap:1.5rem 2.5rem; align-items:flex-start;">
-            {{-- Полная стоимость услуг (как в Excel) --}}
+            {{-- Полная стоимость услуг (как в Excel), только массаж --}}
             <div style="min-width:13rem;">
-                <div style="font-size:.8rem; opacity:.6;">Выручка за месяц · полная стоимость (как в Excel)</div>
+                <div style="font-size:.8rem; opacity:.6;">Массаж за месяц · полная стоимость (как в Excel, без сертификатов)</div>
                 <div style="font-size:1.875rem; font-weight:700; line-height:1.2; margin-top:.25rem;">
                     {{ $this->money($s->services) }} р
                 </div>
@@ -21,7 +21,7 @@
 
             {{-- Разница --}}
             <div style="min-width:9rem;">
-                <div style="font-size:.8rem; opacity:.6;">Разница (бартеры)</div>
+                <div style="font-size:.8rem; opacity:.6;">Разница (особые условия)</div>
                 <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem; color:{{ $s->diff > 0 ? '#f59e0b' : 'inherit' }};">
                     {{ $s->diff > 0 ? '−' : '' }}{{ $this->money($s->diff) }} р
                 </div>
