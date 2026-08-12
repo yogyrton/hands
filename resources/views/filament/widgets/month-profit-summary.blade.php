@@ -1,0 +1,61 @@
+@php($s = $this->summary())
+
+<x-filament-widgets::widget>
+    <x-filament::section>
+        <div style="display:flex; flex-wrap:wrap; gap:1.5rem 2.5rem; align-items:flex-start;">
+            {{-- Прибыль --}}
+            <div style="min-width:12rem;">
+                <div style="font-size:.8rem; opacity:.6;">Прибыль за месяц</div>
+                <div style="font-size:1.875rem; font-weight:700; line-height:1.2; margin-top:.25rem; color:{{ $s->profit >= 0 ? '#22c55e' : '#ef4444' }};">
+                    {{ $this->money($s->profit) }} р
+                </div>
+                <div style="font-size:.8rem; opacity:.6; margin-top:.35rem;">
+                    после налога {{ $this->money($s->after_tax) }} р
+                    @if ($s->tax_rate > 0)
+                        · налог {{ $this->money($s->tax) }} ({{ $this->taxLabel($s->tax_rate) }}%)
+                    @endif
+                    · расходы {{ $this->money($s->expenses) }}
+                </div>
+            </div>
+
+            {{-- По кассе + по мастерам --}}
+            <div style="min-width:11rem;">
+                <div style="font-size:.8rem; opacity:.6;">В кассу за месяц</div>
+                <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem;">
+                    {{ $this->money($s->revenue) }} р
+                </div>
+                <div style="font-size:.8rem; opacity:.6; margin-top:.35rem;">
+                    визиты {{ $this->money($s->revenue_visits) }} + серт. {{ $this->money($s->revenue_certs) }}
+                </div>
+
+                <div style="font-size:.8rem; opacity:.6; margin-top:.75rem;">Мастерам (грязными)</div>
+                <div style="font-size:1.25rem; font-weight:600; margin-top:.15rem;">
+                    {{ $this->money($s->masters_total) }} р
+                </div>
+            </div>
+
+            {{-- Сертификаты за месяц + список --}}
+            <div style="min-width:15rem; flex:1;">
+                <div style="font-size:.8rem; opacity:.6;">Продано сертификатов за месяц</div>
+                <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem;">
+                    {{ $this->money($s->revenue_certs) }} р
+                </div>
+
+                @if ($s->certs->isNotEmpty())
+                    <div style="margin-top:.6rem; display:flex; flex-direction:column; gap:.3rem;">
+                        @foreach ($s->certs as $c)
+                            <div style="display:flex; flex-wrap:wrap; gap:.4rem .6rem; align-items:baseline; font-size:.9rem;">
+                                <span style="opacity:.55; min-width:3.5rem;">№{{ $c->number }}</span>
+                                <span style="font-weight:600;">{{ $this->money((float) $c->initial_amount) }} р</span>
+                                <span style="opacity:.55;">· {{ $this->soldDate($c) }}</span>
+                                <span style="opacity:.55;">· {{ $c->type->label() }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @else
+                    <div style="opacity:.55; font-size:.9rem; margin-top:.4rem;">за месяц продаж нет</div>
+                @endif
+            </div>
+        </div>
+    </x-filament::section>
+</x-filament-widgets::widget>
