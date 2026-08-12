@@ -81,6 +81,7 @@ class MonthProfitSummary extends Widget
                     'name' => $master?->name ?? 'Мастер',
                     'amount' => round((float) $row->services, 2),
                     'count' => (int) $row->cnt,
+                    'active' => (bool) ($master?->is_active ?? false),
                     'sort' => $master?->sort_order ?? 999,
                 ];
             })

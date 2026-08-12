@@ -61,9 +61,11 @@
                 <div style="font-size:.8rem; opacity:.6; margin-bottom:.4rem;">
                     Наработали мастера · полная стоимость (база зарплаты, вкл. визиты по сертификату; не касса)
                 </div>
+                @php($activeMasters = $s->masters->where('active', true)->values())
+                @php($goneMasters = $s->masters->where('active', false)->values())
                 @if ($s->masters->isNotEmpty())
                     <div style="display:flex; flex-wrap:wrap; gap:.4rem 1.5rem;">
-                        @foreach ($s->masters as $m)
+                        @foreach ($activeMasters as $m)
                             <div style="display:flex; align-items:baseline; gap:.5rem; min-width:11rem;">
                                 <span>{{ $m->name }}</span>
                                 <span style="opacity:.5; font-size:.8rem;">· {{ $m->count }}</span>
@@ -72,9 +74,22 @@
                         @endforeach
                     </div>
                     <div style="margin-top:.5rem; font-size:.9rem;">
-                        <span style="opacity:.6;">Итого наработали:</span>
-                        <span style="font-weight:700;">{{ $this->money($s->masters->sum('amount')) }} р</span>
+                        <span style="opacity:.6;">Итого наработали (активные):</span>
+                        <span style="font-weight:700;">{{ $this->money($activeMasters->sum('amount')) }} р</span>
                     </div>
+
+                    @if ($goneMasters->isNotEmpty())
+                        <div style="margin-top:.6rem; font-size:.85rem; opacity:.6;">
+                            Ушедшие (отработали в этом месяце):
+                            @foreach ($goneMasters as $m)
+                                <span style="opacity:.9;">{{ $m->name }} · {{ $m->count }} · {{ $this->money($m->amount) }} р</span>@if (! $loop->last)<span style="opacity:.5;">, </span>@endif
+                            @endforeach
+                        </div>
+                        <div style="margin-top:.2rem; font-size:.9rem;">
+                            <span style="opacity:.6;">Итого со всеми:</span>
+                            <span style="font-weight:700;">{{ $this->money($s->masters->sum('amount')) }} р</span>
+                        </div>
+                    @endif
                 @else
                     <div style="opacity:.55; font-size:.9rem;">визитов за месяц нет</div>
                 @endif

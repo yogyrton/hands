@@ -40,37 +40,22 @@ class MonthRevenueSummary extends Widget
     }
 
     /**
-     * Полная стоимость визитов за месяц (база зарплаты) и её разложение на кассу,
-     * бартер и сертификаты. Инвариант: cash + barter + cert = services.
+     * Полная стоимость визитов за месяц (база зарплаты) с разложением на кассу,
+     * бартер и сертификаты. Считаем два подсчёта: по активным мастерам (основной)
+     * и с учётом ушедших, кто отработал в этом месяце (итог). Инвариант в каждом:
+     * cash + barter + cert = services.
      *
-     * @return object{services: float, cash: float, barter: float, cert: float, bartes: Collection<int, Visit>}
+     * @return object{active: object, inactive: object, total: object, bartes: Collection<int, Visit>}
      */
     public static function monthSummary(\DateTimeInterface $from, \DateTimeInterface $until): object
     {
-        // Считаем всех мастеров, кто делал визиты в периоде: работа сделана —
-        // зарплата положена, даже если мастер потом стал неактивным.
-        $all = fn () => Visit::query()->whereBetween('performed_at', [$from, $until]);
-        $certTypes = ['certificate', 'certificate_external', 'certificate_surcharge'];
-
-        // Полная стоимость всех визитов — база зарплаты мастеров.
-        $services = (float) $all()->sum('service_price');
-
-        // Реально пришедшие за визиты деньги (нал/карта + доплаты).
-        $cash = (float) $all()->sum('paid_amount');
-
-        // Недобор по денежным визитам (бартер/особые условия).
-        $barter = (float) $all()
-            ->whereIn('payment_type', ['cash', 'card'])
-            ->sum(DB::raw('service_price - paid_amount'));
-
-        // Стоимость, покрытая сертификатами (визиты по сертификату).
-        $cert = (float) $all()
-            ->whereIn('payment_type', $certTypes)
-            ->sum(DB::raw('service_price - paid_amount'));
+        $active = static::breakdown($from, $until, true);
+        $inactive = static::breakdown($from, $until, false);
 
         // Расшифровка бартеров: денежные визиты, где по кассе меньше полной стоимости.
         /** @var Collection<int, Visit> $bartes */
-        $bartes = $all()
+        $bartes = Visit::query()
+            ->whereBetween('performed_at', [$from, $until])
             ->whereIn('payment_type', ['cash', 'card'])
             ->whereColumn('paid_amount', '<', 'service_price')
             ->with(['service', 'master'])
@@ -78,11 +63,40 @@ class MonthRevenueSummary extends Widget
             ->get();
 
         return (object) [
-            'services' => round($services, 2),
-            'cash' => round($cash, 2),
-            'barter' => round($barter, 2),
-            'cert' => round($cert, 2),
+            'active' => $active,
+            'inactive' => $inactive,
+            'total' => (object) [
+                'services' => round($active->services + $inactive->services, 2),
+                'cash' => round($active->cash + $inactive->cash, 2),
+                'barter' => round($active->barter + $inactive->barter, 2),
+                'cert' => round($active->cert + $inactive->cert, 2),
+            ],
             'bartes' => $bartes,
+        ];
+    }
+
+    /**
+     * Разложение полной стоимости на кассу/бартер/сертификаты для мастеров
+     * с заданным статусом активности.
+     *
+     * @return object{services: float, cash: float, barter: float, cert: float}
+     */
+    private static function breakdown(\DateTimeInterface $from, \DateTimeInterface $until, bool $active): object
+    {
+        $all = fn () => Visit::query()
+            ->whereBetween('performed_at', [$from, $until])
+            ->whereHas('master', fn ($q) => $q->where('is_active', $active));
+        $certTypes = ['certificate', 'certificate_external', 'certificate_surcharge'];
+
+        return (object) [
+            'services' => round((float) $all()->sum('service_price'), 2),
+            'cash' => round((float) $all()->sum('paid_amount'), 2),
+            'barter' => round((float) $all()
+                ->whereIn('payment_type', ['cash', 'card'])
+                ->sum(DB::raw('service_price - paid_amount')), 2),
+            'cert' => round((float) $all()
+                ->whereIn('payment_type', $certTypes)
+                ->sum(DB::raw('service_price - paid_amount')), 2),
         ];
     }
 
