@@ -71,19 +71,17 @@ class MonthRevenueSummaryTest extends TestCase
         $this->assertSame('Василий Парусов', $s->bartes[0]->discount_reason);
     }
 
-    public function test_inactive_master_visits_excluded(): void
+    public function test_counts_work_of_master_who_later_left(): void
     {
+        // Мастер отработал и стал неактивным — его наработка всё равно считается
+        // (зарплату за отработанное платить надо).
         $now = Carbon::now()->startOfMonth()->addDays(4)->setHour(11);
-        $active = $this->master(true);
         $gone = $this->master(false);
 
-        $this->visit($active, 100, 100, PaymentType::Cash, $now);
-        // Визит ушедшего мастера (по сертификату, 80) — в расчёт не идёт.
-        $this->visit($gone, 80, 0, PaymentType::Certificate, $now);
+        $this->visit($gone, 100, 100, PaymentType::Cash, $now);
 
         $s = MonthRevenueSummary::monthSummary(Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth());
 
-        $this->assertEqualsWithDelta(100.0, $s->services, 0.001);   // без 80 ушедшего
-        $this->assertEqualsWithDelta(0.0, $s->cert, 0.001);         // сертификатный визит ушедшего исключён
+        $this->assertEqualsWithDelta(100.0, $s->services, 0.001);
     }
 }
