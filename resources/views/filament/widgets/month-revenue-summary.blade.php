@@ -3,14 +3,11 @@
 <x-filament-widgets::widget>
     <x-filament::section>
         <div style="display:flex; flex-wrap:wrap; gap:1.5rem 2.5rem; align-items:flex-start;">
-            {{-- Полная стоимость услуг (как в Excel), только массаж --}}
+            {{-- Полная стоимость услуг (как в Excel), массаж за деньги --}}
             <div style="min-width:13rem;">
-                <div style="font-size:.8rem; opacity:.6;">Массаж за месяц · полная стоимость (как в Excel, без сертификатов)</div>
+                <div style="font-size:.8rem; opacity:.6;">Визиты за месяц · полная стоимость (как в Excel, для расчёта зп мастеров)</div>
                 <div style="font-size:1.875rem; font-weight:700; line-height:1.2; margin-top:.25rem;">
                     {{ $this->money($s->services) }} р
-                </div>
-                <div style="font-size:.75rem; opacity:.5; margin-top:.25rem;">
-                    для расчёта зарплаты мастеров по полной стоимости массажа
                 </div>
             </div>
 
