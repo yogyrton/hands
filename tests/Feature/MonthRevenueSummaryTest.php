@@ -61,27 +61,34 @@ class MonthRevenueSummaryTest extends TestCase
         $s = MonthRevenueSummary::monthSummary(Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth());
 
         // Полная стоимость всех визитов (база зарплаты), включая по сертификату.
-        $this->assertEqualsWithDelta(320.0, $s->services, 0.001);  // 65+55+55+65+80
-        $this->assertEqualsWithDelta(166.0, $s->cash, 0.001);      // 65+55+23+23+0
-        $this->assertEqualsWithDelta(74.0, $s->barter, 0.001);     // 32 + 42
-        $this->assertEqualsWithDelta(80.0, $s->cert, 0.001);       // визит по сертификату
+        $this->assertEqualsWithDelta(320.0, $s->active->services, 0.001);  // 65+55+55+65+80
+        $this->assertEqualsWithDelta(166.0, $s->active->cash, 0.001);      // 65+55+23+23+0
+        $this->assertEqualsWithDelta(74.0, $s->active->barter, 0.001);     // 32 + 42
+        $this->assertEqualsWithDelta(80.0, $s->active->cert, 0.001);       // визит по сертификату
         // Инвариант: касса + бартер + сертификаты = полная стоимость.
-        $this->assertEqualsWithDelta($s->services, $s->cash + $s->barter + $s->cert, 0.001);
+        $this->assertEqualsWithDelta($s->active->services, $s->active->cash + $s->active->barter + $s->active->cert, 0.001);
         $this->assertCount(2, $s->bartes);
         $this->assertSame('Василий Парусов', $s->bartes[0]->discount_reason);
     }
 
-    public function test_counts_work_of_master_who_later_left(): void
+    public function test_two_counts_active_and_with_inactive(): void
     {
-        // Мастер отработал и стал неактивным — его наработка всё равно считается
-        // (зарплату за отработанное платить надо).
+        // Один активный, один ушедший (неактивный) — оба отработали в месяце.
         $now = Carbon::now()->startOfMonth()->addDays(4)->setHour(11);
+        $active = $this->master(true);
         $gone = $this->master(false);
 
-        $this->visit($gone, 100, 100, PaymentType::Cash, $now);
+        $this->visit($active, 100, 100, PaymentType::Cash, $now);
+        $this->visit($gone, 80, 0, PaymentType::Certificate, $now);   // по сертификату
 
         $s = MonthRevenueSummary::monthSummary(Carbon::now()->startOfMonth(), Carbon::now()->endOfMonth());
 
-        $this->assertEqualsWithDelta(100.0, $s->services, 0.001);
+        // Основной подсчёт — только активные.
+        $this->assertEqualsWithDelta(100.0, $s->active->services, 0.001);
+        // Ушедшие, отработавшие в месяце, — отдельно, но не теряются.
+        $this->assertEqualsWithDelta(80.0, $s->inactive->services, 0.001);
+        $this->assertEqualsWithDelta(80.0, $s->inactive->cert, 0.001);
+        // Итог — оба вместе.
+        $this->assertEqualsWithDelta(180.0, $s->total->services, 0.001);
     }
 }

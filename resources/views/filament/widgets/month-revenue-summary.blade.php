@@ -3,11 +3,11 @@
 <x-filament-widgets::widget>
     <x-filament::section>
         <div style="display:flex; flex-wrap:wrap; gap:1.5rem 2.5rem; align-items:flex-start;">
-            {{-- Полная стоимость всех визитов — база зарплаты мастеров --}}
+            {{-- Полная стоимость визитов активных мастеров — база зарплаты --}}
             <div style="min-width:14rem;">
                 <div style="font-size:.8rem; opacity:.6;">Визиты за месяц · полная стоимость (для расчёта зп мастеров)</div>
                 <div style="font-size:1.875rem; font-weight:700; line-height:1.2; margin-top:.25rem;">
-                    {{ $this->money($s->services) }} р
+                    {{ $this->money($s->active->services) }} р
                 </div>
                 <div style="font-size:.75rem; opacity:.5; margin-top:.25rem;">
                     = по кассе + бартер + сертификаты
@@ -18,15 +18,15 @@
             <div style="min-width:8rem;">
                 <div style="font-size:.8rem; opacity:.6;">По кассе (реально получено)</div>
                 <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem;">
-                    {{ $this->money($s->cash) }} р
+                    {{ $this->money($s->active->cash) }} р
                 </div>
             </div>
 
             {{-- Бартер / особые условия --}}
             <div style="min-width:8rem;">
                 <div style="font-size:.8rem; opacity:.6;">Бартер (особые условия)</div>
-                <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem; color:{{ $s->barter > 0 ? '#f59e0b' : 'inherit' }};">
-                    {{ $this->money($s->barter) }} р
+                <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem; color:{{ $s->active->barter > 0 ? '#f59e0b' : 'inherit' }};">
+                    {{ $this->money($s->active->barter) }} р
                 </div>
             </div>
 
@@ -34,10 +34,22 @@
             <div style="min-width:8rem;">
                 <div style="font-size:.8rem; opacity:.6;">По сертификатам (визиты)</div>
                 <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem;">
-                    {{ $this->money($s->cert) }} р
+                    {{ $this->money($s->active->cert) }} р
                 </div>
             </div>
         </div>
+
+        {{-- Второй подсчёт: с учётом ушедших, кто отработал в этом месяце --}}
+        @if ($s->inactive->services > 0)
+            <div style="margin-top:.6rem; font-size:.85rem; opacity:.6;">
+                С учётом ушедших мастеров (отработали в этом месяце):
+                <span style="font-weight:700; opacity:1;">{{ $this->money($s->total->services) }} р</span>
+                <span style="opacity:.8;">
+                    (касса {{ $this->money($s->total->cash) }} + бартер {{ $this->money($s->total->barter) }} + серт. {{ $this->money($s->total->cert) }})
+                </span>
+                · неактивные добавили {{ $this->money($s->inactive->services) }} р
+            </div>
+        @endif
 
         @if ($s->bartes->isNotEmpty())
             <div style="margin-top:1.25rem; border-top:1px solid rgba(128,128,128,.2); padding-top:.75rem;">
