@@ -40,12 +40,12 @@ class DashboardStats extends StatsOverviewWidget
         $taxLabel = rtrim(rtrim(number_format($pnl['tax_rate'], 2, '.', ''), '0'), '.');
 
         return [
-            Stat::make('Выручка за месяц', $this->money($pnl['revenue']))
-                ->description('визиты '.$this->money($pnl['revenue_visits']).' + сертификаты '.$this->money($pnl['revenue_certs']))
-                ->color('success'),
             Stat::make('Прибыль', $this->money($pnl['profit']))
-                ->description('после налога: '.$this->money($pnl['profit_after_tax']))
+                ->description('выручка по кассе '.$this->money($pnl['revenue']).' · после налога '.$this->money($pnl['profit_after_tax']))
                 ->color($pnl['profit'] >= 0 ? 'success' : 'danger'),
+            Stat::make('Продано сертификатов', $this->money($pnl['revenue_certs']))
+                ->description('за месяц, по дате продажи')
+                ->color('success'),
             Stat::make('Налог ('.$taxLabel.'%)', $this->money($pnl['tax']))
                 ->description('расходы в журнале: '.$this->money($pnl['expenses_journal']))
                 ->color('warning'),
