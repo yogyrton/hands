@@ -79,7 +79,7 @@ class MonthRevenueSummary extends Widget
      * Разложение полной стоимости на кассу/бартер/сертификаты для мастеров
      * с заданным статусом активности.
      *
-     * @return object{services: float, cash: float, barter: float, cert: float}
+     * @return object{services: float, cash: float, nal: float, card: float, money: float, barter: float, cert: float}
      */
     private static function breakdown(\DateTimeInterface $from, \DateTimeInterface $until, bool $active): object
     {
@@ -93,9 +93,20 @@ class MonthRevenueSummary extends Widget
             ->whereIn('payment_type', ['cash', 'card'])
             ->sum(DB::raw('service_price - paid_amount')), 2);
 
+        // Разбивка кассы: наличными / картой (прямая оплата + доплаты по серту).
+        $surchargeTypes = ['certificate_surcharge', 'certificate_external'];
+        $nal = round((float) $all()->where('payment_type', 'cash')->sum('paid_amount')
+            + (float) $all()->whereIn('payment_type', $surchargeTypes)
+                ->where('surcharge_payment_type', 'cash')->sum('paid_amount'), 2);
+        $card = round((float) $all()->where('payment_type', 'card')->sum('paid_amount')
+            + (float) $all()->whereIn('payment_type', $surchargeTypes)
+                ->where('surcharge_payment_type', 'card')->sum('paid_amount'), 2);
+
         return (object) [
             'services' => round((float) $all()->sum('service_price'), 2),
             'cash' => $cash,
+            'nal' => $nal,
+            'card' => $card,
             'barter' => $barter,
             // Массаж за деньги, полная стоимость (без сертификатов) — «как в Excel».
             'money' => round($cash + $barter, 2),

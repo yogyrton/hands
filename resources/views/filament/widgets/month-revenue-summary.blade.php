@@ -21,12 +21,14 @@
                 </div>
             </div>
 
-            {{-- По кассе (реально) --}}
+            {{-- По кассе (реально): нал / карта --}}
             <div style="min-width:9rem;">
                 <div style="font-size:.8rem; opacity:.6;">По кассе (реально)</div>
                 <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem;">
                     {{ $this->money($s->active->cash) }} р
                 </div>
+                <div style="font-size:.75rem; opacity:.5; margin-top:.25rem;">Наличные {{ $this->money($s->active->nal) }}</div>
+                <div style="font-size:.75rem; opacity:.5;">Карта {{ $this->money($s->active->card) }}</div>
             </div>
         </div>
 
