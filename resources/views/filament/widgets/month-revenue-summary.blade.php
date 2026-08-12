@@ -28,15 +28,6 @@
                     {{ $this->money($s->active->cash) }} р
                 </div>
             </div>
-
-            {{-- Бартер / особые условия — недобор (минус) --}}
-            <div style="min-width:8rem;">
-                <div style="font-size:.8rem; opacity:.6;">Бартер (особые условия)</div>
-                <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem; color:{{ $s->active->barter > 0 ? '#f59e0b' : 'inherit' }};">
-                    {{ $s->active->barter > 0 ? '−' : '' }}{{ $this->money($s->active->barter) }} р
-                </div>
-                <div style="font-size:.75rem; opacity:.5; margin-top:.25rem;">недобор по кассе</div>
-            </div>
         </div>
 
         {{-- Второй подсчёт: с учётом ушедших, кто отработал в этом месяце --}}
@@ -48,10 +39,13 @@
             </div>
         @endif
 
+        {{-- Бартер (особые условия): сумма недобора + расшифровка в одном блоке --}}
         @if ($s->bartes->isNotEmpty())
             <div style="margin-top:1.25rem; border-top:1px solid rgba(128,128,128,.2); padding-top:.75rem;">
-                <div style="font-size:.8rem; opacity:.6; margin-bottom:.5rem;">
-                    Почему разница — бартеры и договорные цены:
+                <div style="font-size:.9rem; margin-bottom:.5rem;">
+                    <span style="opacity:.6;">Бартер (особые условия):</span>
+                    <span style="color:#f59e0b; font-weight:700;">−{{ $this->money($s->active->barter) }} р</span>
+                    <span style="opacity:.5;">· недобор по кассе — почему:</span>
                 </div>
                 <div style="display:flex; flex-direction:column; gap:.4rem;">
                     @foreach ($s->bartes as $v)
