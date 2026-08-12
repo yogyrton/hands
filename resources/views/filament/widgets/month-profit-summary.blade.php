@@ -27,9 +27,6 @@
                 <div style="font-size:.8rem; opacity:.6; margin-top:.35rem;">
                     визиты по кассе {{ $this->money($s->revenue_visits) }} + сертификаты {{ $this->money($s->revenue_certs) }}
                 </div>
-                <div style="font-size:.75rem; opacity:.5; margin-top:.15rem;">
-                    визиты по сертификату = 0 (деньги при продаже) · доплаты по серту учтены
-                </div>
             </div>
 
             {{-- Сертификаты + список --}}
