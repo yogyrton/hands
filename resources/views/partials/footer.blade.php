@@ -57,6 +57,7 @@
                 <span class="h">Документы</span>
                 <a href="{{ route('privacy') }}">Политика конфиденциальности</a>
                 <a href="{{ route('cookie') }}">Политика cookie</a>
+                <a href="{{ route('certificate') }}">Положение о сертификатах</a>
                 @if($paymentReceipt)
                     <a href="{{ \Illuminate\Support\Facades\Storage::disk('public')->url($paymentReceipt) }}" target="_blank" rel="noopener">Образец документа об оплате</a>
                 @endif
