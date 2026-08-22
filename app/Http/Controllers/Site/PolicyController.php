@@ -18,4 +18,9 @@ class PolicyController extends Controller
     {
         return view('policies.cookie');
     }
+
+    public function certificate(): View
+    {
+        return view('policies.certificate');
+    }
 }

@@ -15,3 +15,4 @@ Route::get('/services/{service:slug}', [ServiceController::class, 'show'])->name
 Route::get('/masters/{master:slug}', [MasterController::class, 'show'])->name('masters.show');
 Route::get('/privacy-policy', [PolicyController::class, 'privacy'])->name('privacy');
 Route::get('/cookie-policy', [PolicyController::class, 'cookie'])->name('cookie');
+Route::get('/certificate-policy', [PolicyController::class, 'certificate'])->name('certificate');
