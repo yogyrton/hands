@@ -36,10 +36,14 @@ class PromotionTest extends TestCase
 
     private function service(float $price = 100): Service
     {
-        return Service::create([
-            'slug' => 's-'.uniqid(), 'name' => 'Услуга', 'level' => 4, 'base_price' => $price,
+        $service = Service::create([
+            'slug' => 's-'.uniqid(), 'name' => 'Услуга', 'level' => 4,
             'lead' => 'lead',
         ]);
+        // Строка прайса на 60 мин — для подстановки цены в форме посещения.
+        $service->prices()->create(['duration_minutes' => 60, 'price_master' => $price, 'price_pro' => $price]);
+
+        return $service;
     }
 
     public function test_apply_to_computes_discounted_price(): void
@@ -104,6 +108,7 @@ class PromotionTest extends TestCase
             ->fillForm([
                 'master_id' => $master->id,
                 'service_id' => $service->id,
+                'duration_minutes' => 60,
                 'use_promotion' => true,
                 'promotion_id' => $promo->id,
                 'payment_type' => 'cash',

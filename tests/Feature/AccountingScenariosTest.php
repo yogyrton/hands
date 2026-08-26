@@ -56,10 +56,14 @@ class AccountingScenariosTest extends TestCase
 
     private function service(float $price = 50): Service
     {
-        return Service::create([
+        $service = Service::create([
             'slug' => 's-'.uniqid(), 'name' => 'Классический массаж', 'level' => 4,
-            'base_price' => $price, 'lead' => 'lead',
+            'lead' => 'lead',
         ]);
+        // Строка прайса на 60 мин — форма посещения берёт цену отсюда.
+        $service->prices()->create(['duration_minutes' => 60, 'price_master' => $price, 'price_pro' => $price]);
+
+        return $service;
     }
 
     private function certificates(): CertificateServiceInterface
@@ -487,6 +491,7 @@ class AccountingScenariosTest extends TestCase
             ->fillForm([
                 'master_id' => $this->master()->id,
                 'service_id' => $this->service(50)->id,   // service_price станет 50
+                'duration_minutes' => 60,
                 'use_certificate' => true,
                 'certificate_id' => $cert->id,
             ])
@@ -539,6 +544,7 @@ class AccountingScenariosTest extends TestCase
             ->fillForm([
                 'master_id' => $this->master()->id,
                 'service_id' => $this->service(50)->id,
+                'duration_minutes' => 60,
                 'use_certificate' => true,
                 'certificate_id' => $cert->id,
                 'use_surcharge' => true,
@@ -566,6 +572,7 @@ class AccountingScenariosTest extends TestCase
             ->fillForm([
                 'master_id' => $anna->id,
                 'service_id' => $this->service(50)->id,
+                'duration_minutes' => 60,
                 'use_certificate' => true,
                 'certificate_id' => $cert->id,
                 'use_surcharge' => true,
@@ -883,6 +890,7 @@ class AccountingScenariosTest extends TestCase
             ->fillForm([
                 'master_id' => $anna->id,
                 'service_id' => $this->service(100)->id,   // base=100, итоговая=100
+                'duration_minutes' => 60,
                 'payment_type' => 'cash',
                 'use_special' => true,
                 'discount_reason' => 'Массаж себе',

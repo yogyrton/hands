@@ -3,10 +3,12 @@
 namespace App\Filament\Resources\Visits\Schemas;
 
 use App\Enums\CertificateType;
+use App\Enums\MasterTier;
 use App\Enums\PaymentType;
 use App\Models\Certificate;
+use App\Models\Master;
 use App\Models\Promotion;
-use App\Models\Service;
+use App\Models\ServicePrice;
 use Closure;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\Textarea;
@@ -19,6 +21,42 @@ use Filament\Schemas\Schema;
 
 class VisitForm
 {
+    /**
+     * Подставляет цену из прайса, когда выбраны мастер + услуга + длительность
+     * (в любом порядке). Цена берётся по должности мастера (мастер/про), затем
+     * при выбранной акции применяется скидка к итоговой. Если чего-то не хватает
+     * или строки прайса нет — ничего не трогаем (можно ввести вручную).
+     */
+    protected static function resolvePrice(Get $get, Set $set): void
+    {
+        $serviceId = $get('service_id');
+        $duration = $get('duration_minutes');
+        $masterId = $get('master_id');
+
+        if (! $serviceId || ! $duration || ! $masterId) {
+            return;
+        }
+
+        $row = ServicePrice::query()
+            ->where('service_id', $serviceId)
+            ->where('duration_minutes', $duration)
+            ->first();
+
+        if (! $row) {
+            return;
+        }
+
+        $tier = Master::find($masterId)?->tier ?? MasterTier::Master;
+        $price = $row->priceForTier($tier);
+
+        $set('base_price', $price);
+
+        $promotion = ($get('use_promotion') && $get('promotion_id'))
+            ? Promotion::find($get('promotion_id'))
+            : null;
+        $set('service_price', $promotion ? $promotion->applyTo($price) : $price);
+    }
+
     public static function configure(Schema $schema): Schema
     {
         return $schema->components([
@@ -29,20 +67,41 @@ class VisitForm
                         ->label('Мастер')
                         ->relationship('master', 'name', fn ($query) => $query->where('is_active', true))
                         ->native(false)
-                        ->required(),
+                        ->required()
+                        ->live()
+                        ->afterStateUpdated(fn (Get $get, Set $set) => self::resolvePrice($get, $set)),
                     Select::make('service_id')
                         ->label('Услуга')
                         ->relationship('service', 'name', fn ($query) => $query->where('is_active', true))
                         ->native(false)
                         ->required()
                         ->live()
-                        ->afterStateUpdated(function (Set $set, ?string $state): void {
-                            $service = $state ? Service::find($state) : null;
-                            if ($service) {
-                                $set('base_price', (float) $service->base_price);
-                                $set('service_price', (float) $service->base_price);
-                            }
+                        ->afterStateUpdated(function (Get $get, Set $set): void {
+                            // Сменили услугу — сбрасываем длительность (у другой услуги свой прайс).
+                            $set('duration_minutes', null);
+                            self::resolvePrice($get, $set);
                         }),
+                    Select::make('duration_minutes')
+                        ->label('Длительность (из прайса)')
+                        ->helperText('Цена подставится автоматически по услуге, длительности и должности мастера')
+                        ->native(false)
+                        // Поле формы, в БД не сохраняется — служит только для подстановки цены.
+                        ->dehydrated(false)
+                        ->live()
+                        ->options(function (Get $get): array {
+                            $serviceId = $get('service_id');
+                            if (! $serviceId) {
+                                return [];
+                            }
+
+                            return ServicePrice::query()
+                                ->where('service_id', $serviceId)
+                                ->orderBy('duration_minutes')
+                                ->get()
+                                ->mapWithKeys(fn (ServicePrice $p): array => [$p->duration_minutes => $p->durationLabel()])
+                                ->all();
+                        })
+                        ->afterStateUpdated(fn (Get $get, Set $set) => self::resolvePrice($get, $set)),
                     TextInput::make('base_price')
                         ->label('Базовая цена')
                         ->numeric()

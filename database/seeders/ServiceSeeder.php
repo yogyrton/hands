@@ -13,7 +13,18 @@ class ServiceSeeder extends Seeder
     {
         // Идемпотентно: по slug — есть обновляем, нет создаём.
         foreach ($this->data() as $item) {
-            Service::updateOrCreate(['slug' => $item['slug']], $item);
+            $starterPrice = $item['starter_price'] ?? null;
+            unset($item['starter_price']);
+
+            $service = Service::updateOrCreate(['slug' => $item['slug']], $item);
+
+            // Стартовая строка прайса (60 мин, одна цена для обеих должностей).
+            if ($starterPrice !== null) {
+                $service->prices()->updateOrCreate(
+                    ['duration_minutes' => 60],
+                    ['price_master' => $starterPrice, 'price_pro' => $starterPrice, 'sort_order' => 0],
+                );
+            }
         }
     }
 
@@ -27,7 +38,7 @@ class ServiceSeeder extends Seeder
                 'slug' => 'classic',
                 'name' => 'Классический массаж',
                 'level' => 4,
-                'base_price' => 65,
+                'starter_price' => 65,
                 'duration_label' => 'от 60 мин',
                 'price_label' => 'от 65 р',
                 'lead' => 'Глубокая проработка всего тела с акцентом на снятие напряжения, усталости и восстановление сил.',
@@ -54,7 +65,7 @@ class ServiceSeeder extends Seeder
                 'slug' => 'sport',
                 'name' => 'Спортивный массаж',
                 'level' => 5,
-                'base_price' => 65,
+                'starter_price' => 65,
                 'duration_label' => 'от 60 мин',
                 'price_label' => 'от 65 р',
                 'lead' => 'Короткая тренировка с личным проводником: снимаем зажимы, разгоняем кровь и возвращаем ощущение мощности.',
@@ -81,7 +92,7 @@ class ServiceSeeder extends Seeder
                 'slug' => 'relax',
                 'name' => 'Релакс-массаж',
                 'level' => 3,
-                'base_price' => 65,
+                'starter_price' => 65,
                 'duration_label' => 'от 60 мин',
                 'price_label' => 'от 65 р',
                 'lead' => 'Как укутаться в любимый плед: без спешки и усилий — только вы и спокойствие, которое возвращается естественно.',
@@ -108,7 +119,7 @@ class ServiceSeeder extends Seeder
                 'slug' => 'back',
                 'name' => 'Массаж спины',
                 'level' => 4,
-                'base_price' => 55,
+                'starter_price' => 55,
                 'duration_label' => 'от 40 мин',
                 'price_label' => 'от 55 р',
                 'lead' => 'Стоит один раз почувствовать это тонкое, почти острое облегчение — и понимаешь: для спины такие ощущения как воздух.',
@@ -135,7 +146,7 @@ class ServiceSeeder extends Seeder
                 'slug' => 'face',
                 'name' => 'Массаж лица',
                 'level' => 3,
-                'base_price' => 50,
+                'starter_price' => 50,
                 'duration_label' => 'от 40 мин',
                 'price_label' => 'от 50 р',
                 'lead' => 'Тихий, бережный диалог прикосновений, который снимает следы усталости и возвращает коже мягкость.',
@@ -162,7 +173,7 @@ class ServiceSeeder extends Seeder
                 'slug' => 'figure',
                 'name' => 'Коррекция фигуры',
                 'level' => 5,
-                'base_price' => 70,
+                'starter_price' => 70,
                 'duration_label' => 'от 60 мин',
                 'price_label' => 'от 70 р',
                 'lead' => 'Не погоня за идеалом, а бережное раскрытие того, что уже есть — ради лёгкости, свободы и удовольствия.',

@@ -149,7 +149,6 @@ class ContentAdminTest extends TestCase
                 'name' => 'Спортивный массаж',
                 'slug' => 'sport',
                 'level' => 5,
-                'base_price' => 75,
                 'duration_label' => 'от 90 мин',
                 'price_label' => 'от 75 р',
                 'sort_order' => 2,
@@ -182,7 +181,6 @@ class ContentAdminTest extends TestCase
         ]);
 
         $service = Service::query()->where('slug', 'sport')->firstOrFail();
-        $this->assertEquals(75.0, (float) $service->base_price);
         $this->assertSame(['спина', 'ноги'], $service->requests);
         $this->assertSame('Разминка', $service->includes[0]['title']);
         $this->assertSame('Как проходит', $service->details[0]['title']);
@@ -201,7 +199,6 @@ class ContentAdminTest extends TestCase
                 'name' => 'Новая услуга',
                 'slug' => 'new-s',
                 'level' => 5,
-                'base_price' => 90,
                 'duration_label' => 'от 120 мин',
                 'price_label' => 'от 90 р',
                 'lead' => 'new lead',
@@ -221,7 +218,6 @@ class ContentAdminTest extends TestCase
             'sort_order' => 7,
             'is_active' => false,
         ]);
-        $this->assertEquals(90.0, (float) $service->fresh()->base_price);
     }
 
     public function test_admin_deletes_service(): void

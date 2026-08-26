@@ -4,21 +4,22 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\MasterTier;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
+use Illuminate\Database\Eloquent\Relations\HasMany;
 use Spatie\Image\Enums\Fit;
 use Spatie\MediaLibrary\HasMedia;
 use Spatie\MediaLibrary\InteractsWithMedia;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 
 /**
- * Услуга: витрина сайта + учёт (base_price).
+ * Услуга: витрина сайта + учёт. Ценами управляет прайс (service_prices).
  *
  * @property int $id
  * @property string $slug
  * @property string $name
  * @property int $level
- * @property float $base_price
  * @property array $includes
  * @property array $requests
  * @property array $details
@@ -32,7 +33,6 @@ class Service extends Model implements HasMedia
         'slug',
         'name',
         'level',
-        'base_price',
         'duration_label',
         'price_label',
         'lead',
@@ -51,7 +51,6 @@ class Service extends Model implements HasMedia
     {
         return [
             'level' => 'integer',
-            'base_price' => 'decimal:2',
             'includes' => 'array',
             'requests' => 'array',
             'details' => 'array',
@@ -68,6 +67,42 @@ class Service extends Model implements HasMedia
         return $this->where($field ?? 'slug', $value)
             ->where('is_active', true)
             ->firstOrFail();
+    }
+
+    /**
+     * Прайс услуги: строки по длительностям с ценами для мастера и про-мастера.
+     *
+     * @return HasMany<ServicePrice>
+     */
+    public function prices(): HasMany
+    {
+        return $this->hasMany(ServicePrice::class)->orderBy('duration_minutes');
+    }
+
+    /**
+     * Строка прайса для заданной длительности (или null).
+     */
+    public function priceRow(int $durationMinutes): ?ServicePrice
+    {
+        return $this->prices->firstWhere('duration_minutes', $durationMinutes);
+    }
+
+    /**
+     * Цена услуги для длительности и должности мастера (или null, если строки нет).
+     */
+    public function priceFor(int $durationMinutes, MasterTier $tier): ?float
+    {
+        return $this->priceRow($durationMinutes)?->priceForTier($tier);
+    }
+
+    /**
+     * Минимальная цена мастера по прайсу — для витрины/SEO («от …»).
+     */
+    public function minMasterPrice(): ?float
+    {
+        $min = $this->prices->min('price_master');
+
+        return $min !== null ? (float) $min : null;
     }
 
     /**
