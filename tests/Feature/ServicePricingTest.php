@@ -88,7 +88,8 @@ class ServicePricingTest extends TestCase
         ]);
 
         Livewire::test(ListVisits::class)
-            ->assertSee('Массаж · 60 мин');
+            ->assertSee('Массаж')
+            ->assertSee('60 мин');   // отдельная колонка «Время»
     }
 
     public function test_visit_form_uses_pro_price_for_pro_master(): void
