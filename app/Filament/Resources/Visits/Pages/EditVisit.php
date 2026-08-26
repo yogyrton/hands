@@ -42,6 +42,7 @@ class EditVisit extends EditRecord
         return app(VisitServiceInterface::class)->edit($record, VisitData::from([
             'master_id' => $data['master_id'],
             'service_id' => $data['service_id'],
+            'duration_minutes' => $data['duration_minutes'] ?? null,
             'base_price' => $data['base_price'] ?? 0,
             'service_price' => $data['service_price'] ?? 0,
             'payment_type' => $data['payment_type'] ?? 'cash',

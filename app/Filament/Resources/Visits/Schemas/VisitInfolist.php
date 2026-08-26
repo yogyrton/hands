@@ -18,6 +18,7 @@ class VisitInfolist
                     TextEntry::make('performed_at')->label('Когда')->dateTime('d.m.Y H:i'),
                     TextEntry::make('master.name')->label('Мастер'),
                     TextEntry::make('service.name')->label('Услуга'),
+                    TextEntry::make('duration_minutes')->label('Длительность')->suffix(' мин')->placeholder('—'),
                     TextEntry::make('base_price')->label('Базовая цена')->suffix(' р'),
                     TextEntry::make('service_price')->label('Итоговая стоимость')->suffix(' р'),
                     TextEntry::make('paid_amount')->label('Оплачено деньгами')->suffix(' р'),

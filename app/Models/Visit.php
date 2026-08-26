@@ -21,6 +21,7 @@ class Visit extends Model
     protected $fillable = [
         'master_id',
         'service_id',
+        'duration_minutes',
         'base_price',
         'service_price',
         'paid_amount',
@@ -37,6 +38,7 @@ class Visit extends Model
     protected function casts(): array
     {
         return [
+            'duration_minutes' => 'integer',
             'base_price' => 'decimal:2',
             'service_price' => 'decimal:2',
             'paid_amount' => 'decimal:2',

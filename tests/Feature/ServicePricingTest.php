@@ -10,6 +10,7 @@ use App\Filament\Resources\Prices\Pages\EditPrice;
 use App\Filament\Resources\Prices\Pages\ListPrices;
 use App\Filament\Resources\Prices\RelationManagers\PricesRelationManager;
 use App\Filament\Resources\Visits\Pages\CreateVisit;
+use App\Filament\Resources\Visits\Pages\ListVisits;
 use App\Models\Master;
 use App\Models\Service;
 use App\Models\User;
@@ -72,6 +73,22 @@ class ServicePricingTest extends TestCase
         $visit = Visit::query()->firstOrFail();
         $this->assertEqualsWithDelta(55.0, (float) $visit->service_price, 0.001);   // цена мастера
         $this->assertEqualsWithDelta(55.0, (float) $visit->base_price, 0.001);
+        $this->assertSame(60, $visit->duration_minutes);   // длительность сохранилась
+    }
+
+    public function test_visits_list_shows_service_with_duration(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $service = $this->serviceWithPrices();
+        $master = $this->master();
+        Visit::create([
+            'master_id' => $master->id, 'service_id' => $service->id, 'duration_minutes' => 60,
+            'base_price' => 55, 'service_price' => 55, 'paid_amount' => 55,
+            'payment_type' => 'cash', 'performed_at' => now(),
+        ]);
+
+        Livewire::test(ListVisits::class)
+            ->assertSee('Массаж · 60 мин');
     }
 
     public function test_visit_form_uses_pro_price_for_pro_master(): void

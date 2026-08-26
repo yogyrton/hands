@@ -85,8 +85,6 @@ class VisitForm
                         ->label('Длительность (из прайса)')
                         ->helperText('Цена подставится автоматически по услуге, длительности и должности мастера')
                         ->native(false)
-                        // Поле формы, в БД не сохраняется — служит только для подстановки цены.
-                        ->dehydrated(false)
                         ->live()
                         ->options(function (Get $get): array {
                             $serviceId = $get('service_id');

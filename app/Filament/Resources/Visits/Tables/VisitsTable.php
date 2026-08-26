@@ -32,7 +32,11 @@ class VisitsTable
                     ->label('Мастер')
                     ->sortable(),
                 TextColumn::make('service.name')
-                    ->label('Услуга'),
+                    ->label('Услуга')
+                    // Добавляем длительность из прайса: «Классический массаж · 60 мин».
+                    ->formatStateUsing(fn (?string $state, Visit $record): string => $record->duration_minutes
+                        ? $state.' · '.$record->duration_minutes.' мин'
+                        : (string) $state),
                 TextColumn::make('service_price')
                     ->label('Стоимость')
                     ->suffix(' р')

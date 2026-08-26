@@ -13,6 +13,7 @@ class VisitData extends Data
         public int $master_id,
         public int $service_id,
         public float $base_price,
+        public ?int $duration_minutes,
         public float $service_price,
         public PaymentType $payment_type = PaymentType::Cash,
         public ?string $discount_reason = null,
