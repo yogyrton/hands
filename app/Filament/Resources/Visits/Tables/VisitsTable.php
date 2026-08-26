@@ -33,6 +33,10 @@ class VisitsTable
                     ->sortable(),
                 TextColumn::make('service.name')
                     ->label('Услуга'),
+                TextColumn::make('duration_minutes')
+                    ->label('Время')
+                    ->suffix(' мин')
+                    ->placeholder('—'),
                 TextColumn::make('service_price')
                     ->label('Стоимость')
                     ->suffix(' р')

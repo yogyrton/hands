@@ -17,7 +17,6 @@ class ServiceData extends Data
         public string $slug,
         public string $name,
         public int $level,
-        public float $base_price,
         public string $duration_label,
         public string $price_label,
         public string $lead,

@@ -46,9 +46,28 @@ class ManageStudioSettings extends Page
         return 'Настройки студии';
     }
 
+    /**
+     * Значения по умолчанию для расходов и ставок взносов/налога.
+     *
+     * @var array<string, string>
+     */
+    private const DEFAULTS = [
+        'expense_rent' => '1880',
+        'expense_utilities' => '200',
+        'expense_accountant' => '250',
+        'contrib_fszn_percent' => '34',
+        'contrib_belgosstrakh_percent' => '0.6',
+        'income_tax_percent' => '20',
+    ];
+
     public function mount(): void
     {
-        $this->form->fill(Setting::allKeyed());
+        $stored = Setting::allKeyed();
+        // Непустые сохранённые значения побеждают дефолты; пустые — заполняем дефолтами,
+        // чтобы поля не были пустыми и при сохранении легли реальные числа.
+        $nonEmpty = array_filter($stored, static fn ($v): bool => $v !== null && $v !== '');
+
+        $this->form->fill(array_merge($stored, self::DEFAULTS, $nonEmpty));
     }
 
     public function form(Schema $schema): Schema

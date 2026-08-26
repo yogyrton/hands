@@ -43,18 +43,14 @@ class ServiceForm
                         ->options([1 => '1/5', 2 => '2/5', 3 => '3/5', 4 => '4/5', 5 => '5/5'])
                         ->default(3)
                         ->required(),
-                    TextInput::make('base_price')
-                        ->label('Базовая цена')
-                        ->numeric()
-                        ->default(0)
-                        ->suffix('р')
-                        ->required(),
                     TextInput::make('duration_label')
-                        ->label('Подпись длительности')
+                        ->label('Подпись длительности (витрина)')
+                        ->helperText('Как показывается на сайте, напр. «от 60 мин». Цены задаются в разделе «Прайс».')
                         ->default('от 60 мин')
                         ->required(),
                     TextInput::make('price_label')
-                        ->label('Подпись цены')
+                        ->label('Подпись цены (витрина)')
+                        ->helperText('Как показывается на сайте, напр. «от 50 р».')
                         ->default('от 50 р')
                         ->required(),
                     TextInput::make('sort_order')

@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\MasterTier;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
 use Illuminate\Database\Eloquent\Relations\HasMany;
@@ -34,6 +35,7 @@ class Master extends Model implements HasMedia
         'name',
         'name_dative',
         'role',
+        'tier',
         'yclients_url',
         'experience_label',
         'bio1',
@@ -48,6 +50,7 @@ class Master extends Model implements HasMedia
     {
         return [
             'principles' => 'array',
+            'tier' => MasterTier::class,
             'salary_rate' => 'decimal:2',
             'sort_order' => 'integer',
             'is_active' => 'boolean',

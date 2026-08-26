@@ -92,6 +92,7 @@ class VisitService extends BaseQueryService implements VisitServiceInterface
             $visit = Visit::create([
                 'master_id' => $data->master_id,
                 'service_id' => $data->service_id,
+                'duration_minutes' => $data->duration_minutes,
                 'base_price' => round($data->base_price, 2),
                 'service_price' => $servicePrice,
                 'paid_amount' => $paid,
@@ -137,6 +138,7 @@ class VisitService extends BaseQueryService implements VisitServiceInterface
         $visit->update([
             'master_id' => $data->master_id,
             'service_id' => $data->service_id,
+            'duration_minutes' => $data->duration_minutes,
             'base_price' => round($data->base_price, 2),
             'service_price' => $servicePrice,
             // Как и при создании: обычно оплачена вся стоимость; при «особых условиях»

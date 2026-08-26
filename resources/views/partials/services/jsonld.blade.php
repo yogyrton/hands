@@ -1,6 +1,7 @@
 {{-- Structured data для страницы услуги. Ожидает $service, $studio --}}
 @php
     $siteUrl = rtrim($studio['site_url'] ?? config('app.url'), '/');
+    $minPrice = $service->minMasterPrice();
     $serviceLd = array_filter([
         '@context' => 'https://schema.org',
         '@type' => 'Service',
@@ -14,9 +15,9 @@
             'name' => 'HANDS',
             'url' => $siteUrl,
         ],
-        'offers' => $service->base_price > 0 ? [
+        'offers' => $minPrice > 0 ? [
             '@type' => 'Offer',
-            'price' => (string) (int) $service->base_price,
+            'price' => (string) (int) $minPrice,
             'priceCurrency' => 'BYN',
             'url' => route('services.show', $service->slug),
         ] : null,

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Masters\Schemas;
 
+use App\Enums\MasterTier;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
 use Filament\Forms\Components\SpatieMediaLibraryFileUpload;
@@ -45,6 +46,13 @@ class MasterForm
                         ->label('Специализация')
                         ->required()
                         ->helperText('Например: Массажист · спортивный и классический массаж'),
+                    Select::make('tier')
+                        ->label('Должность (для прайса)')
+                        ->options(MasterTier::options())
+                        ->default(MasterTier::Master->value)
+                        ->required()
+                        ->native(false)
+                        ->helperText('От неё зависит, какая цена из прайса подставится в посещение'),
                     TextInput::make('experience_label')
                         ->label('Опыт')
                         ->helperText('Например: 8 лет'),

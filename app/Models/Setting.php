@@ -41,6 +41,9 @@ class Setting extends Model
 
     public static function get(string $key, ?string $default = null): ?string
     {
-        return self::allKeyed()[$key] ?? $default;
+        $value = self::allKeyed()[$key] ?? null;
+
+        // Пустая строка (поле сохранили пустым) — тоже «нет значения»: отдаём дефолт.
+        return ($value === null || $value === '') ? $default : $value;
     }
 }

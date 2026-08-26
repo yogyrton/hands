@@ -85,10 +85,12 @@ class SeoTest extends TestCase
 
     public function test_service_page_has_service_and_breadcrumb_jsonld(): void
     {
-        Service::create([
+        $service = Service::create([
             'slug' => 'classic', 'name' => 'Классический массаж', 'level' => 4,
-            'base_price' => 65, 'lead' => 'lead', 'is_active' => true,
+            'lead' => 'lead', 'is_active' => true,
         ]);
+        // Цена оффера в разметке берётся из прайса (минимальная цена мастера).
+        $service->prices()->create(['duration_minutes' => 60, 'price_master' => 65, 'price_pro' => 75]);
 
         $this->get('/services/classic')
             ->assertOk()
