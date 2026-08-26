@@ -103,4 +103,33 @@
             </table>
         </div>
     </x-filament::section>
+
+    @php($byService = $this->byServiceDuration())
+    <x-filament::section>
+        <x-slot name="heading">Спрос по услугам</x-slot>
+        <x-slot name="description">Сколько посещений по каждому виду услуги и длительности за период — что пользуется спросом.</x-slot>
+
+        <div style="overflow-x: auto;">
+            <table style="width: 100%; border-collapse: collapse; font-size: 0.875rem;">
+                <thead>
+                    <tr style="text-align: left; color: rgb(113 113 122);">
+                        <th style="padding: 0.5rem 2rem 0.5rem 0; white-space: nowrap;">Услуга</th>
+                        <th style="padding: 0.5rem 2rem 0.5rem 0; white-space: nowrap;">Длительность</th>
+                        <th style="padding: 0.5rem 0; text-align: right; white-space: nowrap;">Посещений</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @forelse($byService as $row)
+                        <tr style="border-top: 1px solid rgba(113, 113, 122, 0.25);">
+                            <td style="padding: 0.5rem 2rem 0.5rem 0; font-weight: 500; white-space: nowrap;">{{ $row['service'] }}</td>
+                            <td style="padding: 0.5rem 2rem 0.5rem 0; white-space: nowrap;">{{ $row['duration'] }}</td>
+                            <td style="padding: 0.5rem 0; text-align: right; font-weight: 600;">{{ $row['count'] }}</td>
+                        </tr>
+                    @empty
+                        <tr><td colspan="3" style="padding: 0.75rem 0; color: rgb(113 113 122);">Нет посещений за период.</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+    </x-filament::section>
 </x-filament-panels::page>

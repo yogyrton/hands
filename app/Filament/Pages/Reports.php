@@ -5,6 +5,7 @@ namespace App\Filament\Pages;
 use App\Models\Certificate;
 use App\Models\Master;
 use App\Models\Promotion;
+use App\Models\Service;
 use App\Models\Visit;
 use BackedEnum;
 use Filament\Forms\Components\DatePicker;
@@ -209,5 +210,37 @@ class Reports extends Page
             'visits' => (float) (clone $query)->where('type', 'visits')->sum('initial_amount'),
             'money' => (float) (clone $query)->where('type', 'money')->sum('initial_amount'),
         ];
+    }
+
+    /**
+     * Спрос по услугам: сколько посещений по каждому виду услуги и длительности
+     * за период. Отсортировано по убыванию количества (самые ходовые сверху).
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function byServiceDuration(): array
+    {
+        $rows = $this->visitsQuery()
+            ->reorder()
+            ->toBase()
+            ->selectRaw('service_id, duration_minutes, COUNT(*) as cnt')
+            ->groupBy('service_id', 'duration_minutes')
+            ->get();
+
+        if ($rows->isEmpty()) {
+            return [];
+        }
+
+        $names = Service::query()->whereIn('id', $rows->pluck('service_id'))->pluck('name', 'id');
+
+        return $rows
+            ->map(fn (object $row): array => [
+                'service' => $names[$row->service_id] ?? 'Услуга',
+                'duration' => $row->duration_minutes ? $row->duration_minutes.' мин' : '—',
+                'count' => (int) $row->cnt,
+            ])
+            ->sortByDesc('count')
+            ->values()
+            ->all();
     }
 }
