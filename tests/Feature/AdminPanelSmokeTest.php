@@ -98,8 +98,8 @@ class AdminPanelSmokeTest extends TestCase
         $this->get('/admin/visits')->assertOk();
         $this->get('/admin/certificates')->assertOk();
 
-        // финансы (отчёты, зарплата) — только админ
-        $this->get('/admin/reports')->assertForbidden();
+        // отчёты доступны и мастеру
+        $this->get('/admin/reports')->assertOk();
 
         // контент сайта — запрещён
         $this->get('/admin/services')->assertForbidden();
