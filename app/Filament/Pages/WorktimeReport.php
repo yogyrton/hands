@@ -53,9 +53,10 @@ class WorktimeReport extends Page
 
     public function mount(): void
     {
+        // Период может прийти из query (например, при возврате с подробной страницы).
         $this->form->fill([
-            'from' => now()->startOfMonth()->toDateString(),
-            'until' => now()->toDateString(),
+            'from' => request()->query('from') ?: now()->startOfMonth()->toDateString(),
+            'until' => request()->query('until') ?: now()->toDateString(),
         ]);
     }
 

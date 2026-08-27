@@ -6,6 +6,7 @@ use App\Models\Master;
 use App\Models\Service;
 use App\Models\Visit;
 use App\Support\WorktimeCalculator;
+use Filament\Actions\Action;
 use Filament\Forms\Components\DatePicker;
 use Filament\Pages\Page;
 use Filament\Panel;
@@ -52,6 +53,23 @@ class MasterWorktime extends Page
     public function getTitle(): string
     {
         return 'Рабочее время · '.$this->master->name;
+    }
+
+    /**
+     * @return array<Action>
+     */
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('back')
+                ->label('Назад к списку')
+                ->icon('heroicon-o-arrow-left')
+                ->color('gray')
+                ->url(fn (): string => WorktimeReport::getUrl([
+                    'from' => $this->data['from'] ?? null,
+                    'until' => $this->data['until'] ?? null,
+                ])),
+        ];
     }
 
     public function mount(int|string $master): void
