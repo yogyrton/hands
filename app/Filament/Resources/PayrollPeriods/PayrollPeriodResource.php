@@ -44,6 +44,12 @@ class PayrollPeriodResource extends Resource
         return 'зарплата';
     }
 
+    public static function canAccess(): bool
+    {
+        // Зарплату видит только администратор.
+        return (bool) auth()->user()?->isAdmin();
+    }
+
     public static function canCreate(): bool
     {
         return (bool) auth()->user()?->isAdmin();

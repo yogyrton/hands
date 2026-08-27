@@ -228,14 +228,14 @@ class PayrollTest extends TestCase
         $this->assertEquals(0, $payout->debt());   // 350 начислено − 200 − 150
     }
 
-    public function test_create_button_hidden_from_master_shown_to_admin(): void
+    public function test_payroll_hidden_from_master_shown_to_admin(): void
     {
+        // Зарплата — только для админа: мастер не имеет доступа к разделу.
         $this->actingAs(User::factory()->create(['role' => UserRole::Master]));
-        Livewire::test(ListPayrollPeriods::class)
-            ->assertOk()
-            ->assertDontSee('Создать месяц');
+        $this->assertFalse(PayrollPeriodResource::canAccess());
 
         $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $this->assertTrue(PayrollPeriodResource::canAccess());
         Livewire::test(ListPayrollPeriods::class)
             ->assertOk()
             ->assertSee('Создать месяц');

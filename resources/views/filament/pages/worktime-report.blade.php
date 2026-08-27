@@ -2,12 +2,16 @@
     {{ $this->form }}
 
     @php($masters = $this->byMaster())
+    @php($anyInferred = collect($masters)->contains(fn ($m) => $m['inferred'] ?? false))
 
     <x-filament::section>
         <x-slot name="heading">Учёт рабочего времени</x-slot>
         <x-slot name="description">
             По каждому мастеру за период: посещения, разбивка по услугам и длительности,
             суммарное время. К каждому массажу добавляется {{ $this->prepMinutes() }} мин на подготовку кабинета.
+            @if($anyInferred)
+                <br><span style="color: rgb(217 119 6);">≈</span> — длительность определена по цене из прайса (у посещения она не была указана).
+            @endif
         </x-slot>
 
         @forelse($masters as $m)

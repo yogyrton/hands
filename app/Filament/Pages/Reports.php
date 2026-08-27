@@ -30,6 +30,12 @@ class Reports extends Page
      */
     public ?array $data = [];
 
+    public static function canAccess(): bool
+    {
+        // Отчёты (в т.ч. зарплаты по мастерам) — только администратору.
+        return (bool) auth()->user()?->isAdmin();
+    }
+
     public static function getNavigationGroup(): ?string
     {
         return 'Учёт';

@@ -44,6 +44,7 @@ class ReportsByServiceTest extends TestCase
 
     public function test_demand_by_service_and_duration_counts_and_sorts(): void
     {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
         $m = $this->master();
         $classic = $this->service('Классический массаж');
         $now = Carbon::now()->startOfMonth()->addDay()->setHour(12);
