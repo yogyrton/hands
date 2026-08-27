@@ -51,6 +51,7 @@ class BackfillVisitDurationsTest extends TestCase
         $noMatch = $this->visit($m, $s, null, 33);  // такой цены в прайсе нет — останется null
 
         $this->artisan('visits:backfill-durations')
+            ->expectsOutputToContain('нет цены')   // причина для непроставленного
             ->assertSuccessful();
 
         $this->assertSame(60, $known->fresh()->duration_minutes);   // не изменилось

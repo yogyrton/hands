@@ -146,6 +146,36 @@ class WorktimeCalculator
     }
 
     /**
+     * Человекочитаемая причина, почему длительность не определилась по цене
+     * (для диагностики при дозаполнении).
+     */
+    public static function inferFailReason(?Service $service, float $basePrice): string
+    {
+        if (! $service) {
+            return 'услуга удалена';
+        }
+
+        if ($service->prices->isEmpty()) {
+            return 'у услуги нет прайса';
+        }
+
+        $any = $service->prices->filter(
+            fn ($p): bool => abs((float) $p->price_master - $basePrice) < 0.001
+                || abs((float) $p->price_pro - $basePrice) < 0.001,
+        );
+
+        if ($any->isEmpty()) {
+            return 'нет цены '.number_format($basePrice, 2, '.', ' ').' р в прайсе';
+        }
+
+        if ($any->count() > 1) {
+            return 'неоднозначно: '.$any->count().' длительности с ценой '.number_format($basePrice, 2, '.', ' ').' р';
+        }
+
+        return 'не определено';
+    }
+
+    /**
      * Минуты в «5 ч 45 мин».
      */
     public static function hm(int $minutes): string

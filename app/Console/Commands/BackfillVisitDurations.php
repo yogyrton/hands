@@ -35,7 +35,7 @@ class BackfillVisitDurations extends Command
         }
 
         $filled = 0;
-        $skipped = 0;
+        $skippedRows = [];
 
         foreach ($visits as $visit) {
             $duration = WorktimeCalculator::inferDuration(
@@ -45,7 +45,14 @@ class BackfillVisitDurations extends Command
             );
 
             if ($duration === null) {
-                $skipped++;
+                $skippedRows[] = [
+                    $visit->id,
+                    $visit->performed_at?->format('d.m.Y H:i') ?? '—',
+                    $visit->master?->name ?? '—',
+                    $visit->service?->name ?? '—',
+                    number_format((float) $visit->base_price, 2, '.', ' ').' р',
+                    WorktimeCalculator::inferFailReason($visit->service, (float) $visit->base_price),
+                ];
 
                 continue;
             }
@@ -60,8 +67,12 @@ class BackfillVisitDurations extends Command
         $prefix = $dry ? '[сухой прогон] ' : '';
         $this->info($prefix."Определено по цене: {$filled}".($dry ? ' (будет заполнено)' : ' (заполнено)'));
 
-        if ($skipped > 0) {
-            $this->warn("Не удалось определить (нет совпадения по цене или неоднозначно): {$skipped}. Их можно проставить вручную.");
+        if ($skippedRows !== []) {
+            $this->warn('Не удалось определить: '.count($skippedRows).'. Их можно проставить вручную:');
+            $this->table(
+                ['ID', 'Дата', 'Мастер', 'Услуга', 'Базовая цена', 'Причина'],
+                $skippedRows,
+            );
         }
 
         return self::SUCCESS;
