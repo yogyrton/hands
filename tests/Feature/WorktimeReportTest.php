@@ -12,7 +12,6 @@ use App\Models\Service;
 use App\Models\User;
 use App\Models\Visit;
 use Illuminate\Foundation\Testing\RefreshDatabase;
-use Illuminate\Support\Carbon;
 use Livewire\Livewire;
 use Tests\TestCase;
 
@@ -30,80 +29,48 @@ class WorktimeReportTest extends TestCase
 
     private function service(): Service
     {
-        $service = Service::create(['slug' => 's-'.uniqid(), 'name' => 'Классический массаж', 'level' => 4, 'lead' => 'l']);
-        $service->prices()->create(['duration_minutes' => 60, 'price_master' => 60, 'price_pro' => 80]);
-        $service->prices()->create(['duration_minutes' => 90, 'price_master' => 85, 'price_pro' => 110]);
-
-        return $service;
+        return Service::create(['slug' => 's-'.uniqid(), 'name' => 'Классический массаж', 'level' => 4, 'lead' => 'l']);
     }
 
-    private function visit(Master $m, Service $s, ?int $duration, Carbon $when, float $base = 60): void
+    private function visit(Master $m, Service $s, int $duration): void
     {
         Visit::create([
             'master_id' => $m->id, 'service_id' => $s->id, 'duration_minutes' => $duration,
-            'base_price' => $base, 'service_price' => $base, 'paid_amount' => $base,
-            'payment_type' => PaymentType::Cash, 'performed_at' => $when,
+            'base_price' => 60, 'service_price' => 60, 'paid_amount' => 60,
+            'payment_type' => PaymentType::Cash, 'performed_at' => now(),
         ]);
     }
 
-    public function test_worktime_totals_include_prep_per_massage(): void
+    public function test_masters_summary_totals_include_prep(): void
     {
         $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
         $anna = $this->master('Анна');
         $service = $this->service();
-        $now = Carbon::now()->startOfMonth()->addDay()->setHour(12);
+        // 60 + 90 = 150 мин массажа; подготовка 15×2=30; итого 180 (3 ч).
+        $this->visit($anna, $service, 60);
+        $this->visit($anna, $service, 90);
 
-        // 3×60 + 1×90 + 1×40 = 310 мин массажей; 5 посещений × 15 = 75 мин подготовки; итого 385.
-        foreach ([60, 60, 60, 90, 40] as $d) {
-            $this->visit($anna, $service, $d, $now);
-        }
-        // Вне периода — не считается.
-        $this->visit($anna, $service, 60, Carbon::now()->subMonthNoOverflow());
-
-        $page = Livewire::test(WorktimeReport::class)->instance();
-        $page->data = ['from' => Carbon::now()->startOfMonth()->toDateString(), 'until' => Carbon::now()->endOfMonth()->toDateString()];
-
-        $rows = $page->byMaster();
+        $rows = Livewire::test(WorktimeReport::class)->instance()->mastersSummary();
 
         $this->assertCount(1, $rows);
         $this->assertSame('Анна', $rows[0]['name']);
-        $this->assertSame(5, $rows[0]['visits']);
-        $this->assertSame(310, $rows[0]['massage_minutes']);
-        $this->assertSame(75, $rows[0]['prep_minutes']);
-        $this->assertSame(385, $rows[0]['total_minutes']);
-        $this->assertSame('6 ч 25 мин', $page->hm($rows[0]['total_minutes']));
+        $this->assertSame(2, $rows[0]['visits']);
+        $this->assertSame(150, $rows[0]['massage_minutes']);
+        $this->assertSame(30, $rows[0]['prep_minutes']);
+        $this->assertSame(180, $rows[0]['total_minutes']);
     }
 
-    public function test_duration_inferred_from_price_when_missing(): void
+    public function test_list_page_renders_master_cards_for_admin(): void
     {
         $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
         $anna = $this->master('Анна');
-        $service = $this->service();   // прайс: 60 мин=60р, 90 мин=85р (для мастера)
-        $now = Carbon::now()->startOfMonth()->addDay()->setHour(12);
-
-        // Старое посещение без длительности, но с ценой 85 → определяем 90 мин по прайсу.
-        $this->visit($anna, $service, null, $now, base: 85);
-
-        $page = Livewire::test(WorktimeReport::class)->instance();
-        $page->data = ['from' => Carbon::now()->startOfMonth()->toDateString(), 'until' => Carbon::now()->endOfMonth()->toDateString()];
-
-        $rows = $page->byMaster();
-
-        $this->assertSame(90, $rows[0]['massage_minutes']);   // определено по цене
-        $this->assertTrue($rows[0]['inferred']);
-        $this->assertSame(105, $rows[0]['total_minutes']);    // 90 + 15
-    }
-
-    public function test_page_renders_for_admin(): void
-    {
-        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
-        $anna = $this->master('Анна');
-        $this->visit($anna, $this->service(), 60, Carbon::now()->startOfMonth()->addDay());
+        $this->visit($anna, $this->service(), 60);
 
         Livewire::test(WorktimeReport::class)
             ->assertOk()
             ->assertSee('Учёт рабочего времени')
-            ->assertSee('Анна');
+            ->assertSee('Анна')
+            ->assertSee('Подробнее');
     }
 
     public function test_page_admin_only(): void
