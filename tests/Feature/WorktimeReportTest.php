@@ -73,6 +73,21 @@ class WorktimeReportTest extends TestCase
             ->assertSee('Подробнее');
     }
 
+    public function test_detail_url_carries_selected_period(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $anna = $this->master('Анна');
+        $this->visit($anna, $this->service(), 60);
+
+        $page = Livewire::test(WorktimeReport::class)->instance();
+        $page->data = ['from' => '2026-08-01', 'until' => '2026-08-15'];
+
+        $url = $page->detailUrl($anna->id);
+
+        $this->assertStringContainsString('from=2026-08-01', $url);
+        $this->assertStringContainsString('until=2026-08-15', $url);
+    }
+
     public function test_page_admin_only(): void
     {
         $this->actingAs(User::factory()->create(['role' => UserRole::Master]));

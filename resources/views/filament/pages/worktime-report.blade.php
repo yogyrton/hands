@@ -1,13 +1,15 @@
 <x-filament-panels::page>
+    {{ $this->form }}
+
     @php($masters = $this->mastersSummary())
 
     <div style="font-size: 0.875rem; color: rgb(113 113 122); margin-bottom: 0.5rem;">
-        За текущий месяц. Нажмите на мастера — откроется подробная страница с выбором периода и разбивкой по дням.
+        За выбранный период. Нажмите на мастера — откроется подробная страница с той же датой и разбивкой по дням.
     </div>
 
     @if($masters === [])
         <x-filament::section>
-            <div style="color: rgb(113 113 122);">Нет посещений за текущий месяц.</div>
+            <div style="color: rgb(113 113 122);">Нет посещений за выбранный период.</div>
         </x-filament::section>
     @else
         <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); gap: 1rem;">

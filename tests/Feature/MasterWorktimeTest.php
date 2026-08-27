@@ -113,6 +113,19 @@ class MasterWorktimeTest extends TestCase
             ->assertSee('По дням');
     }
 
+    public function test_period_comes_from_query_params(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $anna = $this->master();
+
+        $page = Livewire::withQueryParams(['from' => '2026-08-01', 'until' => '2026-08-15'])
+            ->test(MasterWorktime::class, ['master' => $anna->id])
+            ->instance();
+
+        $this->assertSame('2026-08-01', $page->data['from']);
+        $this->assertSame('2026-08-15', $page->data['until']);
+    }
+
     public function test_detail_page_admin_only(): void
     {
         $this->actingAs(User::factory()->create(['role' => UserRole::Master]));

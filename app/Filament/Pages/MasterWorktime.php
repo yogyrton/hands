@@ -59,9 +59,11 @@ class MasterWorktime extends Page
         abort_unless((bool) auth()->user()?->isAdmin(), 403);
 
         $this->masterId = (int) $master;
+
+        // Период приходит из списка мастеров через query-параметры; иначе — текущий месяц.
         $this->form->fill([
-            'from' => now()->startOfMonth()->toDateString(),
-            'until' => now()->toDateString(),
+            'from' => request()->query('from') ?: now()->startOfMonth()->toDateString(),
+            'until' => request()->query('until') ?: now()->toDateString(),
         ]);
     }
 

@@ -6,13 +6,17 @@ use App\Models\Master;
 use App\Models\Visit;
 use App\Support\WorktimeCalculator;
 use BackedEnum;
+use Filament\Forms\Components\DatePicker;
 use Filament\Pages\Page;
+use Filament\Schemas\Components\Section;
+use Filament\Schemas\Schema;
 use Filament\Support\Icons\Heroicon;
+use Illuminate\Support\Carbon;
 
 /**
- * Учёт рабочего времени: карточки мастеров с суммарным временем за текущий месяц.
- * Клик по мастеру открывает подробную страницу с выбором периода и таблицей по дням.
- * Только для администратора.
+ * Учёт рабочего времени: выбор периода (по умолчанию текущий месяц) и карточки
+ * мастеров с суммарным временем за этот период. Клик по мастеру открывает
+ * подробную страницу с сохранённым периодом. Только для администратора.
  */
 class WorktimeReport extends Page
 {
@@ -21,6 +25,11 @@ class WorktimeReport extends Page
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClock;
 
     protected static ?int $navigationSort = 6;
+
+    /**
+     * @var array<string, mixed>|null
+     */
+    public ?array $data = [];
 
     public static function canAccess(): bool
     {
@@ -42,14 +51,49 @@ class WorktimeReport extends Page
         return 'Учёт рабочего времени';
     }
 
+    public function mount(): void
+    {
+        $this->form->fill([
+            'from' => now()->startOfMonth()->toDateString(),
+            'until' => now()->toDateString(),
+        ]);
+    }
+
+    public function form(Schema $schema): Schema
+    {
+        return $schema->components([
+            Section::make('Период')
+                ->columns(2)
+                ->schema([
+                    DatePicker::make('from')->label('С')->live(),
+                    DatePicker::make('until')->label('По')->live(),
+                ]),
+        ]);
+    }
+
+    public function defaultForm(Schema $schema): Schema
+    {
+        return $schema->statePath('data');
+    }
+
+    private function from(): Carbon
+    {
+        return Carbon::parse($this->data['from'] ?? now()->startOfMonth())->startOfDay();
+    }
+
+    private function until(): Carbon
+    {
+        return Carbon::parse($this->data['until'] ?? now())->endOfDay();
+    }
+
     /**
-     * Мастера с посещениями за текущий месяц и их суммарное время.
+     * Мастера с посещениями за выбранный период и их суммарное время.
      *
      * @return array<int, array<string, mixed>>
      */
     public function mastersSummary(): array
     {
-        $query = Visit::query()->whereBetween('performed_at', [now()->startOfMonth(), now()->endOfMonth()]);
+        $query = Visit::query()->whereBetween('performed_at', [$this->from(), $this->until()]);
         $worktime = WorktimeCalculator::perMaster($query);
 
         if ($worktime === []) {
@@ -77,9 +121,16 @@ class WorktimeReport extends Page
         return $rows;
     }
 
+    /**
+     * Ссылка на подробную страницу мастера с сохранением выбранного периода.
+     */
     public function detailUrl(int $masterId): string
     {
-        return MasterWorktime::getUrl(['master' => $masterId]);
+        return MasterWorktime::getUrl([
+            'master' => $masterId,
+            'from' => $this->data['from'] ?? null,
+            'until' => $this->data['until'] ?? null,
+        ]);
     }
 
     public function hm(int $minutes): string
