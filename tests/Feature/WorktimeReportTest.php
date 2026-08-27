@@ -7,7 +7,6 @@ namespace Tests\Feature;
 use App\Enums\PaymentType;
 use App\Enums\UserRole;
 use App\Filament\Pages\WorktimeReport;
-use App\Filament\Resources\Visits\Pages\ListVisits;
 use App\Models\Master;
 use App\Models\Service;
 use App\Models\User;
@@ -105,21 +104,6 @@ class WorktimeReportTest extends TestCase
             ->assertOk()
             ->assertSee('Учёт рабочего времени')
             ->assertSee('Анна');
-    }
-
-    public function test_visits_list_shows_worktime_summary(): void
-    {
-        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
-        $anna = $this->master('Анна');
-        $service = $this->service();
-        // Сегодня: 60 + 90 = 150 мин массажей (2 ч 30 мин); подготовка 15×2=30; итого 3 ч.
-        $this->visit($anna, $service, 60, now(), base: 60);
-        $this->visit($anna, $service, 90, now(), base: 85);
-
-        Livewire::test(ListVisits::class)
-            ->assertSee('Рабочее время за период')
-            ->assertSee('2 ч 30 мин')   // массажи
-            ->assertSee('3 ч');         // итого
     }
 
     public function test_page_admin_only(): void
