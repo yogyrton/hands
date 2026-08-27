@@ -47,20 +47,27 @@ class MasterEarningsSummary extends StatsOverviewWidget
             ];
         }
 
+        // Строку рабочего времени видит только администратор.
+        $isAdmin = (bool) auth()->user()?->isAdmin();
+
         return $rows
-            ->map(fn (object $row): Stat => Stat::make(
-                $row->name,
-                // 1-й ряд: общая сумма, справа — количество визитов.
-                static::money($row->total).' р · '.$row->count.' '.static::visitsWord($row->count),
-            )
-                // 2-й ряд: разбивка живых денег; 3-й ряд: рабочее время.
-                ->description(new HtmlString(
-                    'Нал '.static::money($row->cash).' · Безнал '.static::money($row->card).' · Серт '.static::money($row->cert).'<br>'
-                    .'Время: массаж '.WorktimeCalculator::hm($row->massage_minutes)
-                    .' + подгот. '.WorktimeCalculator::hm($row->prep_minutes)
-                    .' = '.WorktimeCalculator::hm($row->total_minutes)
-                ))
-                ->color('success'))
+            ->map(function (object $row) use ($isAdmin): Stat {
+                $money = 'Нал '.static::money($row->cash).' · Безнал '.static::money($row->card).' · Серт '.static::money($row->cert);
+
+                $description = $isAdmin
+                    ? new HtmlString($money.'<br>Время: массаж '.WorktimeCalculator::hm($row->massage_minutes)
+                        .' + подгот. '.WorktimeCalculator::hm($row->prep_minutes)
+                        .' = '.WorktimeCalculator::hm($row->total_minutes))
+                    : $money;
+
+                return Stat::make(
+                    $row->name,
+                    // 1-й ряд: общая сумма, справа — количество визитов.
+                    static::money($row->total).' р · '.$row->count.' '.static::visitsWord($row->count),
+                )
+                    ->description($description)
+                    ->color('success');
+            })
             ->all();
     }
 

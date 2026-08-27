@@ -140,6 +140,18 @@ class MasterEarningsSummaryTest extends TestCase
             ->assertSee('3 ч');         // итого
     }
 
+    public function test_worktime_line_hidden_from_master(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Master]));
+        $alex = $this->master('Александр Марков', 'aleksandr', 1, 35);
+        $this->visit($alex, 60, now(), ['duration_minutes' => 60]);
+
+        Livewire::test(ListVisits::class)
+            ->assertSuccessful()
+            ->assertSee('Нал')                 // карточка с суммами видна
+            ->assertDontSee('Время: массаж');  // строку времени мастер не видит
+    }
+
     public function test_page_exposes_table_state_to_widgets(): void
     {
         // Без ExposesTableToWidgets реактивные свойства виджета получают null
