@@ -70,6 +70,56 @@ class WorktimeCalculator
     }
 
     /**
+     * Рабочее время по каждому мастеру для запроса посещений.
+     *
+     * @param  Builder<Visit>  $query
+     * @return array<int, object{visits: int, massage_minutes: int, prep_minutes: int, total_minutes: int}>
+     */
+    public static function perMaster(Builder $query): array
+    {
+        $rows = (clone $query)
+            ->reorder()
+            ->toBase()
+            ->selectRaw('master_id, service_id, duration_minutes, base_price, COUNT(*) as cnt')
+            ->groupBy('master_id', 'service_id', 'duration_minutes', 'base_price')
+            ->get();
+
+        if ($rows->isEmpty()) {
+            return [];
+        }
+
+        $masters = Master::query()->whereIn('id', $rows->pluck('master_id'))->get()->keyBy('id');
+        $services = Service::query()->with('prices')->whereIn('id', $rows->pluck('service_id'))->get()->keyBy('id');
+
+        $byMaster = [];
+        foreach ($rows as $row) {
+            $mid = (int) $row->master_id;
+            $count = (int) $row->cnt;
+
+            $duration = $row->duration_minutes !== null
+                ? (int) $row->duration_minutes
+                : self::inferDuration($services->get($row->service_id), (float) $row->base_price, $masters->get($mid)?->tier);
+
+            $byMaster[$mid] ??= ['visits' => 0, 'massage' => 0];
+            $byMaster[$mid]['visits'] += $count;
+            $byMaster[$mid]['massage'] += (int) ($duration ?? 0) * $count;
+        }
+
+        $result = [];
+        foreach ($byMaster as $mid => $data) {
+            $prep = $data['visits'] * self::PREP_MINUTES;
+            $result[$mid] = (object) [
+                'visits' => $data['visits'],
+                'massage_minutes' => $data['massage'],
+                'prep_minutes' => $prep,
+                'total_minutes' => $data['massage'] + $prep,
+            ];
+        }
+
+        return $result;
+    }
+
+    /**
      * Определить длительность из прайса по цене: строка услуги, где цена по
      * должности мастера совпадает с базовой ценой. Если по должности нет — любая
      * цена (мастер/про). null — не нашли или неоднозначно.

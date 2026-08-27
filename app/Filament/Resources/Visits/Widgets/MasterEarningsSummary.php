@@ -5,11 +5,13 @@ namespace App\Filament\Resources\Visits\Widgets;
 use App\Filament\Resources\Visits\Pages\ListVisits;
 use App\Models\Master;
 use App\Models\Visit;
+use App\Support\WorktimeCalculator;
 use Filament\Widgets\Concerns\InteractsWithPageTable;
 use Filament\Widgets\StatsOverviewWidget;
 use Filament\Widgets\StatsOverviewWidget\Stat;
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Support\Collection;
+use Illuminate\Support\HtmlString;
 
 /**
  * Сводка над списком посещений за выбранный в фильтре период (по умолчанию — сегодня):
@@ -51,8 +53,13 @@ class MasterEarningsSummary extends StatsOverviewWidget
                 // 1-й ряд: общая сумма, справа — количество визитов.
                 static::money($row->total).' р · '.$row->count.' '.static::visitsWord($row->count),
             )
-                // 2-й ряд: разбивка живых денег.
-                ->description('Нал '.static::money($row->cash).' · Безнал '.static::money($row->card).' · Серт '.static::money($row->cert))
+                // 2-й ряд: разбивка живых денег; 3-й ряд: рабочее время.
+                ->description(new HtmlString(
+                    'Нал '.static::money($row->cash).' · Безнал '.static::money($row->card).' · Серт '.static::money($row->cert).'<br>'
+                    .'Время: массаж '.WorktimeCalculator::hm($row->massage_minutes)
+                    .' + подгот. '.WorktimeCalculator::hm($row->prep_minutes)
+                    .' = '.WorktimeCalculator::hm($row->total_minutes)
+                ))
                 ->color('success'))
             ->all();
     }
@@ -96,14 +103,18 @@ class MasterEarningsSummary extends StatsOverviewWidget
             ->get()
             ->keyBy('id');
 
+        // Рабочее время по каждому мастеру (массаж + 15 мин подготовки на визит).
+        $worktime = WorktimeCalculator::perMaster($query);
+
         return $rows
-            ->map(function (object $row) use ($masters): object {
+            ->map(function (object $row) use ($masters, $worktime): object {
                 /** @var Master|null $master */
                 $master = $masters->get($row->master_id);
 
                 $cash = round((float) $row->cash_direct + (float) $row->cash_sur, 2);
                 $card = round((float) $row->card_direct + (float) $row->card_sur, 2);
                 $cert = round((float) $row->cert_full + (float) $row->cert_sur, 2);
+                $wt = $worktime[(int) $row->master_id] ?? null;
 
                 return (object) [
                     'name' => $master?->name ?? 'Мастер',
@@ -112,6 +123,9 @@ class MasterEarningsSummary extends StatsOverviewWidget
                     'card' => $card,
                     'cert' => $cert,
                     'total' => round($cash + $card + $cert, 2),
+                    'massage_minutes' => (int) ($wt->massage_minutes ?? 0),
+                    'prep_minutes' => (int) ($wt->prep_minutes ?? 0),
+                    'total_minutes' => (int) ($wt->total_minutes ?? 0),
                     'sort' => $master?->sort_order ?? 999,
                 ];
             })

@@ -121,7 +121,23 @@ class MasterEarningsSummaryTest extends TestCase
             ->assertSee('Александр Марков')
             ->assertSee('180.00')            // общая сумма мастера
             ->assertSee('2 визита')
-            ->assertSee('Нал');              // разбивка снизу
+            ->assertSee('Нал')               // разбивка снизу
+            ->assertSee('Время');            // строка рабочего времени
+    }
+
+    public function test_card_shows_worktime_line(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $alex = $this->master('Александр Марков', 'aleksandr', 1, 35);
+        // 60 + 90 = 150 мин массажа (2 ч 30 мин); подготовка 15×2=30; итого 3 ч.
+        $this->visit($alex, 60, now(), ['duration_minutes' => 60]);
+        $this->visit($alex, 90, now(), ['duration_minutes' => 90]);
+
+        Livewire::test(ListVisits::class)
+            ->assertSuccessful()
+            ->assertSee('Время: массаж')
+            ->assertSee('2 ч 30 мин')   // массаж
+            ->assertSee('3 ч');         // итого
     }
 
     public function test_page_exposes_table_state_to_widgets(): void
