@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Resources\Visits\Widgets\MasterEarningsSummary;
 use App\Models\Master;
 use App\Models\Service;
 use App\Models\Visit;
@@ -165,6 +166,7 @@ class MasterWorktime extends Page
         }
 
         $services = $this->servicesFor($rows);
+        $money = $this->moneyByDay();
 
         $byDay = [];
         foreach ($rows as $row) {
@@ -179,8 +181,9 @@ class MasterWorktime extends Page
 
         ksort($byDay);
 
-        return collect($byDay)->map(function (array $d, string $day): array {
+        return collect($byDay)->map(function (array $d, string $day) use ($money): array {
             $prep = $d['visits'] * WorktimeCalculator::PREP_MINUTES;
+            $m = $money[$day] ?? ['cash' => 0.0, 'card' => 0.0, 'cert' => 0.0, 'total' => 0.0];
 
             return [
                 'date' => Carbon::parse($day)->format('d.m.Y'),
@@ -188,8 +191,64 @@ class MasterWorktime extends Page
                 'massage_minutes' => $d['massage'],
                 'prep_minutes' => $prep,
                 'total_minutes' => $d['massage'] + $prep,
+                'cash' => $m['cash'],
+                'card' => $m['card'],
+                'cert' => $m['cert'],
+                'money_total' => $m['total'],
             ];
         })->values()->all();
+    }
+
+    /**
+     * Деньги по дням: нал/безнал/сертификат/итого за каждый день (по «Y-m-d»).
+     * Логика учёта общая со сводкой над списком посещений.
+     *
+     * @return array<string, array{cash: float, card: float, cert: float, total: float}>
+     */
+    private function moneyByDay(): array
+    {
+        $query = Visit::query()
+            ->where('master_id', $this->master->id)
+            ->whereBetween('performed_at', [$this->from(), $this->until()])
+            ->reorder()
+            ->toBase()
+            ->selectRaw('DATE(performed_at) as d')
+            ->groupBy('d');
+
+        foreach (MasterEarningsSummary::moneySelects() as $expr) {
+            $query->selectRaw($expr);
+        }
+
+        $map = [];
+        foreach ($query->get() as $row) {
+            $map[(string) $row->d] = MasterEarningsSummary::moneyFromRow($row);
+        }
+
+        return $map;
+    }
+
+    /**
+     * Итоги по деньгам за весь период (нал/безнал/сертификат/итого).
+     *
+     * @return array{cash: float, card: float, cert: float, total: float}
+     */
+    public function moneyTotals(): array
+    {
+        $query = Visit::query()
+            ->where('master_id', $this->master->id)
+            ->whereBetween('performed_at', [$this->from(), $this->until()])
+            ->reorder()
+            ->toBase();
+
+        foreach (MasterEarningsSummary::moneySelects() as $expr) {
+            $query->selectRaw($expr);
+        }
+
+        $row = $query->first();
+
+        return $row
+            ? MasterEarningsSummary::moneyFromRow($row)
+            : ['cash' => 0.0, 'card' => 0.0, 'cert' => 0.0, 'total' => 0.0];
     }
 
     /**
@@ -261,5 +320,10 @@ class MasterWorktime extends Page
     public function hm(int $minutes): string
     {
         return WorktimeCalculator::hm($minutes);
+    }
+
+    public function money(float $value): string
+    {
+        return MasterEarningsSummary::money($value);
     }
 }

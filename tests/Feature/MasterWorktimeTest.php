@@ -79,6 +79,16 @@ class MasterWorktimeTest extends TestCase
         $this->assertSame(210, $t->massage_minutes);
         $this->assertSame(45, $t->prep_minutes);
         $this->assertSame(255, $t->total_minutes);
+
+        // Деньги по дням (все оплаты наличными по 60): день 1 = 120, день 2 = 60.
+        $this->assertSame(120.0, $days[0]['cash']);
+        $this->assertSame(120.0, $days[0]['money_total']);
+        $this->assertSame(60.0, $days[1]['money_total']);
+        // Итог денег за период.
+        $money = $page->moneyTotals();
+        $this->assertSame(180.0, $money['cash']);
+        $this->assertSame(0.0, $money['card']);
+        $this->assertSame(180.0, $money['total']);
     }
 
     public function test_breakdown_and_inference(): void

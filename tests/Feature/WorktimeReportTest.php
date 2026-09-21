@@ -58,6 +58,11 @@ class WorktimeReportTest extends TestCase
         $this->assertSame(150, $rows[0]['massage_minutes']);
         $this->assertSame(30, $rows[0]['prep_minutes']);
         $this->assertSame(180, $rows[0]['total_minutes']);
+        // Деньги: обе оплаты наличными по 60 = 120 наличными, итого 120.
+        $this->assertSame(120.0, $rows[0]['cash']);
+        $this->assertSame(0.0, $rows[0]['card']);
+        $this->assertSame(0.0, $rows[0]['cert']);
+        $this->assertSame(120.0, $rows[0]['total']);
     }
 
     public function test_list_page_renders_master_cards_for_admin(): void

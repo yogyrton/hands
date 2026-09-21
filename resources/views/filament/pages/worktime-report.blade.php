@@ -16,17 +16,20 @@
             @foreach($masters as $m)
                 <a href="{{ $this->detailUrl($m['id']) }}" style="text-decoration: none; color: inherit;">
                     <x-filament::section style="height: 100%;">
-                        <div style="display: flex; align-items: baseline; gap: 0.6rem;">
-                            <div style="font-size: 1.05rem; font-weight: 600;">{{ $m['name'] }}</div>
-                            <div style="font-size: 0.8rem; color: rgb(113 113 122);">{{ $m['visits'] }} посещений</div>
+                        <div style="font-size: 1.05rem; font-weight: 600;">{{ $m['name'] }}</div>
+                        <div style="font-size: 1.5rem; font-weight: 700; margin-top: 0.35rem; color: rgb(22 163 74);">
+                            {{ $this->money($m['total']) }} р · {{ $m['visits'] }} {{ $this->visitsWord($m['visits']) }}
                         </div>
-                        <div style="font-size: 1.5rem; font-weight: 700; margin-top: 0.35rem; color: rgb(217 119 6);">
+                        <div style="font-size: 0.8rem; color: rgb(22 163 74); margin-top: 0.25rem;">
+                            Нал {{ $this->money($m['cash']) }} · Безнал {{ $this->money($m['card']) }} · Серт {{ $this->money($m['cert']) }}
+                        </div>
+                        <div style="font-size: 0.85rem; font-weight: 600; margin-top: 0.6rem; color: rgb(217 119 6);">
                             {{ $this->hm($m['total_minutes']) }}
                         </div>
-                        <div style="font-size: 0.8rem; color: rgb(113 113 122); margin-top: 0.25rem;">
+                        <div style="font-size: 0.8rem; color: rgb(113 113 122); margin-top: 0.15rem;">
                             массаж {{ $this->hm($m['massage_minutes']) }} + подгот. {{ $this->hm($m['prep_minutes']) }}
                         </div>
-                        <div style="font-size: 0.8rem; color: rgb(217 119 6); margin-top: 0.5rem;">Подробнее →</div>
+                        <div style="font-size: 0.8rem; color: rgb(217 119 6); margin-top: 0.6rem;">Подробнее →</div>
                     </x-filament::section>
                 </a>
             @endforeach

@@ -2,7 +2,7 @@
 
 namespace App\Filament\Pages;
 
-use App\Models\Master;
+use App\Filament\Resources\Visits\Widgets\MasterEarningsSummary;
 use App\Models\Visit;
 use App\Support\WorktimeCalculator;
 use BackedEnum;
@@ -88,38 +88,29 @@ class WorktimeReport extends Page
     }
 
     /**
-     * Мастера с посещениями за выбранный период и их суммарное время.
+     * Мастера с посещениями за выбранный период: деньги (нал/безнал/серт/итого)
+     * и суммарное время. Считается тем же сводом, что и над списком посещений.
      *
      * @return array<int, array<string, mixed>>
      */
     public function mastersSummary(): array
     {
         $query = Visit::query()->whereBetween('performed_at', [$this->from(), $this->until()]);
-        $worktime = WorktimeCalculator::perMaster($query);
 
-        if ($worktime === []) {
-            return [];
-        }
-
-        $masters = Master::query()->whereIn('id', array_keys($worktime))->get()->keyBy('id');
-
-        $rows = [];
-        foreach ($worktime as $mid => $t) {
-            $master = $masters->get($mid);
-            $rows[] = [
-                'id' => $mid,
-                'name' => $master?->name ?? 'Мастер',
-                'sort' => $master?->sort_order ?? 999,
-                'visits' => $t->visits,
-                'massage_minutes' => $t->massage_minutes,
-                'prep_minutes' => $t->prep_minutes,
-                'total_minutes' => $t->total_minutes,
-            ];
-        }
-
-        usort($rows, fn (array $a, array $b): int => $a['sort'] <=> $b['sort']);
-
-        return $rows;
+        return MasterEarningsSummary::summarize($query)
+            ->map(fn (object $r): array => [
+                'id' => $r->id,
+                'name' => $r->name,
+                'visits' => $r->count,
+                'cash' => $r->cash,
+                'card' => $r->card,
+                'cert' => $r->cert,
+                'total' => $r->total,
+                'massage_minutes' => $r->massage_minutes,
+                'prep_minutes' => $r->prep_minutes,
+                'total_minutes' => $r->total_minutes,
+            ])
+            ->all();
     }
 
     /**
@@ -137,5 +128,15 @@ class WorktimeReport extends Page
     public function hm(int $minutes): string
     {
         return WorktimeCalculator::hm($minutes);
+    }
+
+    public function money(float $value): string
+    {
+        return MasterEarningsSummary::money($value);
+    }
+
+    public function visitsWord(int $count): string
+    {
+        return MasterEarningsSummary::visitsWord($count);
     }
 }

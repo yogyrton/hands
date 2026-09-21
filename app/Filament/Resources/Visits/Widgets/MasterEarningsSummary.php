@@ -87,19 +87,18 @@ class MasterEarningsSummary extends StatsOverviewWidget
      */
     public static function summarize(Builder $query): Collection
     {
-        $rows = (clone $query)
+        $select = (clone $query)
             ->reorder()
             ->toBase()
             ->selectRaw('master_id')
             ->selectRaw('COUNT(*) as cnt')
-            ->selectRaw("COALESCE(SUM(CASE WHEN payment_type = 'cash' THEN service_price ELSE 0 END), 0) as cash_direct")
-            ->selectRaw("COALESCE(SUM(CASE WHEN payment_type = 'card' THEN service_price ELSE 0 END), 0) as card_direct")
-            ->selectRaw("COALESCE(SUM(CASE WHEN payment_type IN ('certificate_surcharge', 'certificate_external') AND surcharge_payment_type = 'cash' THEN paid_amount ELSE 0 END), 0) as cash_sur")
-            ->selectRaw("COALESCE(SUM(CASE WHEN payment_type IN ('certificate_surcharge', 'certificate_external') AND surcharge_payment_type = 'card' THEN paid_amount ELSE 0 END), 0) as card_sur")
-            ->selectRaw("COALESCE(SUM(CASE WHEN payment_type = 'certificate' THEN service_price ELSE 0 END), 0) as cert_full")
-            ->selectRaw("COALESCE(SUM(CASE WHEN payment_type IN ('certificate_surcharge', 'certificate_external') THEN service_price - paid_amount ELSE 0 END), 0) as cert_sur")
-            ->groupBy('master_id')
-            ->get();
+            ->groupBy('master_id');
+
+        foreach (static::moneySelects() as $expr) {
+            $select->selectRaw($expr);
+        }
+
+        $rows = $select->get();
 
         if ($rows->isEmpty()) {
             return collect();
@@ -118,18 +117,17 @@ class MasterEarningsSummary extends StatsOverviewWidget
                 /** @var Master|null $master */
                 $master = $masters->get($row->master_id);
 
-                $cash = round((float) $row->cash_direct + (float) $row->cash_sur, 2);
-                $card = round((float) $row->card_direct + (float) $row->card_sur, 2);
-                $cert = round((float) $row->cert_full + (float) $row->cert_sur, 2);
+                $money = static::moneyFromRow($row);
                 $wt = $worktime[(int) $row->master_id] ?? null;
 
                 return (object) [
+                    'id' => (int) $row->master_id,
                     'name' => $master?->name ?? 'Мастер',
                     'count' => (int) $row->cnt,
-                    'cash' => $cash,
-                    'card' => $card,
-                    'cert' => $cert,
-                    'total' => round($cash + $card + $cert, 2),
+                    'cash' => $money['cash'],
+                    'card' => $money['card'],
+                    'cert' => $money['cert'],
+                    'total' => $money['total'],
                     'massage_minutes' => (int) ($wt->massage_minutes ?? 0),
                     'prep_minutes' => (int) ($wt->prep_minutes ?? 0),
                     'total_minutes' => (int) ($wt->total_minutes ?? 0),
@@ -138,6 +136,44 @@ class MasterEarningsSummary extends StatsOverviewWidget
             })
             ->sortBy('sort')
             ->values();
+    }
+
+    /**
+     * SQL-выражения агрегатов оплаты (нал/безнал/сертификат) для группировки.
+     * Общие для сводки по мастерам и по дням — чтобы логика учёта (бартер,
+     * доплаты по сертификату) считалась одинаково везде.
+     *
+     * @return array<int, string>
+     */
+    public static function moneySelects(): array
+    {
+        return [
+            "COALESCE(SUM(CASE WHEN payment_type = 'cash' THEN service_price ELSE 0 END), 0) as cash_direct",
+            "COALESCE(SUM(CASE WHEN payment_type = 'card' THEN service_price ELSE 0 END), 0) as card_direct",
+            "COALESCE(SUM(CASE WHEN payment_type IN ('certificate_surcharge', 'certificate_external') AND surcharge_payment_type = 'cash' THEN paid_amount ELSE 0 END), 0) as cash_sur",
+            "COALESCE(SUM(CASE WHEN payment_type IN ('certificate_surcharge', 'certificate_external') AND surcharge_payment_type = 'card' THEN paid_amount ELSE 0 END), 0) as card_sur",
+            "COALESCE(SUM(CASE WHEN payment_type = 'certificate' THEN service_price ELSE 0 END), 0) as cert_full",
+            "COALESCE(SUM(CASE WHEN payment_type IN ('certificate_surcharge', 'certificate_external') THEN service_price - paid_amount ELSE 0 END), 0) as cert_sur",
+        ];
+    }
+
+    /**
+     * Собирает нал/безнал/сертификат/итого из строки с агрегатами moneySelects().
+     *
+     * @return array{cash: float, card: float, cert: float, total: float}
+     */
+    public static function moneyFromRow(object $row): array
+    {
+        $cash = round((float) $row->cash_direct + (float) $row->cash_sur, 2);
+        $card = round((float) $row->card_direct + (float) $row->card_sur, 2);
+        $cert = round((float) $row->cert_full + (float) $row->cert_sur, 2);
+
+        return [
+            'cash' => $cash,
+            'card' => $card,
+            'cert' => $cert,
+            'total' => round($cash + $card + $cert, 2),
+        ];
     }
 
     public static function money(float $value): string

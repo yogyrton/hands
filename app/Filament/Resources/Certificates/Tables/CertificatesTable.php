@@ -17,6 +17,7 @@ class CertificatesTable
     {
         return $table
             ->defaultSort('id', 'desc')
+            ->defaultPaginationPageOption(50)
             // Клик по строке открывает сертификат; изменить/удалить — внутри карточки (админу).
             ->recordUrl(fn (Certificate $record): string => CertificateResource::getUrl('view', ['record' => $record]))
             ->columns([
