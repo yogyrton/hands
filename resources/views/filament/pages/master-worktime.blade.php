@@ -18,6 +18,7 @@
                 <thead>
                     <tr style="text-align: left; color: rgb(113 113 122);">
                         <th style="padding: 0.5rem 1.5rem 0.5rem 0; white-space: nowrap;">Дата</th>
+                        <th style="padding: 0.5rem 1.5rem 0.5rem 0; text-align: right; white-space: nowrap;">Сеансов</th>
                         <th style="padding: 0.5rem 1.5rem 0.5rem 0; text-align: right; white-space: nowrap;">Часы массажа</th>
                         <th style="padding: 0.5rem 1.5rem 0.5rem 0; text-align: right; white-space: nowrap;">Доп. часы</th>
                         <th style="padding: 0.5rem 1.5rem 0.5rem 0; text-align: right; white-space: nowrap;">Всего за день</th>
@@ -31,6 +32,7 @@
                     @forelse($days as $d)
                         <tr style="border-top: 1px solid rgba(113, 113, 122, 0.25);">
                             <td style="padding: 0.5rem 1.5rem 0.5rem 0; font-weight: 500; white-space: nowrap;">{{ $d['date'] }}</td>
+                            <td style="padding: 0.5rem 1.5rem 0.5rem 0; text-align: right; white-space: nowrap;">{{ $d['visits'] }}</td>
                             <td style="padding: 0.5rem 1.5rem 0.5rem 0; text-align: right; white-space: nowrap;">{{ $this->hm($d['massage_minutes']) }}</td>
                             <td style="padding: 0.5rem 1.5rem 0.5rem 0; text-align: right; white-space: nowrap;">{{ $this->hm($d['prep_minutes']) }}</td>
                             <td style="padding: 0.5rem 1.5rem 0.5rem 0; text-align: right; font-weight: 600; white-space: nowrap;">{{ $this->hm($d['total_minutes']) }}</td>
@@ -40,13 +42,14 @@
                             <td style="padding: 0.5rem 0; text-align: right; font-weight: 600; white-space: nowrap; color: rgb(22 163 74);">{{ $this->money($d['money_total']) }}</td>
                         </tr>
                     @empty
-                        <tr><td colspan="8" style="padding: 0.75rem 0; color: rgb(113 113 122);">Нет посещений за период.</td></tr>
+                        <tr><td colspan="9" style="padding: 0.75rem 0; color: rgb(113 113 122);">Нет посещений за период.</td></tr>
                     @endforelse
                 </tbody>
                 @if($days !== [])
                     <tfoot>
                         <tr style="border-top: 2px solid rgba(113, 113, 122, 0.4);">
                             <td style="padding: 0.6rem 1.5rem 0.6rem 0; font-weight: 700;">Итого</td>
+                            <td style="padding: 0.6rem 1.5rem 0.6rem 0; text-align: right; font-weight: 700; white-space: nowrap;">{{ $t->visits }}</td>
                             <td style="padding: 0.6rem 1.5rem 0.6rem 0; text-align: right; font-weight: 700; white-space: nowrap;">{{ $this->hm($t->massage_minutes) }}</td>
                             <td style="padding: 0.6rem 1.5rem 0.6rem 0; text-align: right; font-weight: 700; white-space: nowrap;">{{ $this->hm($t->prep_minutes) }}</td>
                             <td style="padding: 0.6rem 1.5rem 0.6rem 0; text-align: right; font-weight: 700; color: rgb(217 119 6); white-space: nowrap;">{{ $this->hm($t->total_minutes) }}</td>
