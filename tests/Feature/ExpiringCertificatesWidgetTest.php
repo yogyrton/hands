@@ -57,13 +57,4 @@ class ExpiringCertificatesWidgetTest extends TestCase
             ->assertOk()
             ->assertSee('Истекают в течение месяца · 2');
     }
-
-    public function test_hidden_from_master(): void
-    {
-        $this->actingAs(User::factory()->create(['role' => UserRole::Master]));
-        $this->assertFalse(ExpiringCertificates::canView());
-
-        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
-        $this->assertTrue(ExpiringCertificates::canView());
-    }
 }

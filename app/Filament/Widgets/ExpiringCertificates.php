@@ -19,13 +19,8 @@ class ExpiringCertificates extends TableWidget
 {
     protected int|string|array $columnSpan = 'full';
 
-    // Ниже финансового блока, но выше встроенных «Добро пожаловать» (-3) и Filament (-2).
+    // Ниже финансового блока.
     protected static ?int $sort = -4;
-
-    public static function canView(): bool
-    {
-        return (bool) auth()->user()?->isAdmin();
-    }
 
     protected function getTableHeading(): string|Htmlable|null
     {

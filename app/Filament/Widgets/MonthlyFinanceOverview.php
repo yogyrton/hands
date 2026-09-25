@@ -38,11 +38,6 @@ class MonthlyFinanceOverview extends Widget
         $this->month = $now->month;
     }
 
-    public static function canView(): bool
-    {
-        return (bool) auth()->user()?->isAdmin();
-    }
-
     public function prevMonth(): void
     {
         $date = Carbon::create($this->year, $this->month, 1)->subMonthNoOverflow();

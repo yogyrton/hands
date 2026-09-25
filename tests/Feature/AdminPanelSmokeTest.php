@@ -91,8 +91,8 @@ class AdminPanelSmokeTest extends TestCase
 
         $this->actingAs($master);
 
-        // доступ в панель есть
-        $this->get('/admin')->assertOk();
+        // инфопанель мастеру не нужна — с «/admin» его уводит в учёт
+        $this->get('/admin')->assertRedirect('/admin/visits');
 
         // учёт доступен
         $this->get('/admin/visits')->assertOk();

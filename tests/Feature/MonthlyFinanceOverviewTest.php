@@ -24,15 +24,6 @@ class MonthlyFinanceOverviewTest extends TestCase
 {
     use RefreshDatabase;
 
-    public function test_only_admin_sees_widget(): void
-    {
-        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
-        $this->assertTrue(MonthlyFinanceOverview::canView());
-
-        $this->actingAs(User::factory()->create(['role' => UserRole::Master]));
-        $this->assertFalse(MonthlyFinanceOverview::canView());
-    }
-
     public function test_month_navigation_shifts_selected_month(): void
     {
         $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
