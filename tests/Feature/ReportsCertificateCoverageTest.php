@@ -50,5 +50,15 @@ class ReportsCertificateCoverageTest extends TestCase
         $this->assertSame(100.0, $rev['total']);          // деньгами — только наличный визит
         $this->assertSame(65.0, $rev['cert_covered']);    // отхожено по серту на 65
         $this->assertSame(2, $rev['visits']);
+
+        // Верхняя разбивка: нал 100 + серт 65 = 165 = база зарплаты (сумма услуг).
+        $mm = collect($report->moneyByMaster());
+        $this->assertSame(100.0, $mm->sum('cash'));
+        $this->assertSame(65.0, $mm->sum('cert'));
+        $this->assertSame(165.0, $mm->sum('total'));
+
+        // «Заработано мастерами» (сумма total) = «Итого» в таблице зарплат (сумма услуг).
+        $byMasterSum = collect($report->byMaster())->sum('sum');
+        $this->assertSame($mm->sum('total'), $byMasterSum);
     }
 }

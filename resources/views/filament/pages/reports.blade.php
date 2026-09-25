@@ -1,34 +1,37 @@
 <x-filament-panels::page>
     {{ $this->form }}
 
-    @php($rev = $this->revenue())
     @php($rows = $this->byMaster())
     @php($promos = $this->byPromotion())
     @php($certs = $this->certsSold())
+    @php($mm = collect($this->moneyByMaster()))
 
-    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(200px, 1fr)); gap: 1rem;">
-        <x-filament::section>
-            <div style="font-size: 0.875rem; color: rgb(113 113 122);">Выручка (деньгами)</div>
-            <div style="font-size: 1.5rem; font-weight: 600;">{{ number_format($rev['total'], 2, '.', ' ') }} р</div>
-        </x-filament::section>
-        <x-filament::section>
-            <div style="font-size: 0.875rem; color: rgb(113 113 122);">Наличные</div>
-            <div style="font-size: 1.5rem; font-weight: 600;">{{ number_format($rev['cash'], 2, '.', ' ') }} р</div>
-        </x-filament::section>
-        <x-filament::section>
-            <div style="font-size: 0.875rem; color: rgb(113 113 122);">Карта</div>
-            <div style="font-size: 1.5rem; font-weight: 600;">{{ number_format($rev['card'], 2, '.', ' ') }} р</div>
-        </x-filament::section>
-        <x-filament::section>
-            <div style="font-size: 0.875rem; color: rgb(113 113 122);">Сертификаты (отхожено)</div>
-            <div style="font-size: 1.5rem; font-weight: 600;">{{ number_format($rev['cert_covered'], 2, '.', ' ') }} р</div>
-            <div style="margin-top: 0.25rem; font-size: 0.75rem; color: rgb(113 113 122);">покрыто сертами, деньгами не приходит</div>
-        </x-filament::section>
-        <x-filament::section>
-            <div style="font-size: 0.875rem; color: rgb(113 113 122);">Посещений</div>
-            <div style="font-size: 1.5rem; font-weight: 600;">{{ $rev['visits'] }}</div>
-            <div style="margin-top: 0.25rem; font-size: 0.75rem; color: rgb(113 113 122);">из них по сертификату: {{ $rev['cert_visits'] }}</div>
-        </x-filament::section>
+    @php($cards = [
+        ['label' => 'Заработано мастерами', 'key' => 'total', 'money' => true],
+        ['label' => 'Наличные', 'key' => 'cash', 'money' => true],
+        ['label' => 'Карта', 'key' => 'card', 'money' => true],
+        ['label' => 'По сертификатам', 'key' => 'cert', 'money' => true],
+        ['label' => 'Посещений', 'key' => 'count', 'money' => false],
+    ])
+
+    <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(220px, 1fr)); gap: 1rem;">
+        @foreach($cards as $card)
+            @php($fmt = fn ($v) => $card['money'] ? number_format((float) $v, 2, '.', ' ').' р' : (string) $v)
+            <x-filament::section>
+                <div style="font-size: 0.875rem; color: rgb(113 113 122);">{{ $card['label'] }}</div>
+                <div style="font-size: 1.5rem; font-weight: 600;">{{ $fmt($mm->sum($card['key'])) }}</div>
+                @if($mm->isNotEmpty())
+                    <div style="margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.25rem;">
+                        @foreach($mm as $m)
+                            <div style="display: flex; justify-content: space-between; gap: 0.75rem; font-size: 0.78rem; color: rgb(150 150 155);">
+                                <span style="white-space: nowrap; overflow: hidden; text-overflow: ellipsis;">{{ $m['name'] }}</span>
+                                <span style="white-space: nowrap;">{{ $fmt($m[$card['key']]) }}</span>
+                            </div>
+                        @endforeach
+                    </div>
+                @endif
+            </x-filament::section>
+        @endforeach
     </div>
 
     <x-filament::section>

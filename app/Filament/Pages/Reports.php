@@ -3,6 +3,7 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Concerns\HasPeriodShortcuts;
+use App\Filament\Resources\Visits\Widgets\MasterEarningsSummary;
 use App\Models\Certificate;
 use App\Models\Master;
 use App\Models\Promotion;
@@ -172,6 +173,49 @@ class Reports extends Page
     /**
      * @return array<int, array<string, mixed>>
      */
+    /**
+     * Разбивка по мастерам: сколько оказано услуг наличными / картой / по
+     * сертификату (нал+безнал+серт = полная стоимость услуг = база зарплаты) и
+     * число посещений. Используется в верхних карточках с детализацией по мастеру.
+     *
+     * @return array<int, array<string, mixed>>
+     */
+    public function moneyByMaster(): array
+    {
+        $rows = $this->visitsQuery()
+            ->reorder()
+            ->toBase()
+            ->selectRaw('master_id')
+            ->selectRaw('COUNT(*) as cnt')
+            ->groupBy('master_id');
+
+        foreach (MasterEarningsSummary::moneySelects() as $expr) {
+            $rows->selectRaw($expr);
+        }
+
+        $rows = $rows->get();
+        $masters = Master::query()->whereIn('id', $rows->pluck('master_id'))->get()->keyBy('id');
+
+        return $rows
+            ->map(function (object $row) use ($masters): array {
+                $master = $masters->get($row->master_id);
+                $money = MasterEarningsSummary::moneyFromRow($row);
+
+                return [
+                    'name' => $master?->name ?? 'Мастер',
+                    'sort' => $master?->sort_order ?? 999,
+                    'count' => (int) $row->cnt,
+                    'cash' => $money['cash'],
+                    'card' => $money['card'],
+                    'cert' => $money['cert'],
+                    'total' => $money['total'],
+                ];
+            })
+            ->sortBy('sort')
+            ->values()
+            ->all();
+    }
+
     public function byMaster(): array
     {
         return Master::query()
