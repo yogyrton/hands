@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Models\Visit;
 use App\Support\MonthlyFinance;
 use Filament\Widgets\ChartWidget;
 use Illuminate\Support\Carbon;
@@ -42,14 +43,28 @@ class RevenueByMonthChart extends ChartWidget
         $revenue = [];
         $profit = [];
 
-        // Последние 12 месяцев по возрастанию (слева старые, справа текущий).
-        for ($i = 11; $i >= 0; $i--) {
-            $month = Carbon::now()->startOfMonth()->subMonthsNoOverflow($i);
-            $finance = MonthlyFinance::for($month->year, $month->month);
+        $first = Visit::query()->min('performed_at');
 
-            $labels[] = self::MONTHS_SHORT[$month->month].' '.substr((string) $month->year, -2);
-            $revenue[] = $finance->revenue;
-            $profit[] = $finance->profit;
+        if ($first !== null) {
+            $cursor = Carbon::parse($first)->startOfMonth();
+            $end = Carbon::now()->startOfMonth();
+
+            // Только реальные месяцы: где есть хотя бы один визит. Пустые (в т.ч.
+            // до открытия студии) пропускаем; новый месяц появится сам с данными.
+            while ($cursor->lessThanOrEqualTo($end)) {
+                $hasVisits = Visit::query()
+                    ->whereBetween('performed_at', [$cursor->copy()->startOfMonth(), $cursor->copy()->endOfMonth()])
+                    ->exists();
+
+                if ($hasVisits) {
+                    $finance = MonthlyFinance::for($cursor->year, $cursor->month);
+                    $labels[] = self::MONTHS_SHORT[$cursor->month].' '.substr((string) $cursor->year, -2);
+                    $revenue[] = $finance->revenue;
+                    $profit[] = $finance->profit;
+                }
+
+                $cursor->addMonthNoOverflow();
+            }
         }
 
         return [

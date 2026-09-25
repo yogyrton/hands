@@ -30,7 +30,7 @@ class RevenueByMonthChartTest extends TestCase
             ->assertSee('Выручка и прибыль по месяцам');
     }
 
-    public function test_data_spans_12_months_and_reflects_revenue(): void
+    public function test_only_months_with_visits_are_shown(): void
     {
         $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
         Carbon::setTestNow('2026-09-15');
@@ -40,20 +40,35 @@ class RevenueByMonthChartTest extends TestCase
             'yclients_url' => 'https://e.com', 'bio1' => 'a', 'bio2' => 'b', 'salary_rate' => 35, 'is_active' => true,
         ]);
         $service = Service::create(['slug' => 's-1', 'name' => 'Услуга', 'level' => 4, 'lead' => 'l']);
-        Visit::create([
-            'master_id' => $master->id, 'service_id' => $service->id,
-            'base_price' => 200, 'service_price' => 200, 'paid_amount' => 200,
-            'payment_type' => PaymentType::Cash, 'performed_at' => Carbon::create(2026, 9, 10, 12),
-        ]);
+
+        // Визиты в июле и сентябре; август и «до открытия» пусты — их быть не должно.
+        foreach ([Carbon::create(2026, 7, 20, 12), Carbon::create(2026, 9, 10, 12)] as $when) {
+            Visit::create([
+                'master_id' => $master->id, 'service_id' => $service->id,
+                'base_price' => 200, 'service_price' => 200, 'paid_amount' => 200,
+                'payment_type' => PaymentType::Cash, 'performed_at' => $when,
+            ]);
+        }
 
         $method = new ReflectionMethod(RevenueByMonthChart::class, 'getData');
         $method->setAccessible(true);
         $data = $method->invoke(app(RevenueByMonthChart::class));
 
-        $this->assertCount(12, $data['labels']);
-        $this->assertSame('сен 26', $data['labels'][11]);        // последний столбик — текущий месяц
-        $this->assertSame(200.0, $data['datasets'][0]['data'][11]); // выручка сентября
+        // Только июль и сентябрь (август пуст — пропущен).
+        $this->assertSame(['июл 26', 'сен 26'], $data['labels']);
+        $this->assertSame(200.0, $data['datasets'][0]['data'][1]);
 
         Carbon::setTestNow();
+    }
+
+    public function test_empty_when_no_visits(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+
+        $method = new ReflectionMethod(RevenueByMonthChart::class, 'getData');
+        $method->setAccessible(true);
+        $data = $method->invoke(app(RevenueByMonthChart::class));
+
+        $this->assertSame([], $data['labels']);
     }
 }
