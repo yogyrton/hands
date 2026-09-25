@@ -10,6 +10,12 @@ use Filament\Widgets\StatsOverviewWidget\Stat;
 
 class CertificateStats extends StatsOverviewWidget
 {
+    // Все плашки в один ряд (на узких экранах — авто-перенос).
+    protected function getColumns(): int
+    {
+        return 5;
+    }
+
     protected function getStats(): array
     {
         $monthAhead = now()->addMonth()->toDateString();
@@ -29,31 +35,43 @@ class CertificateStats extends StatsOverviewWidget
 
         return [
             Stat::make('Всего', Certificate::query()->count())
-                ->url($this->url(null)),
+                ->url($this->url([])),
             Stat::make('Активные', $active)
                 ->description('действуют, срок не близко')
                 ->color('success')
-                ->url($this->url('active')),
+                ->url($this->url(['status' => 'unused', 'condition' => 'active'])),
             Stat::make('Заканчиваются', $ending)
                 ->description('ещё активны, срок в течение месяца')
                 ->color('warning')
-                ->url($this->url('ending')),
+                ->url($this->url(['status' => 'unused', 'condition' => 'ending'])),
             Stat::make('Использованные', $used)
                 ->description('остаток израсходован')
                 ->color('gray')
-                ->url($this->url('used')),
+                ->url($this->url(['status' => 'used'])),
             Stat::make('Сгорели неиспользованными', $burned)
                 ->description('истёк срок, остаток пропал')
                 ->color('danger')
-                ->url($this->url('burned')),
+                ->url($this->url(['status' => 'unused', 'condition' => 'expired'])),
         ];
     }
 
     /**
-     * Ссылка на список сертификатов с выбранной категорией (или без фильтра).
+     * Ссылка на список с теми же фильтрами, что и в панели фильтров таблицы
+     * (URL-ключ Filament — filters[<имя>][value]=…).
+     *
+     * @param  array<string, string>  $filters
      */
-    private function url(?string $category): string
+    private function url(array $filters): string
     {
-        return CertificateResource::getUrl('index', $category === null ? [] : ['category' => $category]);
+        if ($filters === []) {
+            return CertificateResource::getUrl('index');
+        }
+
+        $query = [];
+        foreach ($filters as $name => $value) {
+            $query[$name] = ['value' => $value];
+        }
+
+        return CertificateResource::getUrl('index', ['filters' => $query]);
     }
 }

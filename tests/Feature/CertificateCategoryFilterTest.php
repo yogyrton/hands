@@ -46,38 +46,52 @@ class CertificateCategoryFilterTest extends TestCase
         ];
     }
 
-    public function test_category_filter_splits_certificates(): void
+    public function test_status_and_condition_filters_match_stat_categories(): void
     {
         $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
         $c = $this->sample();
 
-        $cases = [
-            'active' => 'active',
-            'ending' => 'ending',
-            'used' => 'used',
-            'burned' => 'burned',
-        ];
+        // Активные: непользованные + состояние active.
+        Livewire::test(ListCertificates::class)
+            ->filterTable('status', 'unused')
+            ->filterTable('condition', 'active')
+            ->assertCanSeeTableRecords([$c['active']])
+            ->assertCanNotSeeTableRecords([$c['ending'], $c['used'], $c['burned']]);
 
-        foreach ($cases as $category => $expectedKey) {
-            $others = array_values(array_diff_key($c, [$expectedKey => null]));
+        // Заканчиваются: непользованные + состояние ending.
+        Livewire::test(ListCertificates::class)
+            ->filterTable('status', 'unused')
+            ->filterTable('condition', 'ending')
+            ->assertCanSeeTableRecords([$c['ending']])
+            ->assertCanNotSeeTableRecords([$c['active'], $c['used'], $c['burned']]);
 
-            Livewire::test(ListCertificates::class)
-                ->filterTable('category', $category)
-                ->assertCanSeeTableRecords([$c[$expectedKey]])
-                ->assertCanNotSeeTableRecords($others);
-        }
-    }
+        // Использованные: статус used.
+        Livewire::test(ListCertificates::class)
+            ->filterTable('status', 'used')
+            ->assertCanSeeTableRecords([$c['used']])
+            ->assertCanNotSeeTableRecords([$c['active'], $c['ending'], $c['burned']]);
 
-    public function test_category_filter_defaults_from_url_param(): void
-    {
-        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
-        $c = $this->sample();
-
-        // Ссылка с плашки статистики: ?category=burned
-        Livewire::withQueryParams(['category' => 'burned'])
-            ->test(ListCertificates::class)
+        // Сгорели: непользованные + состояние expired.
+        Livewire::test(ListCertificates::class)
+            ->filterTable('status', 'unused')
+            ->filterTable('condition', 'expired')
             ->assertCanSeeTableRecords([$c['burned']])
             ->assertCanNotSeeTableRecords([$c['active'], $c['ending'], $c['used']]);
+    }
+
+    public function test_filters_hydrate_from_url_like_stat_links(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $c = $this->sample();
+
+        // Ровно та ссылка, что формирует плашка «Заканчиваются».
+        Livewire::withQueryParams(['filters' => [
+            'status' => ['value' => 'unused'],
+            'condition' => ['value' => 'ending'],
+        ]])
+            ->test(ListCertificates::class)
+            ->assertCanSeeTableRecords([$c['ending']])
+            ->assertCanNotSeeTableRecords([$c['active'], $c['used'], $c['burned']]);
     }
 
     public function test_stats_widget_renders_all_categories(): void

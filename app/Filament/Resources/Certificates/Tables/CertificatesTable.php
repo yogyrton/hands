@@ -57,33 +57,6 @@ class CertificatesTable
                     ->color(fn (Certificate $record): string => $record->conditionColor()),
             ])
             ->filters([
-                // Категория как в плашках над списком. Значение может прийти из URL
-                // (?category=…) — по клику на плашку статистики.
-                SelectFilter::make('category')
-                    ->label('Категория')
-                    ->default(request()->query('category'))
-                    ->options([
-                        'active' => 'Активные',
-                        'ending' => 'Заканчиваются',
-                        'used' => 'Использованные',
-                        'burned' => 'Сгорели неиспользованными',
-                    ])
-                    ->query(function (Builder $query, array $data): Builder {
-                        $monthAhead = now()->addMonth()->toDateString();
-
-                        return match ($data['value'] ?? null) {
-                            // Действуют и не истекают в ближайший месяц.
-                            'active' => $query->usable()->whereDate('expires_at', '>', $monthAhead),
-                            // Ещё действуют, но срок кончается в течение месяца.
-                            'ending' => $query->usable()->whereDate('expires_at', '<=', $monthAhead),
-                            'used' => $query->where('status', CertificateStatus::Used->value),
-                            // Истёк срок при непустом остатке — сгорели.
-                            'burned' => $query
-                                ->where('status', '!=', CertificateStatus::Used->value)
-                                ->whereDate('expires_at', '<', now()->toDateString()),
-                            default => $query,
-                        };
-                    }),
                 // Статус по остатку.
                 SelectFilter::make('status')
                     ->label('Статус')
