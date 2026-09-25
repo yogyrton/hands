@@ -57,6 +57,24 @@ class CertificatesTable
                     ->color(fn (Certificate $record): string => $record->conditionColor()),
             ])
             ->filters([
+                // Категория как в плашках дашборда: действующие / реализованные / сгоревшие.
+                SelectFilter::make('category')
+                    ->label('Категория')
+                    ->options([
+                        'active' => 'Активные (действуют)',
+                        'realized' => 'Реализованные',
+                        'burned' => 'Сгорели неиспользованными',
+                    ])
+                    ->query(function (Builder $query, array $data): Builder {
+                        return match ($data['value'] ?? null) {
+                            'active' => $query->usable(),
+                            'realized' => $query->where('status', CertificateStatus::Used->value),
+                            'burned' => $query
+                                ->where('status', '!=', CertificateStatus::Used->value)
+                                ->whereDate('expires_at', '<', now()->toDateString()),
+                            default => $query,
+                        };
+                    }),
                 // Статус по остатку.
                 SelectFilter::make('status')
                     ->label('Статус')
