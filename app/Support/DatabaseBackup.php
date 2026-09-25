@@ -16,6 +16,23 @@ use Illuminate\Support\Facades\DB;
  */
 class DatabaseBackup
 {
+    /**
+     * Служебные таблицы не входят в бэкап: это временные данные (сессии, кэш,
+     * очереди), к реальным данным студии отношения не имеют. Заодно бэкап не
+     * трогает сессии — после восстановления вход в админку не слетает.
+     *
+     * @var array<int, string>
+     */
+    private const EXCLUDED = [
+        'cache',
+        'cache_locks',
+        'sessions',
+        'jobs',
+        'job_batches',
+        'failed_jobs',
+        'password_reset_tokens',
+    ];
+
     public function dump(): string
     {
         $connection = DB::connection();
@@ -33,6 +50,10 @@ class DatabaseBackup
         }
 
         foreach ($this->tables($driver) as $table) {
+            if (in_array($table, self::EXCLUDED, true)) {
+                continue;
+            }
+
             $out .= $this->dumpTable($table, $pdo, $isMysql);
         }
 

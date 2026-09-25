@@ -27,6 +27,15 @@ class DatabaseBackupTest extends TestCase
         $this->assertStringContainsString('Классический массаж', $sql);
     }
 
+    public function test_dump_excludes_transient_tables(): void
+    {
+        $sql = app(DatabaseBackup::class)->dump();
+
+        // Сессии/кэш в бэкап не попадают — восстановление не разлогинивает.
+        $this->assertStringNotContainsString('`sessions`', $sql);
+        $this->assertStringNotContainsString('`cache`', $sql);
+    }
+
     public function test_admin_can_download_backup(): void
     {
         $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
