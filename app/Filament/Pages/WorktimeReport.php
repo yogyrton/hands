@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\HasPeriodShortcuts;
 use App\Filament\Resources\Visits\Widgets\MasterEarningsSummary;
 use App\Models\Visit;
 use App\Support\WorktimeCalculator;
@@ -20,6 +21,8 @@ use Illuminate\Support\Carbon;
  */
 class WorktimeReport extends Page
 {
+    use HasPeriodShortcuts;
+
     protected string $view = 'filament.pages.worktime-report';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedClock;
@@ -68,6 +71,7 @@ class WorktimeReport extends Page
                 ->schema([
                     DatePicker::make('from')->label('С')->live(),
                     DatePicker::make('until')->label('По')->live(),
+                    $this->periodShortcuts(),
                 ]),
         ]);
     }

@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\HasPeriodShortcuts;
 use App\Filament\Resources\Visits\Widgets\MasterEarningsSummary;
 use App\Models\Master;
 use App\Models\Service;
@@ -24,6 +25,8 @@ use Illuminate\Support\Collection;
  */
 class MasterWorktime extends Page
 {
+    use HasPeriodShortcuts;
+
     protected string $view = 'filament.pages.master-worktime';
 
     // Синхронизируемое свойство — id мастера из URL; сама модель грузится в booted().
@@ -100,6 +103,7 @@ class MasterWorktime extends Page
                 ->schema([
                     DatePicker::make('from')->label('С')->live(),
                     DatePicker::make('until')->label('По')->live(),
+                    $this->periodShortcuts(),
                 ]),
         ]);
     }

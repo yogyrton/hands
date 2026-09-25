@@ -2,6 +2,7 @@
 
 namespace App\Filament\Pages;
 
+use App\Filament\Concerns\HasPeriodShortcuts;
 use App\Models\Certificate;
 use App\Models\Master;
 use App\Models\Promotion;
@@ -19,6 +20,8 @@ use Illuminate\Support\Carbon;
 
 class Reports extends Page
 {
+    use HasPeriodShortcuts;
+
     protected string $view = 'filament.pages.reports';
 
     protected static string|BackedEnum|null $navigationIcon = Heroicon::OutlinedChartBar;
@@ -67,6 +70,7 @@ class Reports extends Page
                         ->placeholder('Все мастера')
                         ->options(fn () => Master::orderBy('sort_order')->pluck('name', 'id'))
                         ->live(),
+                    $this->periodShortcuts(),
                 ]),
         ]);
     }

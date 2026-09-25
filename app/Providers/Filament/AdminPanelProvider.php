@@ -3,6 +3,7 @@
 namespace App\Providers\Filament;
 
 use App\Filament\Widgets\DashboardStats;
+use App\Filament\Widgets\ExpiringCertificates;
 use App\Filament\Widgets\MonthProfitSummary;
 use App\Filament\Widgets\MonthRevenueSummary;
 use Filament\Http\Middleware\Authenticate;
@@ -47,6 +48,7 @@ class AdminPanelProvider extends PanelProvider
                 MonthRevenueSummary::class,
                 MonthProfitSummary::class,
                 DashboardStats::class,
+                ExpiringCertificates::class,
                 AccountWidget::class,
                 FilamentInfoWidget::class,
             ])
