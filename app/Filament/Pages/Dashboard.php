@@ -71,7 +71,7 @@ class Dashboard extends BaseDashboard
 
                     // Страховочная копия текущей базы перед заменой.
                     $safety = 'backups/before-import-'.now(config('app.display_timezone'))->format('Y-m-d_H-i').'.sql';
-                    Storage::disk('local')->put($safety, app(DatabaseBackup::class)->dump());
+                    Storage::disk('local')->put($safety, app(DatabaseBackup::class)->dump(), 'public');
 
                     // Не трогаем базу, пока не убедились, что снимок реально записан
                     // и не пустой — иначе откатываться было бы не на что.

@@ -12,6 +12,8 @@ set -e
 
 mkdir -p \
     /app/storage/app/private \
+    /app/storage/app/private/backups \
+    /app/storage/app/private/imports \
     /app/storage/app/public \
     /app/storage/framework/cache/data \
     /app/storage/framework/sessions \

@@ -25,7 +25,8 @@ class BackupDatabase extends Command
         $keep = max(1, (int) $this->option('keep'));
 
         $name = 'hands-'.now(config('app.display_timezone'))->format('Y-m-d_H-i').'.sql';
-        Storage::disk('local')->put(self::DIR.'/'.$name, $backup->dump());
+        // public: файл 0644 — виден и читается с хоста (не root-only 0600).
+        Storage::disk('local')->put(self::DIR.'/'.$name, $backup->dump(), 'public');
 
         // Ротация: имена содержат дату в ISO-порядке, поэтому обычная сортировка
         // по имени = по времени. Оставляем последние $keep.
