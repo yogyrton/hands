@@ -73,6 +73,19 @@ class Dashboard extends BaseDashboard
                     $safety = 'backups/before-import-'.now(config('app.display_timezone'))->format('Y-m-d_H-i').'.sql';
                     Storage::disk('local')->put($safety, app(DatabaseBackup::class)->dump());
 
+                    // Не трогаем базу, пока не убедились, что снимок реально записан
+                    // и не пустой — иначе откатываться было бы не на что.
+                    if (! Storage::disk('local')->exists($safety) || Storage::disk('local')->size($safety) < 100) {
+                        Storage::disk('local')->delete($stored);
+                        Notification::make()
+                            ->title('Импорт отменён')
+                            ->body('Не удалось создать резервную копию текущей базы. База не тронута — попробуйте ещё раз.')
+                            ->danger()
+                            ->send();
+
+                        return;
+                    }
+
                     $import->import($sql);
                     Storage::disk('local')->delete($stored);
 
