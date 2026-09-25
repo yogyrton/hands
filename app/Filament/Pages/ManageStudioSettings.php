@@ -55,9 +55,8 @@ class ManageStudioSettings extends Page
         'expense_rent' => '1880',
         'expense_utilities' => '200',
         'expense_accountant' => '250',
-        'contrib_fszn_percent' => '34',
-        'contrib_belgosstrakh_percent' => '0.6',
-        'income_tax_percent' => '20',
+        'other_expenses' => '600',
+        'owner_fszn' => '300',
     ];
 
     public function mount(): void
@@ -128,8 +127,8 @@ class ManageStudioSettings extends Page
                         ->email(),
                 ]),
 
-            Section::make('Расходы и взносы')
-                ->description('Значения по умолчанию для авто-создания месяца расходов и ставки взносов/налога. Проценты уточните у бухгалтера — закон меняется.')
+            Section::make('Постоянные расходы за месяц')
+                ->description('Фиксированные расходы студии за месяц. Используются в авто-расчёте прибыли на дашборде (выручка − зарплата мастеров − эти расходы).')
                 ->columns(3)
                 ->schema([
                     TextInput::make('expense_rent')
@@ -144,18 +143,14 @@ class ManageStudioSettings extends Page
                         ->label('Услуги бухгалтера, р')
                         ->numeric()
                         ->placeholder('250'),
-                    TextInput::make('contrib_fszn_percent')
-                        ->label('ФСЗН (наниматель), %')
+                    TextInput::make('other_expenses')
+                        ->label('Прочие траты, р')
                         ->numeric()
-                        ->placeholder('34'),
-                    TextInput::make('contrib_belgosstrakh_percent')
-                        ->label('Белгосстрах, %')
+                        ->placeholder('600'),
+                    TextInput::make('owner_fszn')
+                        ->label('Мой ФСЗН, р')
                         ->numeric()
-                        ->placeholder('0.6'),
-                    TextInput::make('income_tax_percent')
-                        ->label('Подоходный налог, %')
-                        ->numeric()
-                        ->placeholder('20'),
+                        ->placeholder('300'),
                 ]),
 
             Section::make('Аналитика и реклама')
