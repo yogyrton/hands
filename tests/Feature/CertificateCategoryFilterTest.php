@@ -33,41 +33,65 @@ class CertificateCategoryFilterTest extends TestCase
         ]);
     }
 
+    /**
+     * @return array{active: Certificate, ending: Certificate, used: Certificate, burned: Certificate}
+     */
+    private function sample(): array
+    {
+        return [
+            'active' => $this->cert('ACT', CertificateStatus::Active->value, now()->addMonths(3)->toDateString(), 100),
+            'ending' => $this->cert('END', CertificateStatus::Active->value, now()->addDays(10)->toDateString(), 100),
+            'used' => $this->cert('USE', CertificateStatus::Used->value, now()->addMonths(3)->toDateString(), 0),
+            'burned' => $this->cert('BRN', CertificateStatus::Active->value, now()->subDay()->toDateString(), 50),
+        ];
+    }
+
     public function test_category_filter_splits_certificates(): void
     {
         $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $c = $this->sample();
 
-        $active = $this->cert('A', CertificateStatus::Active->value, now()->addMonth()->toDateString(), 100);
-        $realized = $this->cert('R', CertificateStatus::Used->value, now()->addMonth()->toDateString(), 0);
-        $burned = $this->cert('B', CertificateStatus::Active->value, now()->subDay()->toDateString(), 50);
+        $cases = [
+            'active' => 'active',
+            'ending' => 'ending',
+            'used' => 'used',
+            'burned' => 'burned',
+        ];
 
-        Livewire::test(ListCertificates::class)
-            ->filterTable('category', 'active')
-            ->assertCanSeeTableRecords([$active])
-            ->assertCanNotSeeTableRecords([$realized, $burned]);
+        foreach ($cases as $category => $expectedKey) {
+            $others = array_values(array_diff_key($c, [$expectedKey => null]));
 
-        Livewire::test(ListCertificates::class)
-            ->filterTable('category', 'realized')
-            ->assertCanSeeTableRecords([$realized])
-            ->assertCanNotSeeTableRecords([$active, $burned]);
-
-        Livewire::test(ListCertificates::class)
-            ->filterTable('category', 'burned')
-            ->assertCanSeeTableRecords([$burned])
-            ->assertCanNotSeeTableRecords([$active, $realized]);
+            Livewire::test(ListCertificates::class)
+                ->filterTable('category', $category)
+                ->assertCanSeeTableRecords([$c[$expectedKey]])
+                ->assertCanNotSeeTableRecords($others);
+        }
     }
 
-    public function test_stats_widget_renders_clickable_categories(): void
+    public function test_category_filter_defaults_from_url_param(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        $c = $this->sample();
+
+        // Ссылка с плашки статистики: ?category=burned
+        Livewire::withQueryParams(['category' => 'burned'])
+            ->test(ListCertificates::class)
+            ->assertCanSeeTableRecords([$c['burned']])
+            ->assertCanNotSeeTableRecords([$c['active'], $c['ending'], $c['used']]);
+    }
+
+    public function test_stats_widget_renders_all_categories(): void
     {
         $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
         Carbon::setTestNow('2026-09-15');
-
-        $this->cert('B', CertificateStatus::Active->value, now()->subDay()->toDateString(), 50);
+        $this->sample();
 
         Livewire::test(CertificateStats::class)
             ->assertOk()
-            ->assertSee('Сгорели неиспользованными')
-            ->assertSee('Реализованные');
+            ->assertSee('Активные')
+            ->assertSee('Заканчиваются')
+            ->assertSee('Использованные')
+            ->assertSee('Сгорели неиспользованными');
 
         Carbon::setTestNow();
     }

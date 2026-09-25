@@ -12,23 +12,36 @@ class CertificateStats extends StatsOverviewWidget
 {
     protected function getStats(): array
     {
-        $used = Certificate::query()->where('status', CertificateStatus::Used->value)->count();
+        $monthAhead = now()->addMonth()->toDateString();
+        $today = now()->toDateString();
 
-        // Истёк срок, но остаток не использован — деньги/посещения сгорели.
+        // Действуют и до конца срока больше месяца.
+        $active = Certificate::usable()->whereDate('expires_at', '>', $monthAhead)->count();
+        // Ещё действуют, но срок кончается в течение месяца.
+        $ending = Certificate::usable()->whereDate('expires_at', '<=', $monthAhead)->count();
+        // Использованы полностью (остаток 0).
+        $used = Certificate::query()->where('status', CertificateStatus::Used->value)->count();
+        // Истёк срок при непустом остатке — сгорели.
         $burned = Certificate::query()
             ->where('status', '!=', CertificateStatus::Used->value)
-            ->whereDate('expires_at', '<', now()->toDateString())
+            ->whereDate('expires_at', '<', $today)
             ->count();
 
         return [
             Stat::make('Всего', Certificate::query()->count())
                 ->url($this->url(null)),
-            Stat::make('Активные (не использованы)', Certificate::usable()->count())
+            Stat::make('Активные', $active)
+                ->description('действуют, срок не близко')
                 ->color('success')
                 ->url($this->url('active')),
-            Stat::make('Реализованные', $used)
+            Stat::make('Заканчиваются', $ending)
+                ->description('ещё активны, срок в течение месяца')
+                ->color('warning')
+                ->url($this->url('ending')),
+            Stat::make('Использованные', $used)
+                ->description('остаток израсходован')
                 ->color('gray')
-                ->url($this->url('realized')),
+                ->url($this->url('used')),
             Stat::make('Сгорели неиспользованными', $burned)
                 ->description('истёк срок, остаток пропал')
                 ->color('danger')
@@ -41,10 +54,6 @@ class CertificateStats extends StatsOverviewWidget
      */
     private function url(?string $category): string
     {
-        $parameters = $category === null
-            ? []
-            : ['tableFilters' => ['category' => ['value' => $category]]];
-
-        return CertificateResource::getUrl('index', $parameters);
+        return CertificateResource::getUrl('index', $category === null ? [] : ['category' => $category]);
     }
 }
