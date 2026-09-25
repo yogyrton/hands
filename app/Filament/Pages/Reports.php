@@ -125,6 +125,12 @@ class Reports extends Page
             'cash' => $cash,
             'card' => $card,
             'total' => $cash + $card,
+            // Стоимость услуг, покрытая сертификатами (отхожено по сертам за период) —
+            // деньгами в этот месяц не приходит, но входит в базу зарплаты мастеров.
+            'cert_covered' => (float) $this->visitsQuery()
+                ->whereIn('payment_type', ['certificate', 'certificate_surcharge', 'certificate_external'])
+                ->selectRaw('COALESCE(SUM(service_price - paid_amount), 0) as total')
+                ->value('total'),
             'visits' => $this->visitsQuery()->count(),
             // Посещения по сертификатам: и по нашим (в БД), и по «старым» (из Excel).
             'cert_visits' => $this->visitsQuery()

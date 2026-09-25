@@ -20,6 +20,11 @@
             <div style="font-size: 1.5rem; font-weight: 600;">{{ number_format($rev['card'], 2, '.', ' ') }} р</div>
         </x-filament::section>
         <x-filament::section>
+            <div style="font-size: 0.875rem; color: rgb(113 113 122);">Сертификаты (отхожено)</div>
+            <div style="font-size: 1.5rem; font-weight: 600;">{{ number_format($rev['cert_covered'], 2, '.', ' ') }} р</div>
+            <div style="margin-top: 0.25rem; font-size: 0.75rem; color: rgb(113 113 122);">покрыто сертами, деньгами не приходит</div>
+        </x-filament::section>
+        <x-filament::section>
             <div style="font-size: 0.875rem; color: rgb(113 113 122);">Посещений</div>
             <div style="font-size: 1.5rem; font-weight: 600;">{{ $rev['visits'] }}</div>
             <div style="margin-top: 0.25rem; font-size: 0.75rem; color: rgb(113 113 122);">из них по сертификату: {{ $rev['cert_visits'] }}</div>
@@ -54,6 +59,17 @@
                         <tr><td colspan="5" style="padding: 0.75rem 0; color: rgb(113 113 122);">Нет посещений за период.</td></tr>
                     @endforelse
                 </tbody>
+                @if($rows !== [])
+                    <tfoot>
+                        <tr style="border-top: 2px solid rgba(113, 113, 122, 0.4);">
+                            <td style="padding: 0.6rem 2rem 0.6rem 0; font-weight: 700;">Итого</td>
+                            <td style="padding: 0.6rem 2rem 0.6rem 0; text-align: right; font-weight: 700;">{{ collect($rows)->sum('count') }}</td>
+                            <td style="padding: 0.6rem 2rem 0.6rem 0; text-align: right; font-weight: 700; white-space: nowrap;">{{ number_format(collect($rows)->sum('sum'), 2, '.', ' ') }} р</td>
+                            <td></td>
+                            <td style="padding: 0.6rem 0; text-align: right; font-weight: 700; white-space: nowrap;">{{ number_format(collect($rows)->sum('salary'), 2, '.', ' ') }} р</td>
+                        </tr>
+                    </tfoot>
+                @endif
             </table>
         </div>
     </x-filament::section>
