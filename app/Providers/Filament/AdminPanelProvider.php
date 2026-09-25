@@ -50,7 +50,7 @@ class AdminPanelProvider extends PanelProvider
                     '<a href="'.e(url('/')).'" target="_blank" rel="noopener noreferrer" '
                     .'title="Открыть сайт в новой вкладке" '
                     .'style="display:inline-flex;align-items:center;gap:.4rem;padding:.4rem .75rem;'
-                    .'margin-inline-end:.5rem;border-radius:.5rem;font-size:.875rem;font-weight:500;'
+                    .'margin-inline-start:.75rem;margin-inline-end:.5rem;border-radius:.5rem;font-size:.875rem;font-weight:500;'
                     .'color:#b45309;background:#fef3c7;text-decoration:none;white-space:nowrap;">'
                     .'<svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" '
                     .'stroke-width="1.6" stroke="currentColor" style="width:1.1rem;height:1.1rem;">'
