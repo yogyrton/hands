@@ -22,7 +22,7 @@ class MonthlyFinanceOverview extends Widget
 
     protected int|string|array $columnSpan = 'full';
 
-    protected static ?int $sort = -5;
+    protected static ?int $sort = -6;
 
     // Не ленивый — сразу считаем и держим состояние выбранного месяца.
     protected static bool $isLazy = false;
