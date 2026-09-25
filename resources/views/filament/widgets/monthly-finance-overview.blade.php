@@ -86,7 +86,7 @@
     {{-- Отдельный блок: проданные сертификаты (справочно, в выручку не входят) --}}
     <x-filament::section style="margin-top:1rem;">
         <div style="display:flex; align-items:baseline; flex-wrap:wrap; gap:.4rem .75rem; margin-bottom:.85rem;">
-            <span style="font-size:1rem; font-weight:700;">Продано сертификатов</span>
+            <span style="font-size:1rem; font-weight:700;">Продано сертификатов · {{ $s->certs->count() }}</span>
             <span style="opacity:.5;">{{ $s->label }}</span>
             <span style="margin-left:auto; font-size:1.1rem; font-weight:700; color:#f59e0b;">{{ $this->money($s->revenue_certs) }} р</span>
         </div>
@@ -94,13 +94,15 @@
         @if($s->certs->isNotEmpty())
             <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(9.5rem, 1fr)); gap:.5rem;">
                 @foreach($s->certs as $cert)
-                    <div style="{{ $panel }} display:flex; justify-content:space-between; align-items:baseline; gap:.5rem; padding:.45rem .65rem; font-size:.82rem;">
+                    <a href="{{ $this->certUrl($cert) }}"
+                       style="{{ $panel }} display:flex; justify-content:space-between; align-items:baseline; gap:.5rem; padding:.45rem .65rem; font-size:.82rem; text-decoration:none; color:inherit; transition:border-color .15s;"
+                       onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='rgba(120,120,120,.22)'">
                         <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                             <b>№{{ $cert->number }}</b>
                             <span style="opacity:.5;">{{ $this->soldShort($cert) }}</span>
                         </span>
                         <span style="white-space:nowrap; font-weight:600;">{{ $this->money((float) $cert->initial_amount) }}</span>
-                    </div>
+                    </a>
                 @endforeach
             </div>
             <div style="font-size:.72rem; opacity:.5; margin-top:.7rem;">Справочно: деньги от продажи сертификатов не входят в выручку месяца, чтобы не задваивать (визиты по сертификату идут в зарплату мастера).</div>

@@ -4,9 +4,13 @@ declare(strict_types=1);
 
 namespace Tests\Feature;
 
+use App\Enums\CertificateStatus;
+use App\Enums\CertificateType;
 use App\Enums\PaymentType;
 use App\Enums\UserRole;
+use App\Filament\Resources\Certificates\CertificateResource;
 use App\Filament\Widgets\MonthlyFinanceOverview;
+use App\Models\Certificate;
 use App\Models\Master;
 use App\Models\Service;
 use App\Models\User;
@@ -70,6 +74,27 @@ class MonthlyFinanceOverviewTest extends TestCase
             ->assertSee('Анна')
             ->assertSee('Зарплата мастеров')
             ->assertSee('Прибыль за месяц');
+
+        Carbon::setTestNow();
+    }
+
+    public function test_sold_certificates_show_count_and_link(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        Carbon::setTestNow('2026-09-15');
+
+        $cert = Certificate::create([
+            'number' => '777', 'type' => CertificateType::Money,
+            'status' => CertificateStatus::Active,
+            'initial_amount' => 120, 'remaining_amount' => 120,
+            'sold_at' => Carbon::create(2026, 9, 3), 'expires_at' => Carbon::create(2027, 9, 3),
+        ]);
+
+        Livewire::test(MonthlyFinanceOverview::class)
+            ->assertOk()
+            ->assertSee('Продано сертификатов · 1')
+            ->assertSee('№777')
+            ->assertSee(CertificateResource::getUrl('view', ['record' => $cert]));
 
         Carbon::setTestNow();
     }

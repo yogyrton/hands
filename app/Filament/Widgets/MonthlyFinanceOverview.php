@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Filament\Resources\Certificates\CertificateResource;
 use App\Models\Certificate;
 use App\Support\MonthlyFinance;
 use Filament\Widgets\Widget;
@@ -88,5 +89,10 @@ class MonthlyFinanceOverview extends Widget
     public function soldShort(Certificate $certificate): string
     {
         return Carbon::parse($certificate->sold_at)->format('d.m');
+    }
+
+    public function certUrl(Certificate $certificate): string
+    {
+        return CertificateResource::getUrl('view', ['record' => $certificate]);
     }
 }
