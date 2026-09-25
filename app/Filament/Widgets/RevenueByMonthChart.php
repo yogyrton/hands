@@ -20,7 +20,8 @@ class RevenueByMonthChart extends ChartWidget
 
     protected int|string|array $columnSpan = 'full';
 
-    protected static ?int $sort = -5;
+    // В самом низу инфопанели — после всех блоков.
+    protected static ?int $sort = -3;
 
     protected ?string $maxHeight = '320px';
 
