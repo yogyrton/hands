@@ -2,6 +2,7 @@
 
 declare(strict_types=1);
 
+use App\Http\Controllers\BackupDatabaseController;
 use App\Http\Controllers\Site\HomeController;
 use App\Http\Controllers\Site\MasterController;
 use App\Http\Controllers\Site\PolicyController;
@@ -16,3 +17,7 @@ Route::get('/masters/{master:slug}', [MasterController::class, 'show'])->name('m
 Route::get('/privacy-policy', [PolicyController::class, 'privacy'])->name('privacy');
 Route::get('/cookie-policy', [PolicyController::class, 'cookie'])->name('cookie');
 Route::get('/certificate-policy', [PolicyController::class, 'certificate'])->name('certificate');
+
+// Скачивание дампа базы. Доступ (авторизация + роль админа) проверяется прямо
+// в контроллере — гость/не-админ получают 403.
+Route::get('/admin/db-backup', BackupDatabaseController::class)->name('admin.db-backup');

@@ -3,7 +3,9 @@
 namespace App\Filament\Pages;
 
 use App\Filament\Resources\Visits\VisitResource;
+use Filament\Actions\Action;
 use Filament\Pages\Dashboard as BaseDashboard;
+use Filament\Support\Icons\Heroicon;
 
 /**
  * Инфопанель — только для администратора (там финансы студии). Мастер её не
@@ -14,6 +16,21 @@ class Dashboard extends BaseDashboard
     public static function shouldRegisterNavigation(): bool
     {
         return (bool) auth()->user()?->isAdmin();
+    }
+
+    /**
+     * @return array<Action>
+     */
+    protected function getHeaderActions(): array
+    {
+        return [
+            Action::make('backupDatabase')
+                ->label('Бэкап БД')
+                ->icon(Heroicon::OutlinedCircleStack)
+                ->color('gray')
+                ->url(route('admin.db-backup'))
+                ->openUrlInNewTab(),
+        ];
     }
 
     public function mount(): void
