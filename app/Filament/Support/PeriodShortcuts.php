@@ -66,15 +66,28 @@ class PeriodShortcuts
     }
 
     /**
-     * Сдвигает обе границы периода на $days дней относительно текущего выбора.
+     * «Пред./След. день» — всегда один день (С = По). Если выбран один день —
+     * шагаем от него (вчера → позавчера); если выбран диапазон/месяц — считаем
+     * от сегодняшнего (нажал «Пред. день» при выбранном месяце → вчера).
      */
     private static function shiftDay(Get $get, Set $set, int $days): void
     {
-        $from = Carbon::parse($get('from') ?: now()->toDateString());
-        $until = Carbon::parse($get('until') ?: now()->toDateString());
+        $day = self::stepDay($get('from'), $get('until'), $days);
 
-        $set('from', $from->addDays($days)->toDateString());
-        $set('until', $until->addDays($days)->toDateString());
+        $set('from', $day);
+        $set('until', $day);
+    }
+
+    /**
+     * Один день на $days от базы: если выбран один день — от него, иначе — от сегодня.
+     */
+    public static function stepDay(?string $from, ?string $until, int $days): string
+    {
+        $base = ($from !== null && $from === $until)
+            ? Carbon::parse($from)
+            : Carbon::now();
+
+        return $base->addDays($days)->toDateString();
     }
 
     /**
