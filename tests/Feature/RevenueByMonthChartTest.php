@@ -27,7 +27,7 @@ class RevenueByMonthChartTest extends TestCase
 
         Livewire::test(RevenueByMonthChart::class)
             ->assertOk()
-            ->assertSee('Выручка и прибыль по месяцам');
+            ->assertSee('фактически выполненные массажи');
     }
 
     public function test_only_months_with_visits_are_shown(): void
