@@ -6,7 +6,6 @@ use App\Filament\Pages\Dashboard;
 use App\Filament\Widgets\ExpiringCertificates;
 use App\Filament\Widgets\MonthlyFinanceOverview;
 use App\Filament\Widgets\RevenueByMonthChart;
-use App\Filament\Widgets\RevenueWithCertsByMonthChart;
 use Filament\Http\Middleware\Authenticate;
 use Filament\Http\Middleware\AuthenticateSession;
 use Filament\Http\Middleware\DisableBladeIconComponents;
@@ -46,7 +45,6 @@ class AdminPanelProvider extends PanelProvider
                 MonthlyFinanceOverview::class,
                 ExpiringCertificates::class,
                 RevenueByMonthChart::class,
-                RevenueWithCertsByMonthChart::class,
             ])
             ->renderHook(
                 PanelsRenderHook::TOPBAR_END,

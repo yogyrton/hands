@@ -8,14 +8,14 @@ use App\Filament\Widgets\Concerns\BuildsMonthlyFinanceChart;
 use Filament\Widgets\ChartWidget;
 
 /**
- * Дашборд: выручка и прибыль по месяцам — по фактически выполненным массажам
- * (деньги по визитам, без продаж сертификатов). Только админ.
+ * Дашборд: выручка и прибыль по месяцам (выручка = касса по визитам + продажи
+ * сертификатов месяца, как в MonthlyFinance). Только админ.
  */
 class RevenueByMonthChart extends ChartWidget
 {
     use BuildsMonthlyFinanceChart;
 
-    protected ?string $heading = 'Выручка и прибыль по месяцам (фактически выполненные массажи)';
+    protected ?string $heading = 'Выручка и прибыль по месяцам';
 
     protected int|string|array $columnSpan = 'full';
 

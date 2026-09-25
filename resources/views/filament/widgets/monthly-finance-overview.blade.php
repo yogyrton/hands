@@ -28,9 +28,9 @@
 
             {{-- Выручка --}}
             <div style="{{ $panel }} padding:1rem 1.1rem;">
-                <div style="font-size:.78rem; opacity:.6; text-transform:uppercase; letter-spacing:.04em;">Выручка (касса)</div>
+                <div style="font-size:.78rem; opacity:.6; text-transform:uppercase; letter-spacing:.04em;">Выручка (все деньги)</div>
                 <div style="font-size:1.6rem; font-weight:700; margin-top:.3rem;">{{ $this->money($s->revenue) }} р</div>
-                <div style="font-size:.78rem; opacity:.55; margin-top:.4rem;">деньги по визитам (без сертификатов)</div>
+                <div style="font-size:.78rem; opacity:.55; margin-top:.4rem;">визиты по кассе {{ $this->money($s->revenue_visits) }} + сертификаты {{ $this->money($s->revenue_certs) }}</div>
             </div>
 
             {{-- Все траты --}}
