@@ -20,4 +20,7 @@ mkdir -p \
     /app/storage/logs \
     /app/bootstrap/cache
 
-chmod -R 0777 /app/storage /app/bootstrap/cache 2>/dev/null || true
+# Права ставим только на КАТАЛОГИ (в них создаются файлы). Отслеживаемые в git
+# файлы (.gitignore в storage/*) не трогаем — иначе меняется режим и git видит
+# их как изменённые.
+find /app/storage /app/bootstrap/cache -type d -exec chmod 0777 {} + 2>/dev/null || true
