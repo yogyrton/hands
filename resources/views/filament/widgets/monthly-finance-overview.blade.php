@@ -1,64 +1,64 @@
 @php($s = $this->summary())
+@php($panel = 'background:rgba(120,120,120,.08); border:1px solid rgba(120,120,120,.22); border-radius:.75rem;')
+@php($rowBorder = 'border-top:1px solid rgba(120,120,120,.18);')
 
 <x-filament-widgets::widget>
     <x-filament::section>
         {{-- Переключатель месяца --}}
-        <div style="display:flex; align-items:center; flex-wrap:wrap; gap:.5rem 1rem; margin-bottom:1.25rem;">
+        <div style="display:flex; align-items:center; flex-wrap:wrap; gap:.6rem 1rem; margin-bottom:1.25rem;">
             <div style="display:inline-flex; gap:.4rem;">
                 <x-filament::button size="sm" color="gray" wire:click="prevMonth">‹ Предыдущий</x-filament::button>
                 <x-filament::button size="sm" :color="$this->isCurrentMonth() ? 'primary' : 'gray'" wire:click="currentMonth">Текущий</x-filament::button>
                 <x-filament::button size="sm" color="gray" wire:click="nextMonth">Следующий ›</x-filament::button>
             </div>
-            <div style="font-size:1.15rem; font-weight:700;">{{ $s->label }}</div>
+            <div style="font-size:1.2rem; font-weight:700; letter-spacing:.01em;">{{ $s->label }}</div>
         </div>
 
-        {{-- Верхняя строка: прибыль · выручка --}}
-        <div style="display:flex; flex-wrap:wrap; gap:1.5rem 2.5rem; align-items:flex-start;">
-            <div style="min-width:12rem;">
-                <div style="font-size:.8rem; opacity:.6;">Прибыль за месяц</div>
-                <div style="font-size:1.875rem; font-weight:700; line-height:1.2; margin-top:.25rem; color:{{ $s->profit >= 0 ? '#22c55e' : '#ef4444' }};">
+        {{-- Три ключевые цифры --}}
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(13rem, 1fr)); gap:1rem;">
+            {{-- Прибыль --}}
+            <div style="{{ $panel }} padding:1rem 1.1rem; position:relative; overflow:hidden;">
+                <div style="position:absolute; inset:0 auto 0 0; width:4px; background:{{ $s->profit >= 0 ? '#22c55e' : '#ef4444' }};"></div>
+                <div style="font-size:.78rem; opacity:.6; text-transform:uppercase; letter-spacing:.04em;">Прибыль за месяц</div>
+                <div style="font-size:2rem; font-weight:800; line-height:1.15; margin-top:.3rem; color:{{ $s->profit >= 0 ? '#22c55e' : '#ef4444' }};">
                     {{ $this->money($s->profit) }} р
                 </div>
-                <div style="font-size:.8rem; opacity:.6; margin-top:.35rem;">
-                    выручка − зарплата мастеров − постоянные расходы
-                </div>
+                <div style="font-size:.78rem; opacity:.55; margin-top:.4rem;">выручка − зарплата − расходы</div>
             </div>
 
-            <div style="min-width:11rem;">
-                <div style="font-size:.8rem; opacity:.6;">Выручка (деньги)</div>
-                <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem;">{{ $this->money($s->revenue) }} р</div>
-                <div style="font-size:.8rem; opacity:.6; margin-top:.35rem;">
-                    визиты по кассе {{ $this->money($s->revenue_visits) }} + сертификаты {{ $this->money($s->revenue_certs) }}
-                </div>
+            {{-- Выручка --}}
+            <div style="{{ $panel }} padding:1rem 1.1rem;">
+                <div style="font-size:.78rem; opacity:.6; text-transform:uppercase; letter-spacing:.04em;">Выручка (касса)</div>
+                <div style="font-size:1.6rem; font-weight:700; margin-top:.3rem;">{{ $this->money($s->revenue) }} р</div>
+                <div style="font-size:.78rem; opacity:.55; margin-top:.4rem;">деньги по визитам (без сертификатов)</div>
             </div>
 
-            <div style="min-width:11rem;">
-                <div style="font-size:.8rem; opacity:.6;">Все траты за месяц</div>
-                <div style="font-size:1.5rem; font-weight:600; margin-top:.25rem;">{{ $this->money($s->costs_total) }} р</div>
-                <div style="font-size:.8rem; opacity:.6; margin-top:.35rem;">
-                    зарплата {{ $this->money($s->salary_total) }} + постоянные {{ $this->money($s->fixed_total) }}
-                </div>
+            {{-- Все траты --}}
+            <div style="{{ $panel }} padding:1rem 1.1rem;">
+                <div style="font-size:.78rem; opacity:.6; text-transform:uppercase; letter-spacing:.04em;">Все траты за месяц</div>
+                <div style="font-size:1.6rem; font-weight:700; margin-top:.3rem;">{{ $this->money($s->costs_total) }} р</div>
+                <div style="font-size:.78rem; opacity:.55; margin-top:.4rem;">зарплата {{ $this->money($s->salary_total) }} + постоянные {{ $this->money($s->fixed_total) }}</div>
             </div>
         </div>
 
-        {{-- Нижняя часть: мастера · расходы · сертификаты --}}
-        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(15rem, 1fr)); gap:1.5rem; margin-top:1.5rem;">
-            {{-- Зарплата мастеров (≈½ наработанного) --}}
-            <div>
-                <div style="font-size:.85rem; font-weight:600; margin-bottom:.5rem;">Зарплата мастеров (≈½ наработанного)</div>
+        {{-- Две колонки: зарплата мастеров и постоянные расходы --}}
+        <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(18rem, 1fr)); gap:1rem; margin-top:1rem;">
+            {{-- Зарплата мастеров --}}
+            <div style="{{ $panel }} padding:.9rem 1.1rem;">
+                <div style="font-size:.85rem; font-weight:700; margin-bottom:.5rem;">Зарплата мастеров <span style="opacity:.5; font-weight:400;">≈½ наработанного</span></div>
                 @forelse($s->masters as $m)
-                    <div style="display:flex; justify-content:space-between; gap:1rem; font-size:.85rem; padding:.3rem 0; border-top:1px solid rgba(113,113,122,.2);">
-                        <span>{{ $m->name }}@unless($m->active) <span style="opacity:.5;">(ушёл)</span>@endunless</span>
-                        <span style="white-space:nowrap;">
-                            <span style="opacity:.6;">наработал {{ $this->money($m->earned) }}</span>
-                            → <b>{{ $this->money($m->cost) }} р</b>
+                    <div style="display:flex; justify-content:space-between; align-items:baseline; gap:1rem; font-size:.875rem; padding:.4rem 0; {{ $rowBorder }}">
+                        <span>{{ $m->name }}@unless($m->active) <span style="opacity:.45;">(ушёл)</span>@endunless</span>
+                        <span style="white-space:nowrap; text-align:right;">
+                            <span style="opacity:.5; font-size:.8rem;">наработал {{ $this->money($m->earned) }}</span>
+                            <b style="margin-left:.35rem;">{{ $this->money($m->cost) }} р</b>
                         </span>
                     </div>
                 @empty
-                    <div style="font-size:.85rem; opacity:.6;">Нет визитов за месяц.</div>
+                    <div style="font-size:.85rem; opacity:.55; padding:.3rem 0;">Нет визитов за месяц.</div>
                 @endforelse
                 @if($s->masters->isNotEmpty())
-                    <div style="display:flex; justify-content:space-between; gap:1rem; font-size:.85rem; padding:.4rem 0; border-top:2px solid rgba(113,113,122,.35); font-weight:700;">
+                    <div style="display:flex; justify-content:space-between; gap:1rem; font-size:.9rem; padding:.55rem 0 .1rem; border-top:2px solid rgba(120,120,120,.3); font-weight:700;">
                         <span>Итого зарплата</span>
                         <span>{{ $this->money($s->salary_total) }} р</span>
                     </div>
@@ -66,33 +66,46 @@
             </div>
 
             {{-- Постоянные расходы --}}
-            <div>
-                <div style="font-size:.85rem; font-weight:600; margin-bottom:.5rem;">Постоянные расходы</div>
+            <div style="{{ $panel }} padding:.9rem 1.1rem;">
+                <div style="font-size:.85rem; font-weight:700; margin-bottom:.5rem;">Постоянные расходы</div>
                 @foreach($s->fixed_lines as $line)
-                    <div style="display:flex; justify-content:space-between; gap:1rem; font-size:.85rem; padding:.3rem 0; border-top:1px solid rgba(113,113,122,.2);">
+                    <div style="display:flex; justify-content:space-between; gap:1rem; font-size:.875rem; padding:.4rem 0; {{ $rowBorder }}">
                         <span>{{ $line['title'] }}</span>
                         <span style="white-space:nowrap;">{{ $this->money($line['amount']) }} р</span>
                     </div>
                 @endforeach
-                <div style="display:flex; justify-content:space-between; gap:1rem; font-size:.85rem; padding:.4rem 0; border-top:2px solid rgba(113,113,122,.35); font-weight:700;">
+                <div style="display:flex; justify-content:space-between; gap:1rem; font-size:.9rem; padding:.55rem 0 .1rem; border-top:2px solid rgba(120,120,120,.3); font-weight:700;">
                     <span>Итого постоянные</span>
                     <span>{{ $this->money($s->fixed_total) }} р</span>
                 </div>
-                <div style="font-size:.75rem; opacity:.55; margin-top:.4rem;">Меняются в «Настройки студии → Постоянные расходы».</div>
-            </div>
-
-            {{-- Проданные сертификаты --}}
-            <div>
-                <div style="font-size:.85rem; font-weight:600; margin-bottom:.5rem;">Продано сертификатов · {{ $this->money($s->revenue_certs) }} р</div>
-                @forelse($s->certs as $cert)
-                    <div style="display:flex; justify-content:space-between; gap:1rem; font-size:.85rem; padding:.3rem 0; border-top:1px solid rgba(113,113,122,.2);">
-                        <span>№{{ $cert->number }} <span style="opacity:.5;">{{ $this->soldDate($cert) }}</span></span>
-                        <span style="white-space:nowrap;">{{ $this->money((float) $cert->initial_amount) }} р</span>
-                    </div>
-                @empty
-                    <div style="font-size:.85rem; opacity:.6;">За месяц не продано.</div>
-                @endforelse
+                <div style="font-size:.72rem; opacity:.5; margin-top:.5rem;">Меняются в «Настройки студии → Постоянные расходы».</div>
             </div>
         </div>
+    </x-filament::section>
+
+    {{-- Отдельный блок: проданные сертификаты (справочно, в выручку не входят) --}}
+    <x-filament::section style="margin-top:1rem;">
+        <div style="display:flex; align-items:baseline; flex-wrap:wrap; gap:.4rem .75rem; margin-bottom:.85rem;">
+            <span style="font-size:1rem; font-weight:700;">Продано сертификатов</span>
+            <span style="opacity:.5;">{{ $s->label }}</span>
+            <span style="margin-left:auto; font-size:1.1rem; font-weight:700; color:#f59e0b;">{{ $this->money($s->revenue_certs) }} р</span>
+        </div>
+
+        @if($s->certs->isNotEmpty())
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(9.5rem, 1fr)); gap:.5rem;">
+                @foreach($s->certs as $cert)
+                    <div style="{{ $panel }} display:flex; justify-content:space-between; align-items:baseline; gap:.5rem; padding:.45rem .65rem; font-size:.82rem;">
+                        <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            <b>№{{ $cert->number }}</b>
+                            <span style="opacity:.5;">{{ $this->soldShort($cert) }}</span>
+                        </span>
+                        <span style="white-space:nowrap; font-weight:600;">{{ $this->money((float) $cert->initial_amount) }}</span>
+                    </div>
+                @endforeach
+            </div>
+            <div style="font-size:.72rem; opacity:.5; margin-top:.7rem;">Справочно: деньги от продажи сертификатов не входят в выручку месяца, чтобы не задваивать (визиты по сертификату идут в зарплату мастера).</div>
+        @else
+            <div style="font-size:.85rem; opacity:.55;">За месяц не продано.</div>
+        @endif
     </x-filament::section>
 </x-filament-widgets::widget>

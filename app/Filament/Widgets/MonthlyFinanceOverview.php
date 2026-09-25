@@ -84,4 +84,9 @@ class MonthlyFinanceOverview extends Widget
     {
         return Carbon::parse($certificate->sold_at)->format('d.m.Y');
     }
+
+    public function soldShort(Certificate $certificate): string
+    {
+        return Carbon::parse($certificate->sold_at)->format('d.m');
+    }
 }

@@ -75,7 +75,7 @@ class MonthlyFinanceTest extends TestCase
         $this->assertSame(2500.0, $f->masters[0]->cost);
     }
 
-    public function test_certificate_sales_count_as_revenue(): void
+    public function test_certificate_sales_are_shown_but_not_counted_in_revenue(): void
     {
         $this->fixedExpenses();
         Certificate::create([
@@ -86,8 +86,9 @@ class MonthlyFinanceTest extends TestCase
 
         $f = MonthlyFinance::for(2026, 9);
 
+        // Сумма продаж видна отдельно, но в выручку не входит (нет визитов → выручка 0).
         $this->assertSame(300.0, $f->revenue_certs);
-        $this->assertSame(300.0, $f->revenue);
+        $this->assertSame(0.0, $f->revenue);
         $this->assertCount(1, $f->certs);
     }
 
