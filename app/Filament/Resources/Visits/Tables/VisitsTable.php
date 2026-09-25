@@ -4,6 +4,7 @@ namespace App\Filament\Resources\Visits\Tables;
 
 use App\Enums\PaymentType;
 use App\Filament\Resources\Visits\VisitResource;
+use App\Filament\Support\PeriodShortcuts;
 use App\Models\Visit;
 use Filament\Forms\Components\DatePicker;
 use Filament\Tables\Columns\TextColumn;
@@ -21,6 +22,9 @@ class VisitsTable
             ->defaultSort('performed_at', 'desc')
             // По умолчанию показываем 25 записей на страницу.
             ->defaultPaginationPageOption(25)
+            // Фильтры применяются сразу (без кнопки «Применить»), чтобы пресеты
+            // и шаг по дням в фильтре периода срабатывали в один клик.
+            ->deferFilters(false)
             // Клик по строке открывает просмотр посещения (отдельная кнопка не нужна).
             ->recordUrl(fn (Visit $record): string => VisitResource::getUrl('view', ['record' => $record]))
             ->columns([
@@ -63,10 +67,12 @@ class VisitsTable
                     ->label('Мастер')
                     ->relationship('master', 'name'),
                 Filter::make('period')
+                    ->columns(2)
                     // По умолчанию — только сегодняшний день (можно изменить/очистить в фильтре).
                     ->schema([
                         DatePicker::make('from')->label('С')->default(today()),
                         DatePicker::make('until')->label('По')->default(today()),
+                        PeriodShortcuts::make(),
                     ])
                     ->indicateUsing(function (array $data): ?string {
                         $from = $data['from'] ?? null;

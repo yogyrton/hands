@@ -7,6 +7,7 @@ namespace Tests\Feature;
 use App\Enums\UserRole;
 use App\Filament\Pages\Reports;
 use App\Filament\Pages\WorktimeReport;
+use App\Filament\Resources\Visits\Pages\ListVisits;
 use App\Models\User;
 use Illuminate\Foundation\Testing\RefreshDatabase;
 use Livewire\Livewire;
@@ -35,6 +36,17 @@ class PeriodShortcutsTest extends TestCase
         $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
 
         Livewire::test(WorktimeReport::class)
+            ->assertOk()
+            ->assertSee('Сегодня')
+            ->assertSee('Прошлый месяц')
+            ->assertSee('Пред. день');
+    }
+
+    public function test_visits_list_period_filter_has_shortcut_buttons(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+
+        Livewire::test(ListVisits::class)
             ->assertOk()
             ->assertSee('Сегодня')
             ->assertSee('Прошлый месяц')
