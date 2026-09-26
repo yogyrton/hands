@@ -82,21 +82,22 @@ class Certificate extends Model
 
     /**
      * Обязательства по действующим сертификатам: сколько денег мы уже получили
-     * при продаже, но услугами ещё не отработали. Считается по остатку каждого
-     * активного сертификата (истёкшие и полностью использованные не в счёт —
-     * по ним мы уже ничего не должны):
+     * при продаже, но услугами ещё не отработали. Берём только те, которыми ещё
+     * реально можно оплатить (scope usable: активен + НЕ истёк по дате + есть
+     * остаток). Истёкшие и полностью использованные не в счёт — по ним мы уже
+     * ничего не должны (клиент их отоварить не может). Фильтр по дате, а не
+     * только по статусу, важен: статус на «Истёк» переключается не сам, а при
+     * пересчёте, так что просроченный серт может ещё висеть «Активным».
      *   — денежный: остаток суммы;
      *   — на посещения: доля непройденных сеансов от суммы продажи.
      */
     public static function outstandingLiability(): float
     {
-        $money = (float) self::query()
-            ->where('status', CertificateStatus::Active->value)
+        $money = (float) self::query()->usable()
             ->where('type', CertificateType::Money->value)
             ->sum('remaining_amount');
 
-        $visits = self::query()
-            ->where('status', CertificateStatus::Active->value)
+        $visits = self::query()->usable()
             ->where('type', CertificateType::Visits->value)
             ->where('initial_visits', '>', 0)
             ->get(['initial_amount', 'initial_visits', 'remaining_visits'])
