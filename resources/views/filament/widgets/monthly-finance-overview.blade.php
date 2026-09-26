@@ -102,16 +102,6 @@
             <span style="margin-left:auto; font-size:1.1rem; font-weight:700; color:#f59e0b;">{{ $this->money($s->revenue_certs) }} р</span>
         </div>
 
-        {{-- Обязательства: остаток по действующим сертификатам (истёкшие исключены) --}}
-        @php($outstanding = $this->outstandingCerts())
-        <div style="{{ $panel }} display:flex; justify-content:space-between; align-items:baseline; gap:1rem; padding:.6rem .85rem; margin-bottom:.85rem;">
-            <span style="font-size:.85rem;">
-                <b>Не отхожено — наши обязательства</b>
-                <span style="opacity:.55;"> · по всем действующим сертификатам, за всё время</span>
-            </span>
-            <span style="font-size:1.05rem; font-weight:700; white-space:nowrap; color:#f59e0b;">{{ $this->money($outstanding) }} р</span>
-        </div>
-
         @if($s->certs->isNotEmpty())
             <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(9.5rem, 1fr)); gap:.5rem;">
                 @foreach($s->certs as $cert)
@@ -129,6 +119,36 @@
             <div style="font-size:.72rem; opacity:.5; margin-top:.7rem;">Деньги от продажи сертификатов входят в выручку месяца. Чтобы не задваивать, визиты, оплаченные этими сертификатами, в кассу не идут — только в зарплату мастера.</div>
         @else
             <div style="font-size:.85rem; opacity:.55;">За месяц не продано.</div>
+        @endif
+    </x-filament::section>
+
+    {{-- Обязательства: остаток по действующим сертификатам (истёкшие исключены).
+         Список — как «Продано», но с датой окончания и остатком; кто раньше
+         сгорит, тот выше. --}}
+    @php($outstandingList = $this->outstandingCertsList())
+    <x-filament::section style="margin-top:1rem;">
+        <div style="display:flex; align-items:baseline; flex-wrap:wrap; gap:.4rem .75rem; margin-bottom:.85rem;">
+            <span style="font-size:1rem; font-weight:700;">Не отхожено — наши обязательства · {{ $outstandingList->count() }}</span>
+            <span style="opacity:.5;">по всем действующим сертификатам, за всё время</span>
+            <span style="margin-left:auto; font-size:1.1rem; font-weight:700; color:#f59e0b;">{{ $this->money($this->outstandingCerts()) }} р</span>
+        </div>
+
+        @if($outstandingList->isNotEmpty())
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(11rem, 1fr)); gap:.5rem;">
+                @foreach($outstandingList as $cert)
+                    <a href="{{ $this->certUrl($cert) }}"
+                       style="{{ $panel }} display:flex; justify-content:space-between; align-items:baseline; gap:.5rem; padding:.45rem .65rem; font-size:.82rem; text-decoration:none; color:inherit; transition:border-color .15s;"
+                       onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='rgba(120,120,120,.22)'">
+                        <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
+                            <b>№{{ $cert->number }}</b>
+                            <span style="opacity:.5;">до {{ $this->expiresShort($cert) }}</span>
+                        </span>
+                        <span style="white-space:nowrap; font-weight:600;">{{ $this->remainingShort($cert) }}</span>
+                    </a>
+                @endforeach
+            </div>
+        @else
+            <div style="font-size:.85rem; opacity:.55;">Действующих сертификатов нет.</div>
         @endif
     </x-filament::section>
 </x-filament-widgets::widget>

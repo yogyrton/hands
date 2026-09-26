@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Filament\Widgets;
 
+use App\Enums\CertificateType;
 use App\Filament\Resources\Certificates\CertificateResource;
 use App\Models\Certificate;
 use App\Support\MonthlyFinance;
@@ -141,6 +142,35 @@ class MonthlyFinanceOverview extends Widget
     public function outstandingCerts(): float
     {
         return Certificate::outstandingLiability();
+    }
+
+    /**
+     * Список действующих сертификатов (те, что формируют обязательства): активны,
+     * не истекли, есть остаток. По сроку окончания — что раньше сгорит, сверху.
+     *
+     * @return \Illuminate\Database\Eloquent\Collection<int, Certificate>
+     */
+    public function outstandingCertsList(): \Illuminate\Database\Eloquent\Collection
+    {
+        return Certificate::query()->usable()->orderBy('expires_at')->get();
+    }
+
+    /**
+     * Остаток по сертификату коротко: сумма (денежный) или число посещений.
+     */
+    public function remainingShort(Certificate $certificate): string
+    {
+        return $certificate->type === CertificateType::Visits
+            ? (int) $certificate->remaining_visits.' посещ.'
+            : $this->money((float) $certificate->remaining_amount).' р';
+    }
+
+    /**
+     * Дата окончания сертификата.
+     */
+    public function expiresShort(Certificate $certificate): string
+    {
+        return Carbon::parse($certificate->expires_at)->format('d.m.Y');
     }
 
     public function money(float $value): string
