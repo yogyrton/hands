@@ -174,11 +174,16 @@ class MonthlyFinanceOverview extends Widget
     }
 
     /**
-     * Дата окончания сертификата — день и месяц (без года).
+     * Сколько дней осталось до конца срока сертификата (нагляднее даты —
+     * сразу видно срочность). «сегодня», если срок истекает сегодня.
      */
-    public function expiresShort(Certificate $certificate): string
+    public function daysLeftShort(Certificate $certificate): string
     {
-        return Carbon::parse($certificate->expires_at)->format('d.m');
+        $days = (int) round(
+            now()->startOfDay()->diffInDays(Carbon::parse($certificate->expires_at)->startOfDay(), false)
+        );
+
+        return $days <= 0 ? 'сегодня' : 'ещё '.$days.' дн.';
     }
 
     public function money(float $value): string

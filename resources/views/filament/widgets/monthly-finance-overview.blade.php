@@ -141,7 +141,7 @@
                        onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='rgba(120,120,120,.22)'">
                         <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
                             <b>№{{ $cert->number }}</b>
-                            <span style="opacity:.5;">до {{ $this->expiresShort($cert) }}</span>
+                            <span style="opacity:.5;">{{ $this->daysLeftShort($cert) }}</span>
                         </span>
                         <span style="white-space:nowrap; font-weight:600;">{{ $this->remainingShort($cert) }}</span>
                     </a>
