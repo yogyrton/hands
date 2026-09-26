@@ -15,6 +15,7 @@ use Illuminate\Database\Eloquent\Relations\HasMany;
  * @property string|null $description
  * @property int $discount_percent
  * @property bool $is_active
+ * @property bool $show_on_site
  * @property int $sort_order
  */
 class Promotion extends Model
@@ -25,6 +26,7 @@ class Promotion extends Model
         'description',
         'discount_percent',
         'is_active',
+        'show_on_site',
         'sort_order',
     ];
 
@@ -33,6 +35,7 @@ class Promotion extends Model
         return [
             'discount_percent' => 'integer',
             'is_active' => 'boolean',
+            'show_on_site' => 'boolean',
             'sort_order' => 'integer',
         ];
     }

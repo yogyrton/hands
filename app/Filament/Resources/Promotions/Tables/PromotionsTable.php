@@ -27,6 +27,8 @@ class PromotionsTable
                     ->color('warning'),
                 ToggleColumn::make('is_active')
                     ->label('Активна'),
+                ToggleColumn::make('show_on_site')
+                    ->label('На сайте'),
             ])
             ->filters([
                 //
