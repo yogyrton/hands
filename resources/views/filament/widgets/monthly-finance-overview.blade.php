@@ -134,7 +134,7 @@
         </div>
 
         @if($outstandingList->isNotEmpty())
-            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(11rem, 1fr)); gap:.5rem;">
+            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(14rem, 1fr)); gap:.5rem;">
                 @foreach($outstandingList as $cert)
                     <a href="{{ $this->certUrl($cert) }}"
                        style="{{ $panel }} display:flex; justify-content:space-between; align-items:baseline; gap:.5rem; padding:.45rem .65rem; font-size:.82rem; text-decoration:none; color:inherit; transition:border-color .15s;"

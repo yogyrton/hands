@@ -156,21 +156,29 @@ class MonthlyFinanceOverview extends Widget
     }
 
     /**
-     * Остаток по сертификату коротко: сумма (денежный) или число посещений.
+     * Остаток по сертификату коротко. Денежный — сумма остатка. Абонемент —
+     * число посещений и их денежный эквивалент (доля непройденного от суммы
+     * продажи), чтобы сумма в карточках визуально складывалась в общий итог.
      */
     public function remainingShort(Certificate $certificate): string
     {
-        return $certificate->type === CertificateType::Visits
-            ? (int) $certificate->remaining_visits.' посещ.'
-            : $this->money((float) $certificate->remaining_amount).' р';
+        if ($certificate->type === CertificateType::Visits) {
+            $money = (int) $certificate->initial_visits > 0
+                ? (float) $certificate->initial_amount * (int) $certificate->remaining_visits / (int) $certificate->initial_visits
+                : 0.0;
+
+            return (int) $certificate->remaining_visits.' посещ. · '.$this->money($money).' р';
+        }
+
+        return $this->money((float) $certificate->remaining_amount).' р';
     }
 
     /**
-     * Дата окончания сертификата.
+     * Дата окончания сертификата — день и месяц (без года).
      */
     public function expiresShort(Certificate $certificate): string
     {
-        return Carbon::parse($certificate->expires_at)->format('d.m.Y');
+        return Carbon::parse($certificate->expires_at)->format('d.m');
     }
 
     public function money(float $value): string
