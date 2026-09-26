@@ -49,14 +49,20 @@ class PromotionsAndCertLiabilityTest extends TestCase
             'initial_amount' => 200, 'initial_visits' => 4, 'remaining_visits' => 1,
             'sold_at' => now(), 'expires_at' => now()->addYear(),
         ]);
-        // Истёкший — не наше обязательство.
+        // Истёкший по статусу — не наше обязательство.
         Certificate::create([
             'number' => 'M2', 'type' => CertificateType::Money, 'status' => CertificateStatus::Expired,
             'initial_amount' => 500, 'remaining_amount' => 500,
             'sold_at' => now()->subYears(2), 'expires_at' => now()->subYear(),
         ]);
+        // Дата прошла, но статус ещё «Активен» (не пересчитан) — тоже НЕ считаем.
+        Certificate::create([
+            'number' => 'M3', 'type' => CertificateType::Money, 'status' => CertificateStatus::Active,
+            'initial_amount' => 300, 'remaining_amount' => 300,
+            'sold_at' => now()->subYears(2), 'expires_at' => now()->subDay(),
+        ]);
 
-        // 40 (денежный) + 50 (1/4 × 200) = 90.
+        // 40 (денежный) + 50 (1/4 × 200) = 90. Просроченные не в счёт.
         $this->assertSame(90.0, Certificate::outstandingLiability());
     }
 
