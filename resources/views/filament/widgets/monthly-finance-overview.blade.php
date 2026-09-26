@@ -134,16 +134,15 @@
         </div>
 
         @if($outstandingList->isNotEmpty())
-            <div style="display:grid; grid-template-columns:repeat(auto-fill, minmax(14rem, 1fr)); gap:.5rem;">
+            {{-- Карточки авто-ширины по содержимому: длинные (абонемент + сумма)
+                 шире, короткие уже, перенос сам. Ничего не обрезается. --}}
+            <div style="display:flex; flex-wrap:wrap; gap:.5rem;">
                 @foreach($outstandingList as $cert)
                     <a href="{{ $this->certUrl($cert) }}"
-                       style="{{ $panel }} display:flex; justify-content:space-between; align-items:baseline; gap:.5rem; padding:.45rem .65rem; font-size:.82rem; text-decoration:none; color:inherit; transition:border-color .15s;"
+                       style="{{ $panel }} display:inline-flex; align-items:baseline; gap:.75rem; padding:.45rem .65rem; font-size:.82rem; white-space:nowrap; text-decoration:none; color:inherit; transition:border-color .15s;"
                        onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='rgba(120,120,120,.22)'">
-                        <span style="white-space:nowrap; overflow:hidden; text-overflow:ellipsis;">
-                            <b>№{{ $cert->number }}</b>
-                            <span style="opacity:.5;">{{ $this->daysLeftShort($cert) }}</span>
-                        </span>
-                        <span style="white-space:nowrap; font-weight:600;">{{ $this->remainingShort($cert) }}</span>
+                        <span><b>№{{ $cert->number }}</b> <span style="opacity:.5;">{{ $this->daysLeftShort($cert) }}</span></span>
+                        <span style="font-weight:600;">{{ $this->remainingShort($cert) }}</span>
                     </a>
                 @endforeach
             </div>
