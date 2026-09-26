@@ -5,6 +5,7 @@
     @php($promos = $this->byPromotion())
     @php($certs = $this->certsSold())
     @php($mm = collect($this->moneyByMaster()))
+    @php($rev = $this->revenue())
 
     @php($cards = [
         ['label' => 'Заработано мастерами', 'key' => 'total', 'money' => true],
@@ -20,6 +21,11 @@
             <x-filament::section>
                 <div style="font-size: 0.875rem; color: rgb(113 113 122);">{{ $card['label'] }}</div>
                 <div style="font-size: 1.5rem; font-weight: 600;">{{ $fmt($mm->sum($card['key'])) }}</div>
+                @if($card['key'] === 'total')
+                    <div style="font-size: 0.8rem; color: rgb(130 130 135); margin-top: 0.15rem;">
+                        фактически (без сертификатов): {{ number_format($rev['total'], 2, '.', ' ') }} р
+                    </div>
+                @endif
                 @if($mm->isNotEmpty())
                     <div style="margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.25rem;">
                         @foreach($mm as $m)
