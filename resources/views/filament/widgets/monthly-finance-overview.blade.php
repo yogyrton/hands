@@ -28,7 +28,7 @@
                 @php($dp = $this->changeText($s->profit, $prev->profit))
                 <div style="font-size:.78rem; margin-top:.35rem; color:{{ $dp['up'] ? '#22c55e' : '#ef4444' }};">
                     {{ $dp['up'] ? '▲' : '▼' }} {{ $dp['text'] }}
-                    <span style="opacity:.6;">к {{ $prev->label }}</span>
+                    <span style="opacity:.6;">к {{ $prev->label }} ({{ $this->money($prev->profit) }} р)</span>
                 </div>
             </div>
 
@@ -40,7 +40,7 @@
                 @php($dr = $this->changeText($s->revenue, $prev->revenue))
                 <div style="font-size:.78rem; margin-top:.35rem; color:{{ $dr['up'] ? '#22c55e' : '#ef4444' }};">
                     {{ $dr['up'] ? '▲' : '▼' }} {{ $dr['text'] }}
-                    <span style="opacity:.6;">к {{ $prev->label }}</span>
+                    <span style="opacity:.6;">к {{ $prev->label }} ({{ $this->money($prev->revenue) }} р)</span>
                 </div>
             </div>
 
