@@ -58,7 +58,7 @@
         <div style="display:grid; grid-template-columns:repeat(auto-fit, minmax(18rem, 1fr)); gap:1rem; margin-top:1rem;">
             {{-- Зарплата мастеров --}}
             <div style="{{ $panel }} padding:.9rem 1.1rem;">
-                <div style="font-size:.85rem; font-weight:700; margin-bottom:.5rem;">Зарплата мастеров <span style="opacity:.5; font-weight:400;">≈½ наработанного</span></div>
+                <div style="font-size:.85rem; font-weight:700; margin-bottom:.5rem;">Зарплата мастеров <span style="opacity:.5; font-weight:400;">≈½ наработанного, с налогами</span></div>
                 @forelse($s->masters as $m)
                     <div style="display:flex; justify-content:space-between; align-items:baseline; gap:1rem; font-size:.875rem; padding:.4rem 0; {{ $rowBorder }}">
                         <span>{{ $m->name }}@unless($m->active) <span style="opacity:.45;">(ушёл)</span>@endunless</span>
@@ -104,7 +104,7 @@
             <span style="margin-left:auto; font-size:1.1rem; font-weight:700; color:#f59e0b;">{{ $this->money($s->revenue_certs) }} р</span>
         </div>
 
-        {{-- Накопленные обязательства: всё продано − всё отхожено (за всё время) --}}
+        {{-- Обязательства: остаток по действующим сертификатам (истёкшие исключены) --}}
         @php($outstanding = $this->outstandingCerts())
         <div style="{{ $panel }} display:flex; justify-content:space-between; align-items:baseline; gap:1rem; padding:.6rem .85rem; margin-bottom:.85rem;">
             <span style="font-size:.85rem;">

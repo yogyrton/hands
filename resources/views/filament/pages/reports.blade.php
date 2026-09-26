@@ -26,6 +26,11 @@
                         фактически (без сертификатов): {{ number_format($rev['total'], 2, '.', ' ') }} р
                     </div>
                 @endif
+                @if($card['key'] === 'cert')
+                    <div style="font-size: 0.8rem; color: rgb(130 130 135); margin-top: 0.15rem;">
+                        покрыто сертификатами — деньгами в этот период не приходит
+                    </div>
+                @endif
                 @if($mm->isNotEmpty())
                     <div style="margin-top: 0.6rem; display: flex; flex-direction: column; gap: 0.25rem;">
                         @foreach($mm as $m)
