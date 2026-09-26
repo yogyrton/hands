@@ -83,10 +83,10 @@ class MonthlyFinanceOverview extends Widget
 
     /**
      * Сравнение показателя с прошлым месяцем — готовая подпись для стрелки.
-     * Крупные изменения показываем «в N раз больше/меньше» (так нагляднее для
-     * скачков: −88% и «в 8 раз меньше» — одно и то же падение, но второе
-     * понятнее), мелкие — в процентах. Если в прошлом месяце было 0 — показываем
-     * прирост в деньгах.
+     * Всегда единообразно «в N раз больше/меньше» (проценты не мешаем, чтобы на
+     * одной странице не было где разы, где проценты). Почти без изменения —
+     * «примерно как в прошлом месяце». Если есть ноль/минус (например, убыток) —
+     * «разы» не имеют смысла, показываем разницу деньгами.
      *
      * @return array{up: bool, text: string}
      */
@@ -94,25 +94,22 @@ class MonthlyFinanceOverview extends Widget
     {
         $up = $current >= $previous;
 
-        // В прошлом месяце пусто — процент/разы не считаются, показываем деньги.
-        if (abs($previous) < 0.005) {
-            return ['up' => $up, 'text' => ($up ? '+' : '−').$this->money(abs($current - $previous)).' р'];
-        }
-
-        // «В разы» — только когда обе величины положительные и разница крупная (≥2×).
         if ($current > 0 && $previous > 0) {
             $ratio = $up ? $current / $previous : $previous / $current;
 
-            if ($ratio >= 2) {
-                $r = rtrim(rtrim(number_format($ratio, 1, '.', ''), '0'), '.');
-
-                return ['up' => $up, 'text' => 'в '.$r.' '.self::razWord($ratio).' '.($up ? 'больше' : 'меньше')];
+            if ($ratio < 1.05) {
+                return ['up' => true, 'text' => 'примерно как в прошлом месяце'];
             }
+
+            $r = rtrim(rtrim(number_format($ratio, 1, '.', ''), '0'), '.');
+
+            return ['up' => $up, 'text' => 'в '.$r.' '.self::razWord($ratio).' '.($up ? 'больше' : 'меньше')];
         }
 
-        $percent = (int) round(($current - $previous) / abs($previous) * 100);
+        // Ноль или минус в одном из месяцев — показываем разницу деньгами.
+        $diff = round($current - $previous, 2);
 
-        return ['up' => $up, 'text' => ($percent >= 0 ? '+' : '').$percent.'%'];
+        return ['up' => $up, 'text' => ($diff >= 0 ? '+' : '−').$this->money(abs($diff)).' р'];
     }
 
     /**
