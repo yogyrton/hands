@@ -71,6 +71,42 @@ class MonthlyFinanceOverview extends Widget
         return MonthlyFinance::for($this->year, $this->month);
     }
 
+    /**
+     * Итоги предыдущего месяца — для сравнения (стрелка ▲/▼ и процент).
+     */
+    public function previousSummary(): object
+    {
+        $date = Carbon::create($this->year, $this->month, 1)->subMonthNoOverflow();
+
+        return MonthlyFinance::for($date->year, $date->month);
+    }
+
+    /**
+     * Дельта показателя к прошлому месяцу.
+     *
+     * @return array{diff: float, up: bool, percent: int|null}
+     *         percent = null, когда в прошлом месяце было 0 (процент не считается).
+     */
+    public function delta(float $current, float $previous): array
+    {
+        $diff = round($current - $previous, 2);
+
+        return [
+            'diff' => $diff,
+            'up' => $diff >= 0,
+            'percent' => abs($previous) < 0.005 ? null : (int) round($diff / abs($previous) * 100),
+        ];
+    }
+
+    /**
+     * Обязательства по действующим сертификатам (не за месяц, а всего): сколько
+     * денег получено при продаже, но услугами ещё не отработано.
+     */
+    public function outstandingCerts(): float
+    {
+        return Certificate::outstandingLiability();
+    }
+
     public function money(float $value): string
     {
         return number_format($value, 2, '.', ' ');

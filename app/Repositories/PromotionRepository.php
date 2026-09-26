@@ -31,6 +31,9 @@ class PromotionRepository extends BaseQueryRepository implements PromotionReposi
     {
         return $this->query()
             ->where('is_active', true)
+            // На витрину сайта попадают только акции с флагом show_on_site.
+            // Внутренние скидки (постоянный клиент и т.п.) активны, но скрыты.
+            ->where('show_on_site', true)
             ->orderBy('sort_order')
             ->get();
     }

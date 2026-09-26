@@ -81,6 +81,32 @@ class Certificate extends Model
     }
 
     /**
+     * Обязательства по действующим сертификатам: сколько денег мы уже получили
+     * при продаже, но услугами ещё не отработали. Считается по остатку каждого
+     * активного сертификата (истёкшие и полностью использованные не в счёт —
+     * по ним мы уже ничего не должны):
+     *   — денежный: остаток суммы;
+     *   — на посещения: доля непройденных сеансов от суммы продажи.
+     */
+    public static function outstandingLiability(): float
+    {
+        $money = (float) self::query()
+            ->where('status', CertificateStatus::Active->value)
+            ->where('type', CertificateType::Money->value)
+            ->sum('remaining_amount');
+
+        $visits = self::query()
+            ->where('status', CertificateStatus::Active->value)
+            ->where('type', CertificateType::Visits->value)
+            ->where('initial_visits', '>', 0)
+            ->get(['initial_amount', 'initial_visits', 'remaining_visits'])
+            ->sum(fn (Certificate $c): float => (float) $c->initial_amount
+                * (int) $c->remaining_visits / (int) $c->initial_visits);
+
+        return round($money + $visits, 2);
+    }
+
+    /**
      * @return HasMany<Visit>
      */
     public function visits(): HasMany

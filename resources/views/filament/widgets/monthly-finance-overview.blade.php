@@ -1,4 +1,5 @@
 @php($s = $this->summary())
+@php($prev = $this->previousSummary())
 @php($panel = 'background:rgba(120,120,120,.08); border:1px solid rgba(120,120,120,.22); border-radius:.75rem;')
 @php($rowBorder = 'border-top:1px solid rgba(120,120,120,.18);')
 
@@ -24,6 +25,12 @@
                     {{ $this->money($s->profit) }} р
                 </div>
                 <div style="font-size:.78rem; opacity:.55; margin-top:.4rem;">выручка − зарплата − расходы</div>
+                @php($dp = $this->delta($s->profit, $prev->profit))
+                <div style="font-size:.78rem; margin-top:.35rem; color:{{ $dp['up'] ? '#22c55e' : '#ef4444' }};">
+                    {{ $dp['up'] ? '▲' : '▼' }}
+                    @if($dp['percent'] !== null){{ ($dp['up'] ? '+' : '').$dp['percent'] }}%@else{{ ($dp['up'] ? '+' : '').$this->money($dp['diff']) }} р@endif
+                    <span style="opacity:.6;">к {{ $prev->label }}</span>
+                </div>
             </div>
 
             {{-- Выручка --}}
@@ -31,6 +38,12 @@
                 <div style="font-size:.78rem; opacity:.6; text-transform:uppercase; letter-spacing:.04em;">Выручка (все деньги)</div>
                 <div style="font-size:1.6rem; font-weight:700; margin-top:.3rem;">{{ $this->money($s->revenue) }} р</div>
                 <div style="font-size:.78rem; opacity:.55; margin-top:.4rem;">визиты по кассе {{ $this->money($s->revenue_visits) }} + сертификаты {{ $this->money($s->revenue_certs) }}</div>
+                @php($dr = $this->delta($s->revenue, $prev->revenue))
+                <div style="font-size:.78rem; margin-top:.35rem; color:{{ $dr['up'] ? '#22c55e' : '#ef4444' }};">
+                    {{ $dr['up'] ? '▲' : '▼' }}
+                    @if($dr['percent'] !== null){{ ($dr['up'] ? '+' : '').$dr['percent'] }}%@else{{ ($dr['up'] ? '+' : '').$this->money($dr['diff']) }} р@endif
+                    <span style="opacity:.6;">к {{ $prev->label }}</span>
+                </div>
             </div>
 
             {{-- Все траты --}}
@@ -83,12 +96,22 @@
         </div>
     </x-filament::section>
 
-    {{-- Отдельный блок: проданные сертификаты (справочно, в выручку не входят) --}}
+    {{-- Отдельный блок: проданные сертификаты + обязательства по действующим --}}
     <x-filament::section style="margin-top:1rem;">
         <div style="display:flex; align-items:baseline; flex-wrap:wrap; gap:.4rem .75rem; margin-bottom:.85rem;">
             <span style="font-size:1rem; font-weight:700;">Продано сертификатов · {{ $s->certs->count() }}</span>
             <span style="opacity:.5;">{{ $s->label }}</span>
             <span style="margin-left:auto; font-size:1.1rem; font-weight:700; color:#f59e0b;">{{ $this->money($s->revenue_certs) }} р</span>
+        </div>
+
+        {{-- Накопленные обязательства: всё продано − всё отхожено (за всё время) --}}
+        @php($outstanding = $this->outstandingCerts())
+        <div style="{{ $panel }} display:flex; justify-content:space-between; align-items:baseline; gap:1rem; padding:.6rem .85rem; margin-bottom:.85rem;">
+            <span style="font-size:.85rem;">
+                <b>Не отхожено — наши обязательства</b>
+                <span style="opacity:.55;"> · по всем действующим сертификатам, за всё время</span>
+            </span>
+            <span style="font-size:1.05rem; font-weight:700; white-space:nowrap; color:#f59e0b;">{{ $this->money($outstanding) }} р</span>
         </div>
 
         @if($s->certs->isNotEmpty())
@@ -105,7 +128,7 @@
                     </a>
                 @endforeach
             </div>
-            <div style="font-size:.72rem; opacity:.5; margin-top:.7rem;">Справочно: деньги от продажи сертификатов не входят в выручку месяца, чтобы не задваивать (визиты по сертификату идут в зарплату мастера).</div>
+            <div style="font-size:.72rem; opacity:.5; margin-top:.7rem;">Деньги от продажи сертификатов входят в выручку месяца. Чтобы не задваивать, визиты, оплаченные этими сертификатами, в кассу не идут — только в зарплату мастера.</div>
         @else
             <div style="font-size:.85rem; opacity:.55;">За месяц не продано.</div>
         @endif
