@@ -25,10 +25,9 @@
                     {{ $this->money($s->profit) }} р
                 </div>
                 <div style="font-size:.78rem; opacity:.55; margin-top:.4rem;">выручка − зарплата − расходы</div>
-                @php($dp = $this->delta($s->profit, $prev->profit))
+                @php($dp = $this->changeText($s->profit, $prev->profit))
                 <div style="font-size:.78rem; margin-top:.35rem; color:{{ $dp['up'] ? '#22c55e' : '#ef4444' }};">
-                    {{ $dp['up'] ? '▲' : '▼' }}
-                    @if($dp['percent'] !== null){{ ($dp['up'] ? '+' : '').$dp['percent'] }}%@else{{ ($dp['up'] ? '+' : '').$this->money($dp['diff']) }} р@endif
+                    {{ $dp['up'] ? '▲' : '▼' }} {{ $dp['text'] }}
                     <span style="opacity:.6;">к {{ $prev->label }}</span>
                 </div>
             </div>
@@ -38,10 +37,9 @@
                 <div style="font-size:.78rem; opacity:.6; text-transform:uppercase; letter-spacing:.04em;">Выручка (все деньги)</div>
                 <div style="font-size:1.6rem; font-weight:700; margin-top:.3rem;">{{ $this->money($s->revenue) }} р</div>
                 <div style="font-size:.78rem; opacity:.55; margin-top:.4rem;">визиты по кассе {{ $this->money($s->revenue_visits) }} + сертификаты {{ $this->money($s->revenue_certs) }}</div>
-                @php($dr = $this->delta($s->revenue, $prev->revenue))
+                @php($dr = $this->changeText($s->revenue, $prev->revenue))
                 <div style="font-size:.78rem; margin-top:.35rem; color:{{ $dr['up'] ? '#22c55e' : '#ef4444' }};">
-                    {{ $dr['up'] ? '▲' : '▼' }}
-                    @if($dr['percent'] !== null){{ ($dr['up'] ? '+' : '').$dr['percent'] }}%@else{{ ($dr['up'] ? '+' : '').$this->money($dr['diff']) }} р@endif
+                    {{ $dr['up'] ? '▲' : '▼' }} {{ $dr['text'] }}
                     <span style="opacity:.6;">к {{ $prev->label }}</span>
                 </div>
             </div>

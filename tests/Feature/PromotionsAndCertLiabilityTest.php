@@ -66,13 +66,21 @@ class PromotionsAndCertLiabilityTest extends TestCase
         $this->assertSame(90.0, Certificate::outstandingLiability());
     }
 
-    public function test_delta_helper(): void
+    public function test_change_text(): void
     {
         $w = new MonthlyFinanceOverview;
 
-        $this->assertSame(['diff' => 20.0, 'up' => true, 'percent' => 20], $w->delta(120, 100));
-        $this->assertSame(['diff' => -50.0, 'up' => false, 'percent' => -50], $w->delta(50, 100));
-        // Прошлый месяц 0 → процент не считаем.
-        $this->assertNull($w->delta(80, 0)['percent']);
+        // Мелкое изменение (<2×) — в процентах.
+        $this->assertSame(['up' => true, 'text' => '+20%'], $w->changeText(120, 100));
+        // Крупное падение — «в N раз меньше» (было 1905 → стало 232 = в 8.2 раза).
+        $this->assertSame(['up' => false, 'text' => 'в 8.2 раза меньше'], $w->changeText(232, 1905));
+        // Ровно в 2 раза меньше.
+        $this->assertSame(['up' => false, 'text' => 'в 2 раза меньше'], $w->changeText(50, 100));
+        // Крупный рост.
+        $this->assertSame(['up' => true, 'text' => 'в 4.3 раза больше'], $w->changeText(1905, 448));
+        // Целое число раз — правильное «раз».
+        $this->assertSame(['up' => true, 'text' => 'в 5 раз больше'], $w->changeText(500, 100));
+        // Прошлый месяц 0 → показываем деньги.
+        $this->assertSame(['up' => true, 'text' => '+80.00 р'], $w->changeText(80, 0));
     }
 }

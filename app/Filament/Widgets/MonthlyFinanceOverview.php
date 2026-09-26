@@ -82,20 +82,59 @@ class MonthlyFinanceOverview extends Widget
     }
 
     /**
-     * Дельта показателя к прошлому месяцу.
+     * Сравнение показателя с прошлым месяцем — готовая подпись для стрелки.
+     * Крупные изменения показываем «в N раз больше/меньше» (так нагляднее для
+     * скачков: −88% и «в 8 раз меньше» — одно и то же падение, но второе
+     * понятнее), мелкие — в процентах. Если в прошлом месяце было 0 — показываем
+     * прирост в деньгах.
      *
-     * @return array{diff: float, up: bool, percent: int|null}
-     *         percent = null, когда в прошлом месяце было 0 (процент не считается).
+     * @return array{up: bool, text: string}
      */
-    public function delta(float $current, float $previous): array
+    public function changeText(float $current, float $previous): array
     {
-        $diff = round($current - $previous, 2);
+        $up = $current >= $previous;
 
-        return [
-            'diff' => $diff,
-            'up' => $diff >= 0,
-            'percent' => abs($previous) < 0.005 ? null : (int) round($diff / abs($previous) * 100),
-        ];
+        // В прошлом месяце пусто — процент/разы не считаются, показываем деньги.
+        if (abs($previous) < 0.005) {
+            return ['up' => $up, 'text' => ($up ? '+' : '−').$this->money(abs($current - $previous)).' р'];
+        }
+
+        // «В разы» — только когда обе величины положительные и разница крупная (≥2×).
+        if ($current > 0 && $previous > 0) {
+            $ratio = $up ? $current / $previous : $previous / $current;
+
+            if ($ratio >= 2) {
+                $r = rtrim(rtrim(number_format($ratio, 1, '.', ''), '0'), '.');
+
+                return ['up' => $up, 'text' => 'в '.$r.' '.self::razWord($ratio).' '.($up ? 'больше' : 'меньше')];
+            }
+        }
+
+        $percent = (int) round(($current - $previous) / abs($previous) * 100);
+
+        return ['up' => $up, 'text' => ($percent >= 0 ? '+' : '').$percent.'%'];
+    }
+
+    /**
+     * Правильное «раз / раза» для числа (в т.ч. дробного): в 2 раза, в 5 раз,
+     * в 8.2 раза.
+     */
+    private static function razWord(float $ratio): string
+    {
+        // Дробное — всегда «раза» (в 8.2 раза).
+        if (abs($ratio - round($ratio)) > 0.05) {
+            return 'раза';
+        }
+
+        $n = (int) round($ratio);
+        $mod100 = $n % 100;
+        $mod10 = $n % 10;
+
+        if ($mod100 >= 11 && $mod100 <= 14) {
+            return 'раз';
+        }
+
+        return ($mod10 >= 2 && $mod10 <= 4) ? 'раза' : 'раз';
     }
 
     /**
