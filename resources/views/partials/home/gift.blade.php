@@ -1,5 +1,4 @@
 @php($instagram = $studio['instagram_url'] ?? 'https://www.instagram.com/hands.mg/')
-@php($address = $studio['address'] ?? 'переулок Пожарный, 3Б, Могилёв')
 @php($giftMin = $studio['gift_min_delivery'] ?? '400 р')
 <section id="gift" class="section section--panel">
     <div class="container gift">
@@ -23,19 +22,11 @@
             </div>
             <a href="{{ $instagram }}" target="_blank" rel="noopener" class="btn btn-primary">Заказать сертификат →</a>
         </div>
-        <div class="giftcard ph">
-            <span class="veil"></span>
-            <div class="inner">
-                <div class="top">
-                    <span class="logo" style="font-size:20px">HANDS</span>
-                    <span class="tag">Gift Card</span>
-                </div>
-                <div>
-                    <div class="cap">Подарочный сертификат</div>
-                    <div class="title">На массаж в студии HANDS</div>
-                    <div class="addr">Могилёв · {{ $address }}</div>
-                </div>
-            </div>
+        <div class="giftcard-photo">
+            <img src="{{ asset('images/gift-certificate.webp') }}"
+                 alt="Подарочный сертификат студии массажа HANDS, Могилёв"
+                 loading="lazy"
+                 style="display:block; width:100%; max-width:380px; height:auto; margin:0 auto; border-radius:16px; box-shadow:0 20px 50px rgba(0,0,0,.45);">
         </div>
     </div>
 </section>
