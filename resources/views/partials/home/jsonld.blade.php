@@ -20,6 +20,7 @@
             '@type' => 'PostalAddress',
             'streetAddress' => 'переулок Пожарный, 3Б',
             'addressLocality' => 'Могилёв',
+            'postalCode' => '212030',
             'addressCountry' => 'BY',
         ],
         'geo' => $geo,
