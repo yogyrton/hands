@@ -25,6 +25,14 @@
         'geo' => $geo,
         'areaServed' => ['@type' => 'City', 'name' => 'Могилёв'],
         'priceRange' => 'от 50 р',
+        // Часы работы для Google (Ежедневно 9:00–21:00). Если режим изменится —
+        // поправьте здесь и в «Настройки студии → Режим работы».
+        'openingHoursSpecification' => [
+            '@type' => 'OpeningHoursSpecification',
+            'dayOfWeek' => ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'],
+            'opens' => '09:00',
+            'closes' => '21:00',
+        ],
         'sameAs' => array_values(array_filter([$studio['instagram_url'] ?? null])),
     ], fn ($v) => $v !== null && $v !== '');
 @endphp

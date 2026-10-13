@@ -36,6 +36,8 @@ class SeoTest extends TestCase
             ->assertSee('name="google-site-verification" content="GVERIFY123"', false)
             ->assertSee('application/ld+json', false)
             ->assertSee('HealthAndBeautyBusiness', false)
+            // Часы работы для Google (openingHoursSpecification)
+            ->assertSee('OpeningHoursSpecification', false)
             // H1 сохраняет ключ «в Могилёве» и эмоциональный якорь
             ->assertSee('Массажная студия в Могилёве', false)
             ->assertSee('наконец выдыхает', false);
