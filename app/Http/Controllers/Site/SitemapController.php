@@ -28,6 +28,15 @@ class SitemapController extends Controller
                     ->setPriority(1.0)
             );
 
+        // Страницы с правовой информацией (меняются редко, низкий приоритет).
+        foreach (['privacy', 'cookie', 'certificate'] as $policy) {
+            $sitemap->add(
+                Url::create(route($policy))
+                    ->setChangeFrequency(Url::CHANGE_FREQUENCY_YEARLY)
+                    ->setPriority(0.3)
+            );
+        }
+
         Service::query()->where('is_active', true)->orderBy('sort_order')->get()
             ->each(fn (Service $service) => $sitemap->add(
                 Url::create(route('services.show', $service->slug))

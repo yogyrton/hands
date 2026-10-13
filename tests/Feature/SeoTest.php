@@ -142,5 +142,8 @@ class SeoTest extends TestCase
         $this->assertStringContainsString('/services/classic', $xml);
         $this->assertStringContainsString('/masters/anna', $xml);
         $this->assertStringContainsString(route('home'), $xml);
+        // Страницы политик тоже в карте
+        $this->assertStringContainsString('/certificate-policy', $xml);
+        $this->assertStringContainsString('/privacy-policy', $xml);
     }
 }
