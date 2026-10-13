@@ -1,0 +1,11 @@
+{
+  "version": 1,
+  "skills": {
+    "seo-audit": {
+      "source": "anthropics/knowledge-work-plugins",
+      "sourceType": "github",
+      "skillPath": "marketing/skills/seo-audit/SKILL.md",
+      "computedHash": "8e2ca1e7267fab10969f83a4ae6dbc15ce4082f35d8bc7fcd004b7af41ee9e4d"
+    }
+  }
+}
