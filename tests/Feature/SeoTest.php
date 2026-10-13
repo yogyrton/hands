@@ -38,6 +38,8 @@ class SeoTest extends TestCase
             ->assertSee('HealthAndBeautyBusiness', false)
             // Часы работы для Google (openingHoursSpecification)
             ->assertSee('OpeningHoursSpecification', false)
+            // Почтовый индекс в адресе
+            ->assertSee('212030', false)
             // H1 сохраняет ключ «в Могилёве» и эмоциональный якорь
             ->assertSee('Массажная студия в Могилёве', false)
             ->assertSee('наконец выдыхает', false);
@@ -113,6 +115,12 @@ class SeoTest extends TestCase
             ->assertSee('Дмитрий — мастер студии HANDS, Могилёв', false)
             ->assertSee('"@type":"Person"', false)
             ->assertSee('"@type":"BreadcrumbList"', false);
+    }
+
+    public function test_index_php_and_html_redirect_to_home(): void
+    {
+        $this->get('/index.php')->assertRedirect('/');
+        $this->get('/index.html')->assertRedirect('/');
     }
 
     public function test_sitemap_route_returns_xml_with_pages(): void

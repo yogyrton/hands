@@ -11,6 +11,11 @@ use App\Http\Controllers\Site\SitemapController;
 use Illuminate\Support\Facades\Route;
 
 Route::get('/', [HomeController::class, 'index'])->name('home');
+
+// Склейка возможных дублей главной: некоторые ссылки/проверялки обращаются к
+// /index.php или /index.html — отправляем их 301-редиректом на канонический «/».
+Route::redirect('/index.php', '/', 301);
+Route::redirect('/index.html', '/', 301);
 Route::get('/sitemap.xml', [SitemapController::class, 'index'])->name('sitemap');
 Route::get('/services/{service:slug}', [ServiceController::class, 'show'])->name('services.show');
 Route::get('/masters/{master:slug}', [MasterController::class, 'show'])->name('masters.show');
