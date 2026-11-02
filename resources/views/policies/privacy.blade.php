@@ -11,6 +11,8 @@
 
 @section('content')
     <div class="legal">
+        @include('partials.back-link')
+
         <h1>Политика конфиденциальности</h1>
         <div class="updated">Дата обновления: {{ date('d.m.Y') }}</div>
 
