@@ -7,15 +7,15 @@
         <span class="logo__text">HANDS</span>
     </a>
     <nav class="header__nav">
-        <a href="{{ route('home') }}#services">Услуги</a>
+        <a href="{{ route('home') }}#services" data-spy="services">Услуги</a>
         <a href="{{ route('prices') }}" @class(['is-current' => request()->routeIs('prices')])>Цены</a>
-        <a href="{{ route('home') }}#masters">Мастера</a>
-        <a href="{{ route('home') }}#gift">Сертификаты</a>
-        <a href="{{ route('home') }}#loyalty">Карта клиента</a>
-        <a href="{{ route('home') }}#about">О студии</a>
-        <a href="{{ route('home') }}#cabinets">Кабинеты</a>
-        <a href="{{ route('home') }}#map">Контакты</a>
-        <a href="{{ route('home') }}#faq">Вопросы</a>
+        <a href="{{ route('home') }}#masters" data-spy="masters">Мастера</a>
+        <a href="{{ route('home') }}#gift" data-spy="gift">Сертификаты</a>
+        <a href="{{ route('home') }}#loyalty" data-spy="loyalty">Карта клиента</a>
+        <a href="{{ route('home') }}#about" data-spy="about">О студии</a>
+        <a href="{{ route('home') }}#cabinets" data-spy="cabinets">Кабинеты</a>
+        <a href="{{ route('home') }}#map" data-spy="map">Контакты</a>
+        <a href="{{ route('home') }}#faq" data-spy="faq">Вопросы</a>
     </nav>
     <div class="header__actions">
         @if($phone)
@@ -26,21 +26,57 @@
         @endif
         <a href="{{ $yclients }}" target="_blank" rel="noopener" class="btn btn-primary">Записаться</a>
     </div>
+    {{-- Полоса прочитанного по низу шапки (только на ПК, где шапка липкая) --}}
+    <span class="header__progress" aria-hidden="true"></span>
 </header>
 
 @push('scripts')
 <script>
-    // Компактная шапка при скролле — только на ПК (на мобиле она не липкая).
+    // Поведение шапки при скролле (только ПК — на мобиле она не липкая):
+    // ужимается, кнопка «Записаться» становится золотой, заполняется полоса
+    // прочитанного, подсвечивается раздел, который сейчас на экране.
     (function () {
         var header = document.querySelector('.header');
         if (!header) return;
+
         var desktop = window.matchMedia('(min-width: 981px)');
-        var toggle = function () {
-            header.classList.toggle('is-compact', desktop.matches && window.scrollY > 40);
-        };
-        window.addEventListener('scroll', toggle, { passive: true });
-        desktop.addEventListener('change', toggle);
-        toggle();
+        var progress = header.querySelector('.header__progress');
+        var links = Array.prototype.slice.call(header.querySelectorAll('[data-spy]'));
+        var sections = links.map(function (a) { return document.getElementById(a.getAttribute('data-spy')); });
+        var hasSections = sections.some(Boolean);
+
+        function spy() {
+            if (!hasSections) return;
+            var probe = window.scrollY + 160;
+            var best = -1;
+            var bestTop = -Infinity;
+            sections.forEach(function (section, i) {
+                if (!section) return;
+                var top = section.offsetTop;
+                if (top <= probe && top > bestTop) {
+                    bestTop = top;
+                    best = i;
+                }
+            });
+            links.forEach(function (link, i) { link.classList.toggle('is-active', i === best); });
+        }
+
+        function onScroll() {
+            var y = window.scrollY;
+
+            header.classList.toggle('is-compact', desktop.matches && y > 40);
+
+            if (progress) {
+                var max = document.documentElement.scrollHeight - window.innerHeight;
+                progress.style.width = (max > 0 ? (y / max) * 100 : 0) + '%';
+            }
+
+            spy();
+        }
+
+        window.addEventListener('scroll', onScroll, { passive: true });
+        desktop.addEventListener('change', onScroll);
+        onScroll();
     })();
 </script>
 @endpush

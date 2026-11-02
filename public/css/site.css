@@ -123,8 +123,37 @@ a:hover { color: var(--bronze-hover); }
 /* 9 пунктов — отступы ужаты; на узких ноутбуках меню переносится на вторую
    строку, а не ломает шапку. */
 .header__nav { display: flex; flex-wrap: wrap; gap: 10px 20px; font-size: 14px; font-weight: 500; letter-spacing: .03em; min-width: 0; }
-.header__nav a { white-space: nowrap; }
+.header__nav a { white-space: nowrap; position: relative; padding-bottom: 3px; }
+/* Текущий раздел: бронзовый текст + линия, которая выезжает слева */
+.header__nav a::after {
+    content: "";
+    position: absolute;
+    left: 0;
+    right: 0;
+    bottom: -2px;
+    height: 2px;
+    border-radius: 2px;
+    background: var(--bronze);
+    transform: scaleX(0);
+    transform-origin: left;
+    transition: transform .28s ease;
+}
+.header__nav a.is-active,
 .header__nav a.is-current { color: var(--bronze-ink); font-weight: 700; }
+.header__nav a.is-active::after,
+.header__nav a.is-current::after { transform: scaleX(1); }
+
+/* Полоса прочитанного по низу шапки */
+.header__progress {
+    display: none;
+    position: absolute;
+    left: 0;
+    bottom: -1px;
+    width: 0;
+    height: 2px;
+    border-radius: 0 2px 2px 0;
+    background: var(--bronze);
+}
 .header__nav a { color: #4A3F35; }
 .header__nav a:hover { color: var(--bronze); }
 .header .btn { padding: 12px 24px; font-size: 12.5px; }
@@ -156,12 +185,27 @@ a:hover { color: var(--bronze-hover); }
         box-shadow: 0 6px 26px rgba(36, 28, 22, .09);
     }
     .header.is-compact .header__hours { max-height: 0; opacity: 0; }
+
+    .header__progress { display: block; }
+
+    /* Кнопка записи при скролле становится золотой и чуть крупнее.
+       Увеличиваем отступами, а не transform: scale() — иначе браузер
+       масштабирует уже отрисованный текст и он выглядит размытым. */
+    .header .btn-primary { transition: background .3s ease, color .3s ease, padding .3s ease; }
+    .header.is-compact .btn-primary {
+        background: var(--gold);
+        color: var(--ink);
+        font-weight: 700;
+        padding: 13px 28px;
+    }
+    .header.is-compact .btn-primary:hover { background: #D6AC7C; color: var(--ink); }
+
     /* Переход по якорю из меню не должен прятать заголовок под липкой шапкой. */
     section[id] { scroll-margin-top: 96px; }
 }
 
 @media (prefers-reduced-motion: reduce) {
-    .header, .header__hours { transition: none; }
+    .header, .header__hours, .header .btn-primary, .header__nav a::after { transition: none; }
 }
 
 /* ---------- Breadcrumb ---------- */
