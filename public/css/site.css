@@ -570,12 +570,16 @@ details p { padding: 0 4px 26px; font-size: 15px; line-height: 1.7; color: var(-
 
 @media (max-width: 560px) {
     .prices__head { display: none; }
-    .price-row { grid-template-columns: 1fr auto auto; gap: 14px; }
-    .price-row__val { font-size: 16px; }
+    /* Длительность — отдельной строкой, под ней обе цены рядом с подписями.
+       Так ничего не жмётся и читается сверху вниз. */
+    .price-row { grid-template-columns: 1fr 1fr; gap: 6px 14px; padding: 12px 0; }
+    .price-row__dur { grid-column: 1 / -1; font-weight: 600; color: var(--ink); }
+    .price-row__val { text-align: left; font-size: 16px; }
     .price-row__label {
-        display: block;
-        font-size: 9.5px;
-        letter-spacing: .1em;
+        display: inline;
+        margin-right: 5px;
+        font-size: 10.5px;
+        letter-spacing: .08em;
         text-transform: uppercase;
         color: var(--muted);
         font-weight: 700;
