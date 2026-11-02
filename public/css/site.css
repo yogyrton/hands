@@ -483,6 +483,9 @@ details p { padding: 0 4px 26px; font-size: 15px; line-height: 1.7; color: var(-
 .legal li { font-size: 15.5px; line-height: 1.7; margin-bottom: 6px; }
 .legal a { color: var(--bronze); }
 
+/* Вход в полный прайс под карточками услуг на главной */
+.services__all { display: flex; justify-content: center; margin-top: 34px; }
+
 /* ---------- Цены (страница /prices) ---------- */
 /* Ширина колонки как у страниц политик (820px), но свой контейнер — чтобы
    типографика .legal не перебивала стили карточек прайса. */
