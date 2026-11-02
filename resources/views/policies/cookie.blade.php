@@ -5,6 +5,8 @@
 
 @section('content')
     <div class="legal">
+        @include('partials.back-link')
+
         <h1>Политика в отношении файлов cookie</h1>
         <div class="updated">Дата обновления: {{ date('d.m.Y') }}</div>
 

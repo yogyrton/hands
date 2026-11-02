@@ -78,6 +78,6 @@
     {{-- Вход в полный прайс: на карточках видна цена «от», точные цифры
          по длительностям и мастерам — на отдельной странице. --}}
     <div class="services__all">
-        <a href="{{ route('prices') }}" class="btn btn-outline">Все цены и длительности →</a>
+        <a href="{{ route('prices') }}" class="btn btn-outline">Подробнее о ценах →</a>
     </div>
 </section>

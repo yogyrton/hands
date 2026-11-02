@@ -9,6 +9,8 @@
     {{-- Дата последнего изменения Положения. Меняйте вручную при правках текста. --}}
     @php($policyUpdated = '07.10.2026')
     <div class="legal">
+        @include('partials.back-link')
+
         <h1>Положение о подарочных сертификатах</h1>
         <div class="updated">Дата обновления: {{ $policyUpdated }}</div>
 

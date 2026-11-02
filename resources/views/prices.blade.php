@@ -14,9 +14,7 @@
 
 @section('content')
     <div class="prices">
-        <div class="prices__crumbs">
-            <a href="{{ route('home') }}">Главная</a> &nbsp;·&nbsp; <span>Цены</span>
-        </div>
+        @include('partials.back-link')
 
         <span class="eyebrow">Прайс студии</span>
         <h1>Цены на массаж в Могилёве</h1>
@@ -60,23 +58,7 @@
             @endforeach
         @endif
 
-        <div class="loyalty-card">
-            <h2>Карта постоянного клиента</h2>
-            <p class="loyalty-card__lead">Отмечаем каждое посещение. Скидка действует на сам 5-й и 10-й сеанс — карту выдаём в студии.</p>
-            <div class="stamps" role="img" aria-label="Пятое посещение — скидка 15 процентов, десятое посещение — скидка 50 процентов">
-                <span class="stamp">1</span>
-                <span class="stamp">2</span>
-                <span class="stamp">3</span>
-                <span class="stamp">4</span>
-                <span class="stamp stamp--hit">−15%</span>
-                <span class="stamp">6</span>
-                <span class="stamp">7</span>
-                <span class="stamp">8</span>
-                <span class="stamp">9</span>
-                <span class="stamp stamp--hit">−50%</span>
-            </div>
-            <p class="loyalty-card__note">Не суммируется с другими акциями и скидками.</p>
-        </div>
+        @include('partials.loyalty-card')
 
         <div class="prices__note">
             <strong>Сертификаты</strong>
