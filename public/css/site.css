@@ -120,7 +120,9 @@ a:hover { color: var(--bronze-hover); }
     padding-left: .4em;
     text-transform: uppercase;
 }
-.header__nav { display: flex; gap: 26px; font-size: 14.5px; font-weight: 500; letter-spacing: .035em; }
+/* 9 пунктов — отступы ужаты; на узких ноутбуках меню переносится на вторую
+   строку, а не ломает шапку. */
+.header__nav { display: flex; flex-wrap: wrap; gap: 10px 20px; font-size: 14px; font-weight: 500; letter-spacing: .03em; min-width: 0; }
 .header__nav a { white-space: nowrap; }
 .header__nav a.is-current { color: var(--bronze-ink); font-weight: 700; }
 .header__nav a { color: #4A3F35; }
@@ -492,7 +494,7 @@ details p { padding: 0 4px 26px; font-size: 15px; line-height: 1.7; color: var(-
 .prices { max-width: 820px; margin: 0 auto; padding: 56px 24px 90px; }
 .prices h1 { font-size: clamp(34px, 6vw, 46px); color: var(--ink); margin: 12px 0 16px; }
 /* Ссылка «на главную» вместо хлебных крошек (цены, политики) */
-.back-link { display: inline-flex; align-items: center; font-size: 13.5px; color: var(--muted-2); letter-spacing: .02em; margin-bottom: 22px; }
+.back-link { display: flex; align-items: center; width: fit-content; font-size: 13.5px; color: var(--muted-2); letter-spacing: .02em; margin-bottom: 22px; }
 .back-link:hover { color: var(--bronze); }
 .prices__lead { font-size: 16px; line-height: 1.75; color: var(--body); margin: 0 0 34px; }
 

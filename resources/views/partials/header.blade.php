@@ -11,6 +11,7 @@
         <a href="{{ route('prices') }}" @class(['is-current' => request()->routeIs('prices')])>Цены</a>
         <a href="{{ route('home') }}#masters">Мастера</a>
         <a href="{{ route('home') }}#gift">Сертификаты</a>
+        <a href="{{ route('home') }}#loyalty">Карта клиента</a>
         <a href="{{ route('home') }}#about">О студии</a>
         <a href="{{ route('home') }}#cabinets">Кабинеты</a>
         <a href="{{ route('home') }}#map">Контакты</a>
