@@ -117,6 +117,36 @@ class SeoTest extends TestCase
             ->assertSee('"@type":"BreadcrumbList"', false);
     }
 
+    public function test_prices_page_lists_services_with_both_tiers(): void
+    {
+        $service = Service::create([
+            'slug' => 'classic', 'name' => 'Классический массаж', 'level' => 4,
+            'lead' => 'lead', 'is_active' => true,
+        ]);
+        $service->prices()->create(['duration_minutes' => 60, 'price_master' => 65, 'price_pro' => 80]);
+        $service->prices()->create(['duration_minutes' => 90, 'price_master' => 85, 'price_pro' => 100]);
+
+        $this->get('/prices')
+            ->assertOk()
+            ->assertSee('Цены на массаж в Могилёве', false)
+            ->assertSee('Классический массаж', false)
+            ->assertSee('60 минут', false)
+            ->assertSee('90 минут', false)
+            // Обе цены: мастер и про
+            ->assertSee('65', false)
+            ->assertSee('80', false)
+            ->assertSee('100', false)
+            // Карта постоянного клиента — зашита текстом
+            ->assertSee('Карта постоянного клиента', false)
+            ->assertSee('−15%', false)
+            ->assertSee('−50%', false);
+    }
+
+    public function test_prices_page_is_in_sitemap(): void
+    {
+        $this->assertStringContainsString('/prices', $this->get('/sitemap.xml')->getContent());
+    }
+
     public function test_index_php_and_html_redirect_to_home(): void
     {
         $this->get('/index.php')->assertRedirect('/');

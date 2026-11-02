@@ -8,7 +8,9 @@
     </a>
     <nav class="header__nav">
         <a href="{{ route('home') }}#services">Услуги</a>
+        <a href="{{ route('prices') }}" @class(['is-current' => request()->routeIs('prices')])>Цены</a>
         <a href="{{ route('home') }}#masters">Мастера</a>
+        <a href="{{ route('home') }}#gift">Сертификаты</a>
         <a href="{{ route('home') }}#about">О студии</a>
         <a href="{{ route('home') }}#cabinets">Кабинеты</a>
         <a href="{{ route('home') }}#map">Контакты</a>
@@ -24,3 +26,20 @@
         <a href="{{ $yclients }}" target="_blank" rel="noopener" class="btn btn-primary">Записаться</a>
     </div>
 </header>
+
+@push('scripts')
+<script>
+    // Компактная шапка при скролле — только на ПК (на мобиле она не липкая).
+    (function () {
+        var header = document.querySelector('.header');
+        if (!header) return;
+        var desktop = window.matchMedia('(min-width: 981px)');
+        var toggle = function () {
+            header.classList.toggle('is-compact', desktop.matches && window.scrollY > 40);
+        };
+        window.addEventListener('scroll', toggle, { passive: true });
+        desktop.addEventListener('change', toggle);
+        toggle();
+    })();
+</script>
+@endpush

@@ -28,6 +28,13 @@ class SitemapController extends Controller
                     ->setPriority(1.0)
             );
 
+        // Прайс — важная коммерческая страница («массаж Могилёв цены»).
+        $sitemap->add(
+            Url::create(route('prices'))
+                ->setChangeFrequency(Url::CHANGE_FREQUENCY_MONTHLY)
+                ->setPriority(0.9)
+        );
+
         // Страницы с правовой информацией (меняются редко, низкий приоритет).
         foreach (['privacy', 'cookie', 'certificate'] as $policy) {
             $sitemap->add(
