@@ -35,14 +35,13 @@
 
 @push('scripts')
 <script>
-    // Поведение шапки при скролле (только ПК — на мобиле она не липкая):
-    // ужимается, кнопка «Записаться» становится золотой, заполняется полоса
-    // прочитанного, подсвечивается раздел, который сейчас на экране.
+    // Поведение шапки при скролле: ужимается, кнопка «Записаться» становится
+    // золотой, заполняется полоса прочитанного — на всех экранах.
+    // Подсветка раздела работает только там, где меню видно (ПК).
     (function () {
         var header = document.querySelector('.header');
         if (!header) return;
 
-        var desktop = window.matchMedia('(min-width: 981px)');
         var progress = header.querySelector('.header__progress');
         var links = Array.prototype.slice.call(header.querySelectorAll('[data-spy]'));
         var sections = links.map(function (a) { return document.getElementById(a.getAttribute('data-spy')); });
@@ -67,7 +66,7 @@
         function onScroll() {
             var y = window.scrollY;
 
-            header.classList.toggle('is-compact', desktop.matches && y > 40);
+            header.classList.toggle('is-compact', y > 40);
 
             if (progress) {
                 var max = document.documentElement.scrollHeight - window.innerHeight;
@@ -78,7 +77,7 @@
         }
 
         window.addEventListener('scroll', onScroll, { passive: true });
-        desktop.addEventListener('change', onScroll);
+        window.addEventListener('resize', onScroll, { passive: true });
         onScroll();
     })();
 </script>

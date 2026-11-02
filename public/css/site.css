@@ -145,7 +145,6 @@ a:hover { color: var(--bronze-hover); }
 
 /* Полоса прочитанного по низу шапки */
 .header__progress {
-    display: none;
     position: absolute;
     left: 0;
     bottom: -1px;
@@ -163,46 +162,42 @@ a:hover { color: var(--bronze-hover); }
 .header__contact:hover .header__phone { color: var(--bronze); }
 .header__hours { font-size: 11.5px; color: var(--muted); letter-spacing: .02em; white-space: nowrap; }
 
-/* Липкая шапка — только на ПК. На мобиле она обычная и уезжает вверх при
-   скролле (там меню всё равно скрыто). При скролле ужимается: меньше отступы,
-   сворачивается строка с режимом работы, появляется мягкая тень. */
-@media (min-width: 981px) {
-    .header {
-        position: sticky;
-        top: 0;
-        z-index: 50;
-        transition: padding .25s ease, box-shadow .25s ease;
-    }
-    .header__hours {
-        overflow: hidden;
-        max-height: 20px;
-        opacity: 1;
-        transition: max-height .25s ease, opacity .2s ease;
-    }
-    .header.is-compact {
-        padding-top: 10px;
-        padding-bottom: 10px;
-        box-shadow: 0 6px 26px rgba(36, 28, 22, .09);
-    }
-    .header.is-compact .header__hours { max-height: 0; opacity: 0; }
-
-    .header__progress { display: block; }
-
-    /* Кнопка записи при скролле становится золотой и чуть крупнее.
-       Увеличиваем отступами, а не transform: scale() — иначе браузер
-       масштабирует уже отрисованный текст и он выглядит размытым. */
-    .header .btn-primary { transition: background .3s ease, color .3s ease, padding .3s ease; }
-    .header.is-compact .btn-primary {
-        background: var(--gold);
-        color: var(--ink);
-        font-weight: 700;
-        padding: 13px 28px;
-    }
-    .header.is-compact .btn-primary:hover { background: #D6AC7C; color: var(--ink); }
-
-    /* Переход по якорю из меню не должен прятать заголовок под липкой шапкой. */
-    section[id] { scroll-margin-top: 96px; }
+/* Липкая шапка с эффектами при скролле — на всех экранах. На мобиле меню
+   скрыто, поэтому там работают только ужимание, кнопка и полоса прочитанного,
+   а подсветка раздела — на ПК, где есть сами пункты. */
+.header {
+    position: sticky;
+    top: 0;
+    z-index: 50;
+    transition: padding .25s ease, box-shadow .25s ease;
 }
+.header__hours {
+    overflow: hidden;
+    max-height: 20px;
+    opacity: 1;
+    transition: max-height .25s ease, opacity .2s ease;
+}
+.header.is-compact {
+    padding-top: 10px;
+    padding-bottom: 10px;
+    box-shadow: 0 6px 26px rgba(36, 28, 22, .09);
+}
+.header.is-compact .header__hours { max-height: 0; opacity: 0; }
+
+/* Кнопка записи при скролле становится золотой и чуть крупнее.
+   Увеличиваем отступами, а не transform: scale() — иначе браузер
+   масштабирует уже отрисованный текст и он выглядит размытым. */
+.header .btn-primary { transition: background .3s ease, color .3s ease, padding .3s ease; }
+.header.is-compact .btn-primary {
+    background: var(--gold);
+    color: var(--ink);
+    font-weight: 700;
+    padding: 13px 28px;
+}
+.header.is-compact .btn-primary:hover { background: #D6AC7C; color: var(--ink); }
+
+/* Переход по якорю не должен прятать заголовок под липкой шапкой. */
+section[id] { scroll-margin-top: 96px; }
 
 @media (prefers-reduced-motion: reduce) {
     .header, .header__hours, .header .btn-primary, .header__nav a::after { transition: none; }
@@ -681,6 +676,10 @@ details p { padding: 0 4px 26px; font-size: 15px; line-height: 1.7; color: var(-
     .booking form { grid-template-columns: 1fr; }
     .booking select, .booking .btn { grid-column: span 1; }
     .header { padding: 14px 20px; }
+    /* Шапка ниже, поэтому ужимание и кнопка компактнее, чем на ПК */
+    .header.is-compact { padding-top: 8px; padding-bottom: 8px; }
+    .header.is-compact .btn-primary { padding: 11px 20px; }
+    section[id] { scroll-margin-top: 74px; }
     .header__nav { display: none; }
     .header__phone { font-size: 13px; }
     .header__hours { font-size: 10px; }
