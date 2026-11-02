@@ -147,6 +147,15 @@ class SeoTest extends TestCase
         $this->assertStringContainsString('/prices', $this->get('/sitemap.xml')->getContent());
     }
 
+    public function test_missing_page_shows_branded_404(): void
+    {
+        $this->get('/no-such-page')
+            ->assertNotFound()
+            ->assertSee('Такой страницы у нас нет', false)
+            // Несуществующие адреса не должны индексироваться
+            ->assertSee('name="robots" content="noindex, follow"', false);
+    }
+
     public function test_index_php_and_html_redirect_to_home(): void
     {
         $this->get('/index.php')->assertRedirect('/');
