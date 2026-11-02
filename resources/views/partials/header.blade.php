@@ -7,12 +7,15 @@
         <span class="logo__text">HANDS</span>
     </a>
     <nav class="header__nav">
-        <a href="{{ route('home') }}#services" data-spy="services">Услуги</a>
+        {{-- Порядок пунктов повторяет порядок секций на главной — иначе
+             подсветка текущего раздела прыгает по меню. «Цены» — отдельная
+             страница, в последовательности якорей не участвует. --}}
         <a href="{{ route('prices') }}" @class(['is-current' => request()->routeIs('prices')])>Цены</a>
+        <a href="{{ route('home') }}#services" data-spy="services">Услуги</a>
+        <a href="{{ route('home') }}#about" data-spy="about">О студии</a>
         <a href="{{ route('home') }}#masters" data-spy="masters">Мастера</a>
         <a href="{{ route('home') }}#gift" data-spy="gift">Сертификаты</a>
         <a href="{{ route('home') }}#loyalty" data-spy="loyalty">Карта клиента</a>
-        <a href="{{ route('home') }}#about" data-spy="about">О студии</a>
         <a href="{{ route('home') }}#cabinets" data-spy="cabinets">Кабинеты</a>
         <a href="{{ route('home') }}#map" data-spy="map">Контакты</a>
         <a href="{{ route('home') }}#faq" data-spy="faq">Вопросы</a>
