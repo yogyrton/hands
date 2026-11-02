@@ -4,7 +4,7 @@
 <div class="loyalty-card">
     <span class="eyebrow">Постоянным клиентам</span>
     <h2>Карта постоянного клиента</h2>
-    <p class="loyalty-card__lead">−15% на 5-й сеанс и −50% на 10-й. Отмечаем каждое посещение — карту выдаём в студии.</p>
+    <p class="loyalty-card__lead">Возвращаться к нам приятно и выгодно: пятый сеанс — со скидкой 15%, десятый — 50%. Карту заведём при первом визите, отмечать будем сами.</p>
 
     <div class="loyalty-card__images">
         <img src="{{ asset('images/loyalty-card-front.webp') }}"
