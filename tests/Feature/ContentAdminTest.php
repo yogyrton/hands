@@ -49,6 +49,9 @@ class ContentAdminTest extends TestCase
             ->fillForm([
                 'name' => 'Дмитрий',
                 'slug' => 'dmitry',
+                'timesheet_name' => 'Подов Д.В.',
+                'job_title' => 'массажист',
+                'employment_type' => 'part_time',
                 'name_dative' => 'Дмитрию',
                 'role' => 'Массажист',
                 'experience_label' => '8 лет',
@@ -69,6 +72,9 @@ class ContentAdminTest extends TestCase
         $this->assertDatabaseHas('masters', [
             'name' => 'Дмитрий',
             'slug' => 'dmitry',
+            'timesheet_name' => 'Подов Д.В.',
+            'job_title' => 'массажист',
+            'employment_type' => 'part_time',
             'name_dative' => 'Дмитрию',
             'role' => 'Массажист',
             'experience_label' => '8 лет',
@@ -96,6 +102,9 @@ class ContentAdminTest extends TestCase
             ->fillForm([
                 'name' => 'Новое имя',
                 'slug' => 'new',
+                'timesheet_name' => 'Новиков Н.Н.',
+                'job_title' => 'массажист',
+                'employment_type' => 'main',
                 'name_dative' => 'Новому',
                 'role' => 'Новая роль',
                 'experience_label' => '10 лет',
@@ -113,6 +122,8 @@ class ContentAdminTest extends TestCase
             'id' => $master->id,
             'name' => 'Новое имя',
             'slug' => 'new',
+            'timesheet_name' => 'Новиков Н.Н.',
+            'employment_type' => 'main',
             'name_dative' => 'Новому',
             'role' => 'Новая роль',
             'experience_label' => '10 лет',
