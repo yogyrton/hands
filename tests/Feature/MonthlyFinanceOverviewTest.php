@@ -132,7 +132,7 @@ class MonthlyFinanceOverviewTest extends TestCase
         Carbon::setTestNow();
     }
 
-    public function test_revenue_card_explains_gap_with_the_sums_sheet(): void
+    public function test_special_terms_block_explains_gap_with_the_sums_sheet(): void
     {
         $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
         Carbon::setTestNow('2026-09-15');
@@ -160,9 +160,12 @@ class MonthlyFinanceOverviewTest extends TestCase
         $this->assertSame(65.0, $page->instance()->specialTermsTotal());
         $this->assertSame(165.0, $page->instance()->sheetRevenue());
 
+        // В карточке выручки — только реальные деньги, бартера там нет.
         $page->assertSee('визиты по кассе 100.00')
-            ->assertSee('особые условия 65.00 мимо кассы')
-            ->assertSee('в выгрузке сумм выручка 165.00');
+            ->assertDontSee('особые условия 65.00 мимо кассы')
+            // Пояснение живёт в блоке особых условий: там и обе цифры для сверки.
+            ->assertSee('даёт 165.00 против')
+            ->assertSee('100.00 по кассе');
 
         Carbon::setTestNow();
     }
