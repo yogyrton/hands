@@ -20,6 +20,8 @@ use Illuminate\Foundation\Testing\RefreshDatabase;
 use Illuminate\Support\Carbon;
 use Livewire\Livewire;
 use PhpOffice\PhpSpreadsheet\IOFactory;
+use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 use Tests\TestCase;
 use ZipArchive;
 
@@ -208,15 +210,27 @@ class WorktimeExportTest extends TestCase
         $sheet = IOFactory::load($path)->getActiveSheet();
         $rgb = fn (string $cell): string => $sheet->getStyle($cell)->getFill()->getStartColor()->getRGB();
 
-        // У каждого мастера своя пастель — на всю тройку колонок, вместе с шапкой.
-        $this->assertSame('F4CCCC', $rgb('B1'));
-        $this->assertSame('F4CCCC', $rgb('D2'));
-        $this->assertSame('D9EAD3', $rgb('E1'));
+        // У каждого мастера свой цвет: шапка насыщенная, дни под ней светлые.
+        $this->assertSame('DCA3BC', $rgb('B1'));
+        $this->assertSame('EAD1DC', $rgb('D2'));
+        $this->assertSame('93C47D', $rgb('E1'));
         $this->assertSame('D9EAD3', $rgb('G2'));
-        // Дневные итоги — синим, строки «Сумма»/«Итого» — серым поверх всего.
-        $this->assertSame('CFE2F3', $rgb('H2'));
-        $this->assertSame('D9D9D9', $rgb('A3'));
-        $this->assertSame('D9D9D9', $rgb('H4'));
+        // Дневные итоги — синим, колонка дат серая.
+        $this->assertSame('4D90CB', $rgb('H1'));
+        $this->assertSame('CFE2F3', $rgb('K2'));
+        $this->assertSame('999999', $rgb('A1'));
+        $this->assertSame('CCCCCC', $rgb('A2'));
+        // «Сумма» и «Итого» серым, но колонка примечаний остаётся белой.
+        $this->assertSame('999999', $rgb('A3'));
+        $this->assertSame('999999', $rgb('K4'));
+        $this->assertNotSame('999999', $rgb('L3'));
+
+        // Сетка и выравнивание по всей таблице, кегль 10 — как в листе-образце.
+        $this->assertSame(Border::BORDER_THIN, $sheet->getStyle('C2')->getBorders()->getTop()->getBorderStyle());
+        $this->assertSame(Border::BORDER_THIN, $sheet->getStyle('L4')->getBorders()->getRight()->getBorderStyle());
+        $this->assertSame(Alignment::HORIZONTAL_CENTER, $sheet->getStyle('C2')->getAlignment()->getHorizontal());
+        $this->assertSame(10.0, (float) $sheet->getStyle('C2')->getFont()->getSize());
+        $this->assertTrue($sheet->getStyle('B1')->getFont()->getBold());
 
         @unlink($path);
     }

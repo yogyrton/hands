@@ -9,6 +9,7 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Border;
 use PhpOffice\PhpSpreadsheet\Style\Fill;
 use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
@@ -27,18 +28,35 @@ class WorktimeExcelExport
     private const COLS_PER_MASTER = 3;
 
     /**
-     * Заливка блока каждого мастера — та же пастель, которой лист раскрашивался
-     * руками. Если мастеров больше, чем цветов, палитра идёт по кругу.
+     * Цвета блока каждого мастера: [шапка, строки дней]. Насыщенный тон сверху,
+     * светлый под ним — ровно та раскраска, которой лист вёлся руками. Если
+     * мастеров больше, чем пар цветов, палитра идёт по кругу.
      *
-     * @var array<int, string>
+     * @var array<int, array{string, string}>
      */
-    private const MASTER_COLORS = ['F4CCCC', 'D9EAD3', 'D9D2E9', 'FFF2CC', 'D0E0E3', 'FCE5CD'];
+    private const MASTER_COLORS = [
+        ['DCA3BC', 'EAD1DC'],   // розовый
+        ['93C47D', 'D9EAD3'],   // зелёный
+        ['B5A3DE', 'D9D2E9'],   // сиреневый
+        ['F1C232', 'FFF2CC'],   // жёлтый
+        ['76A5AF', 'D0E0E3'],   // бирюзовый
+        ['E69138', 'FCE5CD'],   // оранжевый
+    ];
 
-    /** Колонки дневных итогов. */
-    private const TOTAL_COLOR = 'CFE2F3';
+    /** Колонки дневных итогов: [шапка, строки дней]. */
+    private const TOTAL_COLORS = ['4D90CB', 'CFE2F3'];
 
-    /** Строки «Сумма» и «Итого». */
-    private const SUMMARY_COLOR = 'D9D9D9';
+    /** Угловая ячейка «Дата» и строки «Сумма»/«Итого». */
+    private const GRAY = '999999';
+
+    /** Колонка с датами. */
+    private const DATE_COLOR = 'CCCCCC';
+
+    /** Высота строки, как в листе-образце. */
+    private const ROW_HEIGHT = 15.75;
+
+    /** Кегль по всему листу. */
+    private const FONT_SIZE = 10;
 
     public function __construct(private readonly WorktimeExportData $data) {}
 
@@ -184,42 +202,78 @@ class WorktimeExcelExport
             .self::cell($colDayCash, $sumRow).','.self::cell($colDayCard, $sumRow).')');
 
         // --- оформление ---
-        // Заливка по блокам: у каждого мастера свой цвет, дневные итоги — синим,
-        // строки «Сумма»/«Итого» серым поверх всего (красим их последними).
+        // Вся таблица: кегль 10, по центру, тонкая сетка — как в листе-образце.
+        $table = [1, 1, $colNote, $totalRow];
+        $sheet->getStyle($table)->getFont()->setSize(self::FONT_SIZE);
+        $sheet->getStyle($table)->getAlignment()
+            ->setHorizontal(Alignment::HORIZONTAL_CENTER)
+            ->setVertical(Alignment::VERTICAL_BOTTOM);
+        $sheet->getStyle($table)->getBorders()->getAllBorders()->setBorderStyle(Border::BORDER_THIN);
+
+        for ($row = 1; $row <= $totalRow; $row++) {
+            $sheet->getRowDimension($row)->setRowHeight(self::ROW_HEIGHT);
+        }
+
+        // Заливка по блокам: шапка насыщенная, дни под ней светлые.
+        self::fill($sheet, [1, 1, 1, 1], self::GRAY);
+        self::fill($sheet, [1, $firstDataRow, 1, $lastDataRow], self::DATE_COLOR);
+
         foreach ($masterNames as $i => $name) {
             $base = 2 + $i * self::COLS_PER_MASTER;
-            self::fill(
-                $sheet,
-                [$base, 1, $base + self::COLS_PER_MASTER - 1, $lastDataRow],
-                self::MASTER_COLORS[$i % count(self::MASTER_COLORS)],
-            );
+            $last = $base + self::COLS_PER_MASTER - 1;
+            [$head, $body] = self::MASTER_COLORS[$i % count(self::MASTER_COLORS)];
+
+            self::fill($sheet, [$base, 1, $last, 1], $head);
+            self::fill($sheet, [$base, $firstDataRow, $last, $lastDataRow], $body);
         }
 
-        self::fill($sheet, [$colDayCash, 1, $colDayAll, $lastDataRow], self::TOTAL_COLOR);
-        self::fill($sheet, [1, $sumRow, $colNote, $totalRow], self::SUMMARY_COLOR);
+        self::fill($sheet, [$colDayCash, 1, $colDayAll, 1], self::TOTAL_COLORS[0]);
+        self::fill($sheet, [$colDayCash, $firstDataRow, $colDayAll, $lastDataRow], self::TOTAL_COLORS[1]);
+
+        // «Сумма» и «Итого» — серым, но колонка примечаний остаётся белой.
+        self::fill($sheet, [1, $sumRow, $colDayAll, $totalRow], self::GRAY);
 
         $sheet->getStyle([1, 1, $colNote, 1])->getFont()->setBold(true);
-        $sheet->getStyle([1, 1, $colNote, 1])->getAlignment()
-            ->setWrapText(true)
-            ->setVertical(Alignment::VERTICAL_CENTER)
-            ->setHorizontal(Alignment::HORIZONTAL_CENTER);
-        $sheet->getStyle([1, $sumRow, $colDayAll, $totalRow])->getFont()->setBold(true);
-        $sheet->getRowDimension(1)->setRowHeight(30);
+        $sheet->getStyle([1, $sumRow, $colNote, $totalRow])->getFont()->setBold(true);
 
-        $sheet->getColumnDimension('A')->setWidth(12);
-        for ($col = 2; $col < $firstTotal; $col++) {
-            $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($col))->setWidth(13);
+        // Ширина — под самую длинную подпись, чтобы шапка не обрезалась. Внутри
+        // тройки мастера колонки одинаковой ширины, иначе блок смотрится рвано.
+        $sheet->getColumnDimension('A')->setWidth(11);
+
+        foreach ($masterNames as $i => $name) {
+            $base = 2 + $i * self::COLS_PER_MASTER;
+            $width = 0;
+            for ($col = $base; $col < $base + self::COLS_PER_MASTER; $col++) {
+                $width = max($width, self::labelWidth($sheet, $col));
+            }
+            for ($col = $base; $col < $base + self::COLS_PER_MASTER; $col++) {
+                $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($col))->setWidth($width);
+            }
+        }
+
+        $totalsWidth = 0;
+        foreach ([$colDayCash, $colDayCard, $colDayCert, $colDayAll] as $col) {
+            $totalsWidth = max($totalsWidth, self::labelWidth($sheet, $col));
         }
         foreach ([$colDayCash, $colDayCard, $colDayCert, $colDayAll] as $col) {
-            $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($col))->setWidth(15);
+            $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($col))->setWidth($totalsWidth);
         }
-        $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($colNote))->setWidth(22);
+
+        $sheet->getColumnDimension(Coordinate::stringFromColumnIndex($colNote))->setWidth(20);
 
         // Шапка и колонка дат не уезжают при прокрутке.
         $sheet->freezePane('B2');
 
         (new Xlsx($spreadsheet))->save($path);
         $spreadsheet->disconnectWorksheets();
+    }
+
+    /**
+     * Ширина колонки, при которой её подпись в шапке помещается целиком.
+     */
+    private static function labelWidth(Worksheet $sheet, int $col): float
+    {
+        return max(14, mb_strlen((string) $sheet->getCell([$col, 1])->getValue()) + 2);
     }
 
     /**
