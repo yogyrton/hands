@@ -37,6 +37,15 @@
                 <div style="font-size:.78rem; opacity:.6; text-transform:uppercase; letter-spacing:.04em;">Выручка (все деньги)</div>
                 <div style="font-size:1.6rem; font-weight:700; margin-top:.3rem;">{{ $this->money($s->revenue) }} р</div>
                 <div style="font-size:.78rem; opacity:.55; margin-top:.4rem;">визиты по кассе {{ $this->money($s->revenue_visits) }} + сертификаты {{ $this->money($s->revenue_certs) }}</div>
+                {{-- Если за месяц были особые условия, сразу объясняем расхождение
+                     с выгрузкой сумм: там выручка считается по итоговой стоимости
+                     услуг (от неё же зарплата мастера), а не по кассе. --}}
+                @if($this->specialTermsTotal() > 0)
+                    <div style="font-size:.78rem; margin-top:.3rem; color:#f59e0b;">
+                        + особые условия {{ $this->money($this->specialTermsTotal()) }} мимо кассы
+                        <span style="opacity:.75;">— мастерам платим с полной суммы, поэтому в выгрузке сумм выручка {{ $this->money($this->sheetRevenue()) }} (без визитов по сертификатам)</span>
+                    </div>
+                @endif
                 @php($dr = $this->changeText($s->revenue, $prev->revenue))
                 <div style="font-size:.78rem; margin-top:.35rem; color:{{ $dr['up'] ? '#22c55e' : '#ef4444' }};">
                     {{ $dr['up'] ? '▲' : '▼' }} {{ $dr['text'] }}

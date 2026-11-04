@@ -221,4 +221,15 @@ class MonthlyFinanceOverview extends Widget
     {
         return round((float) $this->summary()->special_terms->sum('shortfall'), 2);
     }
+
+    /**
+     * Выручка так, как она выходит в выгрузке сумм: по итоговой стоимости услуг,
+     * а не по кассе. Отличается от кассовой ровно на особые условия (бартер,
+     * бесплатные визиты) — там мастеру платим с полной суммы. Визиты, отхоженные
+     * по сертификатам, сюда не входят: деньги за них пришли при продаже.
+     */
+    public function sheetRevenue(): float
+    {
+        return round($this->summary()->revenue_visits + $this->specialTermsTotal(), 2);
+    }
 }

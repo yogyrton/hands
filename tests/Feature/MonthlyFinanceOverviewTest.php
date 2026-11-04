@@ -131,4 +131,39 @@ class MonthlyFinanceOverviewTest extends TestCase
 
         Carbon::setTestNow();
     }
+
+    public function test_revenue_card_explains_gap_with_the_sums_sheet(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        Carbon::setTestNow('2026-09-15');
+
+        $master = Master::create([
+            'slug' => 'anna', 'name' => 'Анна Петрова', 'name_dative' => 'Анне', 'role' => 'Массажист',
+            'yclients_url' => 'https://e.com', 'bio1' => 'a', 'bio2' => 'b', 'salary_rate' => 35,
+        ]);
+        $service = Service::create(['slug' => 'classic', 'name' => 'Классический массаж', 'level' => 4, 'lead' => 'l']);
+
+        // По кассе 100, плюс бесплатный визит на 65 → в выгрузке сумм будет 165.
+        Visit::create([
+            'master_id' => $master->id, 'service_id' => $service->id,
+            'base_price' => 100, 'service_price' => 100, 'paid_amount' => 100,
+            'payment_type' => PaymentType::Cash, 'performed_at' => Carbon::create(2026, 9, 5, 12),
+        ]);
+        Visit::create([
+            'master_id' => $master->id, 'service_id' => $service->id,
+            'base_price' => 65, 'service_price' => 65, 'paid_amount' => 0,
+            'payment_type' => PaymentType::Card, 'performed_at' => Carbon::create(2026, 9, 11, 18),
+        ]);
+
+        $page = Livewire::test(MonthlyFinanceOverview::class)->assertOk();
+
+        $this->assertSame(65.0, $page->instance()->specialTermsTotal());
+        $this->assertSame(165.0, $page->instance()->sheetRevenue());
+
+        $page->assertSee('визиты по кассе 100.00')
+            ->assertSee('особые условия 65.00 мимо кассы')
+            ->assertSee('в выгрузке сумм выручка 165.00');
+
+        Carbon::setTestNow();
+    }
 }
