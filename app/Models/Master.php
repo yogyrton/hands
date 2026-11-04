@@ -4,6 +4,7 @@ declare(strict_types=1);
 
 namespace App\Models;
 
+use App\Enums\EmploymentType;
 use App\Enums\MasterTier;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\Relations\BelongsToMany;
@@ -21,6 +22,9 @@ use Spatie\MediaLibrary\MediaCollections\Models\Media;
  * @property int $id
  * @property string $slug
  * @property string $name
+ * @property string $timesheet_name
+ * @property string $job_title
+ * @property EmploymentType $employment_type
  * @property string $name_dative
  * @property array $principles
  * @property bool $is_active
@@ -33,6 +37,9 @@ class Master extends Model implements HasMedia
     protected $fillable = [
         'slug',
         'name',
+        'timesheet_name',
+        'job_title',
+        'employment_type',
         'name_dative',
         'role',
         'tier',
@@ -51,6 +58,7 @@ class Master extends Model implements HasMedia
         return [
             'principles' => 'array',
             'tier' => MasterTier::class,
+            'employment_type' => EmploymentType::class,
             'salary_rate' => 'decimal:2',
             'sort_order' => 'integer',
             'is_active' => 'boolean',
@@ -65,6 +73,26 @@ class Master extends Model implements HasMedia
         return $this->where($field ?? 'slug', $value)
             ->where('is_active', true)
             ->firstOrFail();
+    }
+
+    /**
+     * Ф.И.О. для бумажных документов — «Петрова А.А.». Если поле почему-то
+     * пустое (данные до миграции), откатываемся на имя с сайта.
+     */
+    public function timesheetName(): string
+    {
+        return trim((string) $this->timesheet_name) ?: (string) $this->name;
+    }
+
+    /**
+     * Короткая подпись для шапки колонок в Excel — одна фамилия, без инициалов:
+     * «Петрова (н)» вместо «Петрова А.А. (н)», иначе шапка разъезжается.
+     */
+    public function shortName(): string
+    {
+        $parts = preg_split('/\s+/u', $this->timesheetName(), -1, PREG_SPLIT_NO_EMPTY) ?: [];
+
+        return $parts[0] ?? $this->timesheetName();
     }
 
     /**

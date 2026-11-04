@@ -2,6 +2,7 @@
 
 namespace App\Filament\Resources\Masters\Schemas;
 
+use App\Enums\EmploymentType;
 use App\Enums\MasterTier;
 use Filament\Forms\Components\Repeater;
 use Filament\Forms\Components\Select;
@@ -74,6 +75,29 @@ class MasterForm
                     Toggle::make('is_active')
                         ->label('Активен')
                         ->default(true),
+                ]),
+
+            Section::make('Для документов')
+                ->description('Используется в табеле учёта рабочего времени (Word) и в выгрузке сумм (Excel)')
+                ->columns(3)
+                ->schema([
+                    TextInput::make('timesheet_name')
+                        ->label('Ф.И.О. с инициалами')
+                        ->required()
+                        ->maxLength(255)
+                        ->helperText('Как в табеле: Петрова А.А. В Excel из него берётся только фамилия'),
+                    TextInput::make('job_title')
+                        ->label('Должность (для документов)')
+                        ->required()
+                        ->maxLength(255)
+                        ->default('массажист')
+                        ->helperText('С маленькой буквы — подставляется в строку состава'),
+                    Select::make('employment_type')
+                        ->label('Характер работы')
+                        ->options(EmploymentType::options())
+                        ->default(EmploymentType::Main->value)
+                        ->required()
+                        ->native(false),
                 ]),
 
             Section::make('Биография')
