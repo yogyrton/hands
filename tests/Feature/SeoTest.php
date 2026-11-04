@@ -137,9 +137,9 @@ class SeoTest extends TestCase
             ->assertSee('80', false)
             ->assertSee('100', false)
             // Карта постоянного клиента — зашита текстом
-            ->assertSee('Карта постоянного клиента', false)
-            ->assertSee('−15%', false)
-            ->assertSee('−50%', false);
+            ->assertSee('Карта клиента', false)
+            ->assertSee('со скидкой 15%', false)
+            ->assertSee('десятый — 50%', false);
     }
 
     public function test_prices_page_is_in_sitemap(): void
