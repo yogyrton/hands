@@ -220,15 +220,29 @@ class WorktimeExportTest extends TestCase
         $this->assertSame('CFE2F3', $rgb('K2'));
         $this->assertSame('999999', $rgb('A1'));
         $this->assertSame('CCCCCC', $rgb('A2'));
-        // «Сумма» и «Итого» серым, но колонка примечаний остаётся белой.
+        // «Сумма» серая целиком, но колонка примечаний остаётся белой.
         $this->assertSame('999999', $rgb('A3'));
-        $this->assertSame('999999', $rgb('K4'));
+        $this->assertSame('999999', $rgb('D3'));
         $this->assertNotSame('999999', $rgb('L3'));
 
-        // Сетка и выравнивание по всей таблице, кегль 10 — как в листе-образце.
+        // В «Итого» серые только заполненные клетки: подпись, итог каждого
+        // мастера (третья колонка его блока), «Выручка» и сама сумма.
+        $this->assertSame('999999', $rgb('A4'));
+        $this->assertSame('999999', $rgb('D4'));
+        $this->assertSame('999999', $rgb('G4'));
+        $this->assertSame('999999', $rgb('J4'));
+        $this->assertSame('999999', $rgb('K4'));
+        // А пустые между ними — белые.
+        $this->assertNotSame('999999', $rgb('B4'));
+        $this->assertNotSame('999999', $rgb('C4'));
+        $this->assertNotSame('999999', $rgb('H4'));
+
+        // Сетка, выравнивание и Arial 10 по всей таблице — как в листе-образце.
         $this->assertSame(Border::BORDER_THIN, $sheet->getStyle('C2')->getBorders()->getTop()->getBorderStyle());
         $this->assertSame(Border::BORDER_THIN, $sheet->getStyle('L4')->getBorders()->getRight()->getBorderStyle());
         $this->assertSame(Alignment::HORIZONTAL_CENTER, $sheet->getStyle('C2')->getAlignment()->getHorizontal());
+        $this->assertSame('Arial', $sheet->getStyle('C2')->getFont()->getName());
+        $this->assertSame('Arial', $sheet->getStyle('B1')->getFont()->getName());
         $this->assertSame(10.0, (float) $sheet->getStyle('C2')->getFont()->getSize());
         $this->assertTrue($sheet->getStyle('B1')->getFont()->getBold());
 
@@ -240,12 +254,12 @@ class WorktimeExportTest extends TestCase
         $month = new WorktimeExcelExport(
             WorktimeExportData::for(Carbon::parse('2026-09-01'), Carbon::parse('2026-09-30')),
         );
-        $this->assertSame('Суммы_сентябрь_2026.xlsx', $month->fileName());
+        $this->assertSame('Сентябрь 2026.xlsx', $month->fileName());
 
         $across = new WorktimeExcelExport(
             WorktimeExportData::for(Carbon::parse('2026-09-20'), Carbon::parse('2026-10-05')),
         );
-        $this->assertSame('Суммы_20.09.2026-05.10.2026.xlsx', $across->fileName());
+        $this->assertSame('20.09.2026-05.10.2026.xlsx', $across->fileName());
     }
 
     // --- Word ---
@@ -305,7 +319,7 @@ class WorktimeExportTest extends TestCase
             88,
         );
 
-        $this->assertSame('Табель_сентябрь_2026.docx', $export->fileName());
+        $this->assertSame('Сентябрь 2026.docx', $export->fileName());
     }
 
     // --- кнопки на странице ---
@@ -320,7 +334,7 @@ class WorktimeExportTest extends TestCase
             ->set('data.from', '2026-09-01')
             ->set('data.until', '2026-09-30')
             ->callAction('exportSums')
-            ->assertFileDownloaded('Суммы_сентябрь_2026.xlsx');
+            ->assertFileDownloaded('Сентябрь 2026.xlsx');
     }
 
     public function test_page_downloads_word_and_remembers_hours_norm(): void
@@ -333,7 +347,7 @@ class WorktimeExportTest extends TestCase
             ->set('data.from', '2026-09-01')
             ->set('data.until', '2026-09-30')
             ->callAction('exportTimesheet', ['hours_norm' => 88])
-            ->assertFileDownloaded('Табель_сентябрь_2026.docx');
+            ->assertFileDownloaded('Сентябрь 2026.docx');
 
         // Норму вводят руками каждый раз, но прошлое значение подставляется.
         $this->assertSame('88', Setting::get('timesheet_hours_norm'));

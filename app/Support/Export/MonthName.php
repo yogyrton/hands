@@ -33,4 +33,15 @@ class MonthName
     {
         return self::NOMINATIVE[$date->month] ?? (string) $date->month;
     }
+
+    /**
+     * «Октябрь 2026» — для имени файла. ucfirst() на кириллице не работает,
+     * поэтому первую букву поднимаем через mb_*.
+     */
+    public static function withYear(Carbon $date): string
+    {
+        $month = self::nominative($date);
+
+        return mb_strtoupper(mb_substr($month, 0, 1)).mb_substr($month, 1).' '.$date->year;
+    }
 }

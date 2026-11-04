@@ -55,14 +55,17 @@ class WorktimeExcelExport
     /** Высота строки, как в листе-образце. */
     private const ROW_HEIGHT = 15.75;
 
-    /** Кегль по всему листу. */
+    /** Шрифт и кегль по всему листу — как в листе-образце. */
+    private const FONT = 'Arial';
+
     private const FONT_SIZE = 10;
 
     public function __construct(private readonly WorktimeExportData $data) {}
 
     /**
-     * Имя файла вида «Суммы_сентябрь_2026.xlsx». Если период не укладывается
-     * в один месяц — «Суммы_01.09.2026-15.10.2026.xlsx».
+     * Имя файла — просто «Октябрь 2026.xlsx»: табель и суммы лежат в разных
+     * папках, так что различать их в имени незачем. Период в несколько месяцев
+     * месяцем не назовёшь, поэтому там остаются даты.
      */
     public function fileName(): string
     {
@@ -70,10 +73,10 @@ class WorktimeExcelExport
         $until = $this->data->until();
 
         if ($from->isSameMonth($until)) {
-            return 'Суммы_'.MonthName::nominative($from).'_'.$from->year.'.xlsx';
+            return MonthName::withYear($from).'.xlsx';
         }
 
-        return 'Суммы_'.$from->format('d.m.Y').'-'.$until->format('d.m.Y').'.xlsx';
+        return $from->format('d.m.Y').'-'.$until->format('d.m.Y').'.xlsx';
     }
 
     /**
@@ -120,6 +123,8 @@ class WorktimeExcelExport
     public static function writeSheet(array $masterNames, array $rows, string $path): void
     {
         $spreadsheet = new Spreadsheet;
+        $spreadsheet->getDefaultStyle()->getFont()->setName(self::FONT)->setSize(self::FONT_SIZE);
+
         $sheet = $spreadsheet->getActiveSheet();
         $sheet->setTitle('табл.');
 
@@ -202,9 +207,9 @@ class WorktimeExcelExport
             .self::cell($colDayCash, $sumRow).','.self::cell($colDayCard, $sumRow).')');
 
         // --- оформление ---
-        // Вся таблица: кегль 10, по центру, тонкая сетка — как в листе-образце.
+        // Вся таблица: Arial 10, по центру, тонкая сетка — как в листе-образце.
         $table = [1, 1, $colNote, $totalRow];
-        $sheet->getStyle($table)->getFont()->setSize(self::FONT_SIZE);
+        $sheet->getStyle($table)->getFont()->setName(self::FONT)->setSize(self::FONT_SIZE);
         $sheet->getStyle($table)->getAlignment()
             ->setHorizontal(Alignment::HORIZONTAL_CENTER)
             ->setVertical(Alignment::VERTICAL_BOTTOM);
@@ -230,8 +235,17 @@ class WorktimeExcelExport
         self::fill($sheet, [$colDayCash, 1, $colDayAll, 1], self::TOTAL_COLORS[0]);
         self::fill($sheet, [$colDayCash, $firstDataRow, $colDayAll, $lastDataRow], self::TOTAL_COLORS[1]);
 
-        // «Сумма» и «Итого» — серым, но колонка примечаний остаётся белой.
-        self::fill($sheet, [1, $sumRow, $colDayAll, $totalRow], self::GRAY);
+        // «Сумма» — серая целиком, а в «Итого» серые только заполненные клетки:
+        // пустые между итогами мастеров остаются белыми, как в листе-образце.
+        self::fill($sheet, [1, $sumRow, $colDayAll, $sumRow], self::GRAY);
+
+        $totalCells = [1, $colDayCert, $colDayAll];
+        for ($i = 0; $i < $masterCount; $i++) {
+            $totalCells[] = 2 + $i * self::COLS_PER_MASTER + self::COLS_PER_MASTER - 1;
+        }
+        foreach ($totalCells as $col) {
+            self::fill($sheet, [$col, $totalRow, $col, $totalRow], self::GRAY);
+        }
 
         $sheet->getStyle([1, 1, $colNote, 1])->getFont()->setBold(true);
         $sheet->getStyle([1, $sumRow, $colNote, $totalRow])->getFont()->setBold(true);

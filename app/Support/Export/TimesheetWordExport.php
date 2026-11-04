@@ -41,11 +41,13 @@ class TimesheetWordExport
         private readonly int $hoursNorm,
     ) {}
 
+    /**
+     * Имя файла — просто «Октябрь 2026.docx»: табель и суммы лежат в разных
+     * папках, так что различать их в имени незачем.
+     */
     public function fileName(): string
     {
-        $from = $this->data->from();
-
-        return 'Табель_'.MonthName::nominative($from).'_'.$from->year.'.docx';
+        return MonthName::withYear($this->data->from()).'.docx';
     }
 
     public static function templatePath(): string
