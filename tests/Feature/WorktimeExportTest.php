@@ -192,6 +192,35 @@ class WorktimeExportTest extends TestCase
         @unlink($path);
     }
 
+    public function test_excel_colors_each_master_block_separately(): void
+    {
+        $path = tempnam(sys_get_temp_dir(), 'test-xlsx-').'.xlsx';
+
+        WorktimeExcelExport::writeSheet(
+            ['Петрова', 'Марков'],
+            [['date' => '2026-09-01', 'values' => [
+                ['cash' => 65.0, 'card' => 0.0, 'cert' => 0.0],
+                ['cash' => 0.0, 'card' => 0.0, 'cert' => 0.0],
+            ]]],
+            $path,
+        );
+
+        $sheet = IOFactory::load($path)->getActiveSheet();
+        $rgb = fn (string $cell): string => $sheet->getStyle($cell)->getFill()->getStartColor()->getRGB();
+
+        // У каждого мастера своя пастель — на всю тройку колонок, вместе с шапкой.
+        $this->assertSame('F4CCCC', $rgb('B1'));
+        $this->assertSame('F4CCCC', $rgb('D2'));
+        $this->assertSame('D9EAD3', $rgb('E1'));
+        $this->assertSame('D9EAD3', $rgb('G2'));
+        // Дневные итоги — синим, строки «Сумма»/«Итого» — серым поверх всего.
+        $this->assertSame('CFE2F3', $rgb('H2'));
+        $this->assertSame('D9D9D9', $rgb('A3'));
+        $this->assertSame('D9D9D9', $rgb('H4'));
+
+        @unlink($path);
+    }
+
     public function test_excel_file_name_uses_month_for_whole_month_period(): void
     {
         $month = new WorktimeExcelExport(

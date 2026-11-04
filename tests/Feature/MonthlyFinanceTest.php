@@ -93,6 +93,56 @@ class MonthlyFinanceTest extends TestCase
         $this->assertCount(1, $f->certs);
     }
 
+    public function test_special_terms_lists_visits_where_register_got_less(): void
+    {
+        $this->fixedExpenses();
+        $anna = $this->master('Анна');
+        $service = $this->service();
+
+        // Обычный визит: по кассе ровно итоговая — в список не попадает.
+        $this->visit($anna, $service, 100, Carbon::create(2026, 9, 5, 12));
+
+        // Бесплатно клиенту: стоимость 65, по кассе 0.
+        Visit::create([
+            'master_id' => $anna->id, 'service_id' => $service->id,
+            'base_price' => 65, 'service_price' => 65, 'paid_amount' => 0,
+            'payment_type' => PaymentType::Card, 'discount_reason' => 'Короткин Юрий',
+            'performed_at' => Carbon::create(2026, 9, 11, 18),
+        ]);
+
+        $f = MonthlyFinance::for(2026, 9);
+
+        $this->assertCount(1, $f->special_terms);
+        $row = $f->special_terms->first();
+        $this->assertSame('Анна', $row->master);
+        $this->assertSame(65.0, $row->service_price);
+        $this->assertSame(0.0, $row->paid_amount);
+        $this->assertSame(65.0, $row->shortfall);
+        $this->assertSame('Короткин Юрий', $row->reason);
+
+        // Выручка идёт по кассе (100), наработка мастера — по стоимости (165).
+        $this->assertSame(100.0, $f->revenue_visits);
+        $this->assertSame(165.0, (float) $f->masters->first()->earned);
+    }
+
+    public function test_special_terms_ignores_certificate_surcharge_visits(): void
+    {
+        $this->fixedExpenses();
+        $anna = $this->master();
+        $service = $this->service();
+
+        // Доплата по сертификату: paid_amount — это сама доплата, расхождение
+        // с итоговой тут нормальное, в «особые условия» не идёт.
+        Visit::create([
+            'master_id' => $anna->id, 'service_id' => $service->id,
+            'base_price' => 100, 'service_price' => 100, 'paid_amount' => 30,
+            'payment_type' => PaymentType::CertificateSurcharge, 'surcharge_payment_type' => PaymentType::Cash,
+            'performed_at' => Carbon::create(2026, 9, 7, 12),
+        ]);
+
+        $this->assertCount(0, MonthlyFinance::for(2026, 9)->special_terms);
+    }
+
     public function test_other_month_is_empty(): void
     {
         $this->fixedExpenses();

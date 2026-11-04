@@ -94,6 +94,46 @@
         </div>
     </x-filament::section>
 
+    {{-- Особые условия: визиты, где по кассе прошла не итоговая стоимость
+         (бартер, бесплатно клиенту, оплата только доли мастера). Ровно на эту
+         сумму выручка расходится с наработкой мастеров, поэтому показываем
+         списком — но только если за месяц такие визиты были. --}}
+    @if($s->special_terms->isNotEmpty())
+        <x-filament::section style="margin-top:1rem;">
+            <div style="display:flex; align-items:baseline; flex-wrap:wrap; gap:.4rem .75rem; margin-bottom:.85rem;">
+                <span style="font-size:1rem; font-weight:700;">Особые условия · {{ $s->special_terms->count() }}</span>
+                <span style="opacity:.5;">{{ $s->label }} · не прошло по кассе</span>
+                <span style="margin-left:auto; font-size:1.1rem; font-weight:700; color:#f59e0b;">−{{ $this->money($this->specialTermsTotal()) }} р</span>
+            </div>
+
+            <div style="display:flex; flex-direction:column; gap:.5rem;">
+                @foreach($s->special_terms as $visit)
+                    <a href="{{ $this->visitUrl($visit->id) }}"
+                       style="{{ $panel }} display:flex; align-items:baseline; flex-wrap:wrap; gap:.3rem .75rem; padding:.5rem .7rem; font-size:.82rem; text-decoration:none; color:inherit; transition:border-color .15s;"
+                       onmouseover="this.style.borderColor='#f59e0b'" onmouseout="this.style.borderColor='rgba(120,120,120,.22)'">
+                        <b style="white-space:nowrap;">{{ $visit->performed_at->format('d.m') }}</b>
+                        <span style="white-space:nowrap;">{{ $visit->master }}</span>
+                        <span style="opacity:.55;">{{ $visit->service }}</span>
+                        <span style="opacity:.4; white-space:nowrap;">{{ $visit->payment_type->label() }}</span>
+                        <span style="margin-left:auto; white-space:nowrap; text-align:right;">
+                            <span style="opacity:.5;">стоимость {{ $this->money($visit->service_price) }} · по кассе {{ $this->money($visit->paid_amount) }}</span>
+                            <b style="margin-left:.4rem; color:#f59e0b;">−{{ $this->money($visit->shortfall) }}</b>
+                        </span>
+                        @if($visit->reason !== '' || $visit->comment !== '')
+                            <span style="flex-basis:100%; opacity:.55; font-size:.78rem;">
+                                @if($visit->reason !== ''){{ $visit->reason }}@endif
+                                @if($visit->reason !== '' && $visit->comment !== '') · @endif
+                                @if($visit->comment !== ''){{ $visit->comment }}@endif
+                            </span>
+                        @endif
+                    </a>
+                @endforeach
+            </div>
+
+            <div style="font-size:.72rem; opacity:.5; margin-top:.7rem;">Зарплата мастера считается от итоговой стоимости, поэтому он получает за визит полностью. В выручку и налог идёт только сумма по кассе — на разницу выше выручка меньше наработки.</div>
+        </x-filament::section>
+    @endif
+
     {{-- Отдельный блок: проданные сертификаты + обязательства по действующим --}}
     <x-filament::section style="margin-top:1rem;">
         <div style="display:flex; align-items:baseline; flex-wrap:wrap; gap:.4rem .75rem; margin-bottom:.85rem;">

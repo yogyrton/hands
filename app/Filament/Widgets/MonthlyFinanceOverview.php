@@ -6,9 +6,11 @@ namespace App\Filament\Widgets;
 
 use App\Enums\CertificateType;
 use App\Filament\Resources\Certificates\CertificateResource;
+use App\Filament\Resources\Visits\VisitResource;
 use App\Models\Certificate;
 use App\Support\MonthlyFinance;
 use Filament\Widgets\Widget;
+use Illuminate\Database\Eloquent\Collection;
 use Illuminate\Support\Carbon;
 
 /**
@@ -148,9 +150,9 @@ class MonthlyFinanceOverview extends Widget
      * Список действующих сертификатов (те, что формируют обязательства): активны,
      * не истекли, есть остаток. По сроку окончания — что раньше сгорит, сверху.
      *
-     * @return \Illuminate\Database\Eloquent\Collection<int, Certificate>
+     * @return Collection<int, Certificate>
      */
-    public function outstandingCertsList(): \Illuminate\Database\Eloquent\Collection
+    public function outstandingCertsList(): Collection
     {
         return Certificate::query()->usable()->orderBy('expires_at')->get();
     }
@@ -204,5 +206,19 @@ class MonthlyFinanceOverview extends Widget
     public function certUrl(Certificate $certificate): string
     {
         return CertificateResource::getUrl('view', ['record' => $certificate]);
+    }
+
+    public function visitUrl(int $visitId): string
+    {
+        return VisitResource::getUrl('view', ['record' => $visitId]);
+    }
+
+    /**
+     * Общая сумма, не прошедшая по кассе из-за особых условий, — ровно на неё
+     * выручка месяца расходится с наработкой мастеров.
+     */
+    public function specialTermsTotal(): float
+    {
+        return round((float) $this->summary()->special_terms->sum('shortfall'), 2);
     }
 }

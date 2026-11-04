@@ -9,6 +9,7 @@ use App\Enums\CertificateType;
 use App\Enums\PaymentType;
 use App\Enums\UserRole;
 use App\Filament\Resources\Certificates\CertificateResource;
+use App\Filament\Resources\Visits\VisitResource;
 use App\Filament\Widgets\MonthlyFinanceOverview;
 use App\Models\Certificate;
 use App\Models\Master;
@@ -86,6 +87,47 @@ class MonthlyFinanceOverviewTest extends TestCase
             ->assertSee('Продано сертификатов · 1')
             ->assertSee('№777')
             ->assertSee(CertificateResource::getUrl('view', ['record' => $cert]));
+
+        Carbon::setTestNow();
+    }
+
+    public function test_special_terms_block_shows_only_when_such_visits_exist(): void
+    {
+        $this->actingAs(User::factory()->create(['role' => UserRole::Admin]));
+        Carbon::setTestNow('2026-09-15');
+
+        $master = Master::create([
+            'slug' => 'anna', 'name' => 'Анна Петрова', 'name_dative' => 'Анне', 'role' => 'Массажист',
+            'yclients_url' => 'https://e.com', 'bio1' => 'a', 'bio2' => 'b', 'salary_rate' => 35,
+        ]);
+        $service = Service::create(['slug' => 'classic', 'name' => 'Классический массаж', 'level' => 4, 'lead' => 'l']);
+
+        // Обычный визит — блока быть не должно.
+        Visit::create([
+            'master_id' => $master->id, 'service_id' => $service->id,
+            'base_price' => 100, 'service_price' => 100, 'paid_amount' => 100,
+            'payment_type' => PaymentType::Cash, 'performed_at' => Carbon::create(2026, 9, 5, 12),
+        ]);
+
+        Livewire::test(MonthlyFinanceOverview::class)
+            ->assertOk()
+            ->assertDontSee('Особые условия');
+
+        // Бесплатно клиенту — появляется с датой, суммами и причиной.
+        $visit = Visit::create([
+            'master_id' => $master->id, 'service_id' => $service->id,
+            'base_price' => 65, 'service_price' => 65, 'paid_amount' => 0,
+            'payment_type' => PaymentType::Card, 'discount_reason' => 'Короткин Юрий',
+            'performed_at' => Carbon::create(2026, 9, 11, 18),
+        ]);
+
+        Livewire::test(MonthlyFinanceOverview::class)
+            ->assertOk()
+            ->assertSee('Особые условия · 1')
+            ->assertSee('11.09')
+            ->assertSee('Анна Петрова')
+            ->assertSee('Короткин Юрий')
+            ->assertSee(VisitResource::getUrl('view', ['record' => $visit]));
 
         Carbon::setTestNow();
     }

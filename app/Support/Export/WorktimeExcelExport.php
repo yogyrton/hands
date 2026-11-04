@@ -9,6 +9,8 @@ use PhpOffice\PhpSpreadsheet\Cell\Coordinate;
 use PhpOffice\PhpSpreadsheet\Shared\Date as ExcelDate;
 use PhpOffice\PhpSpreadsheet\Spreadsheet;
 use PhpOffice\PhpSpreadsheet\Style\Alignment;
+use PhpOffice\PhpSpreadsheet\Style\Fill;
+use PhpOffice\PhpSpreadsheet\Worksheet\Worksheet;
 use PhpOffice\PhpSpreadsheet\Writer\Xlsx;
 
 /**
@@ -23,6 +25,20 @@ class WorktimeExcelExport
 {
     /** Колонок на одного мастера: наличные, безналичные, абонемент/сертификат. */
     private const COLS_PER_MASTER = 3;
+
+    /**
+     * Заливка блока каждого мастера — та же пастель, которой лист раскрашивался
+     * руками. Если мастеров больше, чем цветов, палитра идёт по кругу.
+     *
+     * @var array<int, string>
+     */
+    private const MASTER_COLORS = ['F4CCCC', 'D9EAD3', 'D9D2E9', 'FFF2CC', 'D0E0E3', 'FCE5CD'];
+
+    /** Колонки дневных итогов. */
+    private const TOTAL_COLOR = 'CFE2F3';
+
+    /** Строки «Сумма» и «Итого». */
+    private const SUMMARY_COLOR = 'D9D9D9';
 
     public function __construct(private readonly WorktimeExportData $data) {}
 
@@ -168,10 +184,25 @@ class WorktimeExcelExport
             .self::cell($colDayCash, $sumRow).','.self::cell($colDayCard, $sumRow).')');
 
         // --- оформление ---
+        // Заливка по блокам: у каждого мастера свой цвет, дневные итоги — синим,
+        // строки «Сумма»/«Итого» серым поверх всего (красим их последними).
+        foreach ($masterNames as $i => $name) {
+            $base = 2 + $i * self::COLS_PER_MASTER;
+            self::fill(
+                $sheet,
+                [$base, 1, $base + self::COLS_PER_MASTER - 1, $lastDataRow],
+                self::MASTER_COLORS[$i % count(self::MASTER_COLORS)],
+            );
+        }
+
+        self::fill($sheet, [$colDayCash, 1, $colDayAll, $lastDataRow], self::TOTAL_COLOR);
+        self::fill($sheet, [1, $sumRow, $colNote, $totalRow], self::SUMMARY_COLOR);
+
         $sheet->getStyle([1, 1, $colNote, 1])->getFont()->setBold(true);
         $sheet->getStyle([1, 1, $colNote, 1])->getAlignment()
             ->setWrapText(true)
-            ->setVertical(Alignment::VERTICAL_CENTER);
+            ->setVertical(Alignment::VERTICAL_CENTER)
+            ->setHorizontal(Alignment::HORIZONTAL_CENTER);
         $sheet->getStyle([1, $sumRow, $colDayAll, $totalRow])->getFont()->setBold(true);
         $sheet->getRowDimension(1)->setRowHeight(30);
 
@@ -189,6 +220,20 @@ class WorktimeExcelExport
 
         (new Xlsx($spreadsheet))->save($path);
         $spreadsheet->disconnectWorksheets();
+    }
+
+    /**
+     * Залить диапазон [колонкаОт, строкаОт, колонкаДо, строкаДо] цветом.
+     *
+     * @param  array{int, int, int, int}  $range
+     */
+    private static function fill(Worksheet $sheet, array $range, string $rgb): void
+    {
+        $sheet->getStyle($range)
+            ->getFill()
+            ->setFillType(Fill::FILL_SOLID)
+            ->getStartColor()
+            ->setRGB($rgb);
     }
 
     /**

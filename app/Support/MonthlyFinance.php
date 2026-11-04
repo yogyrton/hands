@@ -67,7 +67,42 @@ class MonthlyFinance
             'costs_total' => $costsTotal,
             'profit' => $profit,
             'certs' => self::soldCertificates($start, $end),
+            'special_terms' => self::specialTerms($start, $end),
         ];
+    }
+
+    /**
+     * Визиты на «особых условиях» за месяц: бартер, бесплатно клиенту, оплата
+     * только доли мастера — там, где по кассе прошла не итоговая стоимость.
+     * Именно на эту разницу выручка расходится с наработкой мастеров, поэтому
+     * её видно отдельным списком, а не приходится искать руками.
+     *
+     * Визиты с доплатой по сертификату сюда не попадают: у них paid_amount —
+     * это сама доплата, и расхождение там нормальное.
+     *
+     * @return Collection<int, object>
+     */
+    private static function specialTerms(Carbon $start, Carbon $end): Collection
+    {
+        return Visit::query()
+            ->with(['master', 'service'])
+            ->whereBetween('performed_at', [$start, $end])
+            ->whereIn('payment_type', ['cash', 'card'])
+            ->whereColumn('paid_amount', '!=', 'service_price')
+            ->orderBy('performed_at')
+            ->get()
+            ->map(fn (Visit $visit): object => (object) [
+                'id' => $visit->id,
+                'performed_at' => $visit->performed_at,
+                'master' => $visit->master?->name ?? 'Мастер',
+                'service' => $visit->service?->name ?? 'Услуга',
+                'payment_type' => $visit->payment_type,
+                'service_price' => (float) $visit->service_price,
+                'paid_amount' => (float) $visit->paid_amount,
+                'shortfall' => round((float) $visit->service_price - (float) $visit->paid_amount, 2),
+                'reason' => trim((string) $visit->discount_reason),
+                'comment' => trim((string) $visit->comment),
+            ]);
     }
 
     /**
